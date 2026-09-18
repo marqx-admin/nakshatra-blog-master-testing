@@ -1,7 +1,0 @@
-{"timestamp":"00:00:02.158","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:18.747","source":"Server","level":"LOG","message":"○ Compiling / ..."}
-{"timestamp":"00:00:31.703","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
-{"timestamp":"00:00:46.779","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
-{"timestamp":"00:04:17.415","source":"Server","level":"LOG","message":"✓ Compiled in 730ms"}
-{"timestamp":"00:29:30.069","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
-{"timestamp":"01:52:17.517","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}

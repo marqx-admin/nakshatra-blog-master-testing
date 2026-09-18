@@ -1,5 +1,0 @@
-{
-  "/[...path]": [
-    "static/chunks/pages/[...path].js"
-  ]
-}
