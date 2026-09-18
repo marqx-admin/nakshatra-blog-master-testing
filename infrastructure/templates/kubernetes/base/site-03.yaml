@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: site-03-daily-rashi-360, labels: {app: site-03-daily-rashi-360, component: public-site, site-key: SITE-03}}
+spec:
+  replicas: 1
+  strategy: {type: RollingUpdate, rollingUpdate: {maxUnavailable: 0, maxSurge: 1}}
+  selector: {matchLabels: {app: site-03-daily-rashi-360}}
+  template:
+    metadata: {labels: {app: site-03-daily-rashi-360, component: public-site, site-key: SITE-03}}
+    spec:
+      containers:
+      - name: site
+        image: bp/site-03-daily-rashi-360@sha256:REPLACE_DIGEST
+        ports: [{containerPort: 3000}]
+        env:
+        - {name: BP_SITE_APP_KEY, value: SITE-03}
+        readinessProbe: {httpGet: {path: /health/ready, port: 3000}, failureThreshold: 3, successThreshold: 2}
+        livenessProbe: {httpGet: {path: /health/live, port: 3000}}
+        securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, runAsNonRoot: true, runAsUser: 10001}
+        volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: site-03-daily-rashi-360}
+spec: {selector: {app: site-03-daily-rashi-360}, ports: [{port: 3000, targetPort: 3000}]}

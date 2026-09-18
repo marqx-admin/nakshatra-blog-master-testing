@@ -1,0 +1,31 @@
+{
+  "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "-v",
+    "tests/contract/test_qa_foundation.py"
+  ],
+  "completed_at": "2026-09-11T09:33:00.869155Z",
+  "description": "CHAT12 Python foundation unit tests validate registry, fixtures, visual acceptance counts, initial NOT_EXECUTED state and OpenAPI binding",
+  "environment_class": "ENV21-UNIT",
+  "evidence": [
+    {
+      "bytes": 1430,
+      "evidence_class": "EV22-TEST",
+      "path": "tests/evidence/results/foundation/C12-FND-003.log",
+      "sha256": "3c647e28f67eefeca435771cf1038cb40b89125d76b48da3a3f820c6765c1579"
+    }
+  ],
+  "executor": {
+    "executable": "/opt/pyvenv/bin/python3",
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "python": "3.13.5"
+  },
+  "kind": "FOUNDATION_CHECK",
+  "return_code": 0,
+  "started_at": "2026-09-11T09:33:00.189425Z",
+  "status": "PASS",
+  "test_id": "C12-FND-003"
+}

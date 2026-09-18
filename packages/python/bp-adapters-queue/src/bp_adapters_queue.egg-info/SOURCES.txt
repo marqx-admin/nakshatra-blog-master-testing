@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/bp_adapters/queue/__init__.py
+src/bp_adapters_queue/__init__.py
+src/bp_adapters_queue/adapter.py
+src/bp_adapters_queue/effects.py
+src/bp_adapters_queue.egg-info/PKG-INFO
+src/bp_adapters_queue.egg-info/SOURCES.txt
+src/bp_adapters_queue.egg-info/dependency_links.txt
+src/bp_adapters_queue.egg-info/requires.txt
+src/bp_adapters_queue.egg-info/top_level.txt

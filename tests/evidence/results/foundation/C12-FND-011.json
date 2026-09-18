@@ -1,0 +1,28 @@
+{
+  "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+  "command": [
+    "python3",
+    "tests/contract/source-baseline-guard.py"
+  ],
+  "completed_at": "2026-09-11T09:33:22.470706Z",
+  "description": "DOC-00-pinned source baseline and owner-approved RC7 provenance remain intact",
+  "environment_class": "ENV21-UNIT",
+  "evidence": [
+    {
+      "bytes": 432,
+      "evidence_class": "EV22-TEST",
+      "path": "tests/evidence/results/foundation/C12-FND-011.log",
+      "sha256": "99bcd89ff0c80b6c27ac7714dbd0db5e65bc80b798ee5b3a2d226a9b4a17cddb"
+    }
+  ],
+  "executor": {
+    "executable": "/opt/pyvenv/bin/python3",
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "python": "3.13.5"
+  },
+  "kind": "FOUNDATION_CHECK",
+  "return_code": 0,
+  "started_at": "2026-09-11T09:33:21.874917Z",
+  "status": "PASS",
+  "test_id": "C12-FND-011"
+}

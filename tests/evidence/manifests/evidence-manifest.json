@@ -1,0 +1,27 @@
+{
+  "candidate_id": "CHAT12-FOUNDATION-ON-CHAT01-d41bb2a3b83d",
+  "collision_fixture": "tests/fixtures/tenant-collision-v1.json",
+  "coverage_summary": "tests/evidence/coverage/coverage-summary.json",
+  "defect_register": "tests/evidence/defects/defect-register.json",
+  "foundation_evidence_dir": "tests/evidence/results/foundation",
+  "foundation_status": "PASS",
+  "foundation_summary": "tests/evidence/results/foundation/foundation-summary.json",
+  "full_qa_status": "NOT_EXECUTED",
+  "handoff_summary": "tests/evidence/CHAT12_HANDOFF.md",
+  "ownership_diff": "tests/evidence/manifests/ownership-diff.json",
+  "qa21_coverage_map": "tests/evidence/coverage/qa21-coverage-map.csv",
+  "qa21_registry": "tests/qa/qa21-registry.json",
+  "qa21_results": "tests/evidence/results/qa21/qa21-status.json",
+  "qa21_status_counts": {
+    "NOT_EXECUTED": 180
+  },
+  "release_certification": "tests/evidence/release-certification.json",
+  "release_gate_map": "tests/evidence/coverage/release-gates.csv",
+  "release_signal": "NONE",
+  "release_status": "NOT_EXECUTED",
+  "two_site_certification": "tests/evidence/two-site-certification.json",
+  "two_site_e2e_status": "NOT_EXECUTED",
+  "two_site_release_signal": "NONE",
+  "visual_acceptance_registry": "tests/qa/visual-acceptance-registry.json",
+  "visual_coverage_map": "tests/evidence/coverage/visual-coverage-map.csv"
+}

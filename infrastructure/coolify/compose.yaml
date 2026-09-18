@@ -1,0 +1,398 @@
+name: nakshatra-blog
+
+x-api-environment: &api-environment
+  BP_ENV: production
+  BP_RUNTIME_COMPOSITION: self-hosted
+  BP_HTTP_PORT: "8080"
+  BP_OPENAPI_PATH: /workspace/contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml
+  BP_ADMIN_ORIGINS: ${BP_ADMIN_ORIGIN:?Set the public HTTPS Central Admin origin}
+  BP_RESET_BASE_URL: ${BP_ADMIN_ORIGIN:?Set the public HTTPS Central Admin origin}/reset
+  BP_INVITE_SETUP_BASE_URL: ${BP_ADMIN_ORIGIN:?Set the public HTTPS Central Admin origin}/setup
+  BP_ENFORCE_HTTPS: "1"
+  BP_HSTS_INCLUDE_SUBDOMAINS: "0"
+  BP_TRUSTED_PROXY_MODE: forwarded
+  BP_POSTGRES_HOST: postgres
+  BP_POSTGRES_PORT: "5432"
+  BP_POSTGRES_DATABASE: nakshatra_blog
+  BP_POSTGRES_SSL_MODE: require
+  BP_POSTGRES_POOL_MAX: "10"
+  BP_POSTGRES_SITE_CREDENTIAL: '{"username":"db_site_runtime","password":"${SERVICE_PASSWORD_64_POSTGRES_SITE}"}'
+  BP_POSTGRES_PLATFORM_CREDENTIAL: '{"username":"db_platform_runtime","password":"${SERVICE_PASSWORD_64_POSTGRES_PLATFORM}"}'
+  BP_REDIS_CONTROL_ENDPOINT: redis://:${SERVICE_PASSWORD_64_REDIS_CONTROL}@redis-control:6379/0
+  BP_REDIS_BROKER_ENDPOINT: redis://:${SERVICE_PASSWORD_64_REDIS_BROKER}@redis-broker:6379/0
+  BP_OPENSEARCH_ENDPOINT: http://opensearch:9200
+  BP_MEDIA_BUCKET: nakshatra-media
+  BP_MEDIA_STAGING_PREFIX: staging/
+  BP_MEDIA_CDN_ORIGIN: ${BP_MEDIA_ORIGIN:?Set the public HTTPS API/media origin}
+  BP_MEDIA_ENDPOINT_URL: http://minio:9000
+  BP_MEDIA_ACCESS_KEY_ID: ${SERVICE_USER_MINIO}
+  BP_MEDIA_SECRET_ACCESS_KEY: ${SERVICE_PASSWORD_64_MINIO}
+  BP_SECURITY_STATE_ENDPOINT: http://security-state:8000
+  BP_SECURITY_STATE_TABLE: bp-security-state-production
+  BP_SECURITY_STATE_ACCESS_KEY_ID: coolify-security-state
+  BP_SECURITY_STATE_SECRET_ACCESS_KEY: ${SERVICE_PASSWORD_64_SECURITY_STATE}
+  BP_SELF_HOSTED_REGION: us-east-1
+  BP_LOCAL_ENVELOPE_KEY: ${BP_LOCAL_ENVELOPE_KEY:?Generate a Fernet key}
+  BP_LOCAL_ENVELOPE_HMAC_KEY: ${BP_LOCAL_ENVELOPE_HMAC_KEY:?Generate a 32-byte hex HMAC key}
+  BP_SMTP_HOST: ${BP_SMTP_HOST:?Set the production SMTP host}
+  BP_SMTP_PORT: ${BP_SMTP_PORT:-587}
+  BP_SMTP_CREDENTIAL: '{"username":"${BP_SMTP_USERNAME:?Set SMTP username}","password":"${BP_SMTP_PASSWORD:?Set SMTP password}"}'
+
+x-worker-environment: &worker-environment
+  BP_ENV: production
+  BP_RUNTIME_COMPOSITION: self-hosted
+  BP_POSTGRES_HOST: postgres
+  BP_POSTGRES_PORT: "5432"
+  BP_POSTGRES_DATABASE: nakshatra_blog
+  BP_POSTGRES_SSL_MODE: require
+  BP_POSTGRES_POOL_MAX: "2"
+  # An 8-core host would otherwise make every Celery worker fork eight children.
+  # One solo process per independent queue keeps the full topology within 8 GB.
+  BP_WORKER_CONCURRENCY: "1"
+  BP_WORKER_POOL: solo
+  BP_POSTGRES_SITE_CREDENTIAL: '{"username":"db_site_runtime","password":"${SERVICE_PASSWORD_64_POSTGRES_SITE}"}'
+  BP_POSTGRES_PLATFORM_CREDENTIAL: '{"username":"db_platform_runtime","password":"${SERVICE_PASSWORD_64_POSTGRES_PLATFORM}"}'
+  BP_REDIS_CONTROL_ENDPOINT: redis://:${SERVICE_PASSWORD_64_REDIS_CONTROL}@redis-control:6379/0
+  BP_REDIS_BROKER_ENDPOINT: redis://:${SERVICE_PASSWORD_64_REDIS_BROKER}@redis-broker:6379/0
+  BP_OPENSEARCH_ENDPOINT: http://opensearch:9200
+  BP_MEDIA_ENDPOINT_URL: http://minio:9000
+  BP_MEDIA_BUCKET: nakshatra-media
+  BP_MEDIA_CDN_ORIGIN: ${BP_MEDIA_ORIGIN:?Set the public HTTPS API/media origin}
+  BP_MEDIA_ACCESS_KEY_ID: ${SERVICE_USER_MINIO}
+  BP_MEDIA_SECRET_ACCESS_KEY: ${SERVICE_PASSWORD_64_MINIO}
+  BP_SELF_HOSTED_REGION: us-east-1
+
+x-worker: &worker
+  build:
+    context: ../..
+    dockerfile: infrastructure/images/worker.Dockerfile
+  restart: unless-stopped
+  mem_limit: 224m
+  environment: *worker-environment
+  depends_on:
+    roles:
+      condition: service_completed_successfully
+    minio-init:
+      condition: service_completed_successfully
+    opensearch:
+      condition: service_healthy
+    redis-control:
+      condition: service_healthy
+    redis-broker:
+      condition: service_healthy
+
+x-site: &site
+  restart: unless-stopped
+  mem_limit: 160m
+  environment:
+    BP_API_INTERNAL_ORIGIN: http://api:8080
+    NODE_OPTIONS: --max-old-space-size=96
+  depends_on:
+    api:
+      condition: service_healthy
+
+services:
+  postgres:
+    build:
+      context: ../..
+      dockerfile: infrastructure/coolify/postgres.Dockerfile
+    restart: unless-stopped
+    mem_limit: 640m
+    command:
+      - postgres
+      - -c
+      - shared_buffers=128MB
+      - -c
+      - effective_cache_size=384MB
+      - -c
+      - work_mem=2MB
+      - -c
+      - maintenance_work_mem=32MB
+      - -c
+      - max_connections=100
+    environment:
+      POSTGRES_DB: nakshatra_blog
+      POSTGRES_USER: bp_owner
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - postgres-tls:/var/lib/postgresql/tls
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bp_owner -d nakshatra_blog"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  migrate:
+    build:
+      context: ../..
+      dockerfile: infrastructure/images/migrate.Dockerfile
+    mem_limit: 256m
+    environment:
+      BP_ENV: production
+      BP_POSTGRES_HOST: postgres
+      BP_POSTGRES_PORT: "5432"
+      BP_POSTGRES_DATABASE: nakshatra_blog
+      BP_MIGRATION_DATABASE_USER: bp_owner
+      BP_POSTGRES_MIGRATION_CREDENTIAL: '{"username":"bp_owner","password":"${SERVICE_PASSWORD_64_POSTGRES}"}'
+      SITE_01_TIMEZONE: Asia/Kolkata
+      SITE_02_TIMEZONE: Asia/Kolkata
+      SITE_03_TIMEZONE: Asia/Kolkata
+      SITE_04_TIMEZONE: Asia/Kolkata
+      SITE_05_TIMEZONE: Asia/Kolkata
+      SITE_06_TIMEZONE: Asia/Kolkata
+      SITE_07_TIMEZONE: Asia/Kolkata
+      SITE_08_TIMEZONE: Asia/Kolkata
+      SITE_09_TIMEZONE: Asia/Kolkata
+      SITE_10_TIMEZONE: Asia/Kolkata
+      SITE_11_TIMEZONE: Asia/Kolkata
+      SITE_12_TIMEZONE: Asia/Kolkata
+      SITE_13_TIMEZONE: Asia/Kolkata
+      SITE_14_TIMEZONE: Asia/Kolkata
+    volumes:
+      - migration-ledger:/var/lib/bp-migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  roles:
+    build:
+      context: ../..
+      dockerfile: infrastructure/images/migrate.Dockerfile
+    command: ["python", "/workspace/infrastructure/scripts/provision_runtime_roles.py"]
+    mem_limit: 192m
+    environment:
+      BP_POSTGRES_HOST: postgres
+      BP_POSTGRES_PORT: "5432"
+      BP_POSTGRES_DATABASE: nakshatra_blog
+      BP_POSTGRES_MIGRATION_CREDENTIAL: '{"username":"bp_owner","password":"${SERVICE_PASSWORD_64_POSTGRES}"}'
+      BP_POSTGRES_SITE_CREDENTIAL: '{"username":"db_site_runtime","password":"${SERVICE_PASSWORD_64_POSTGRES_SITE}"}'
+      BP_POSTGRES_PLATFORM_CREDENTIAL: '{"username":"db_platform_runtime","password":"${SERVICE_PASSWORD_64_POSTGRES_PLATFORM}"}'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  redis-control:
+    image: redis:8.2-alpine
+    restart: unless-stopped
+    mem_limit: 128m
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "80mb", "--maxmemory-policy", "allkeys-lru", "--requirepass", "${SERVICE_PASSWORD_64_REDIS_CONTROL}"]
+    volumes:
+      - redis-control-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${SERVICE_PASSWORD_64_REDIS_CONTROL}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  redis-broker:
+    image: redis:8.2-alpine
+    restart: unless-stopped
+    mem_limit: 192m
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "noeviction", "--requirepass", "${SERVICE_PASSWORD_64_REDIS_BROKER}"]
+    volumes:
+      - redis-broker-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${SERVICE_PASSWORD_64_REDIS_BROKER}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  opensearch:
+    image: opensearchproject/opensearch:3.2.0
+    restart: unless-stopped
+    mem_limit: 896m
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms320m -Xmx320m
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9200/_cluster/health >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+
+  minio:
+    image: quay.io/minio/minio:latest
+    restart: unless-stopped
+    mem_limit: 320m
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${SERVICE_USER_MINIO}
+      MINIO_ROOT_PASSWORD: ${SERVICE_PASSWORD_64_MINIO}
+      GOMEMLIMIT: 256MiB
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9000/minio/health/live >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  minio-init:
+    image: quay.io/minio/mc:latest
+    restart: "no"
+    mem_limit: 128m
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        mc alias set storage http://minio:9000 "${SERVICE_USER_MINIO}" "${SERVICE_PASSWORD_64_MINIO}" &&
+        mc mb --ignore-existing storage/nakshatra-media &&
+        mc anonymous set none storage/nakshatra-media
+    depends_on:
+      minio:
+        condition: service_healthy
+
+  security-state:
+    image: scylladb/scylla:6.2
+    restart: unless-stopped
+    mem_limit: 640m
+    command: ["--smp", "1", "--memory", "512M", "--overprovisioned", "1", "--alternator-port", "8000", "--alternator-write-isolation", "only_rmw_uses_lwt"]
+    volumes:
+      - security-state-data:/var/lib/scylla
+
+  security-init:
+    build:
+      context: ../..
+      dockerfile: infrastructure/images/api.Dockerfile
+    command: ["python", "/workspace/bin/bootstrap_security_state.py"]
+    mem_limit: 256m
+    environment:
+      BP_SECURITY_STATE_ENDPOINT: http://security-state:8000
+      BP_SECURITY_STATE_TABLE: bp-security-state-production
+      BP_SECURITY_STATE_ACCESS_KEY_ID: coolify-security-state
+      BP_SECURITY_STATE_SECRET_ACCESS_KEY: ${SERVICE_PASSWORD_64_SECURITY_STATE}
+      BP_SELF_HOSTED_REGION: us-east-1
+    depends_on:
+      security-state:
+        condition: service_started
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infrastructure/images/api.Dockerfile
+    restart: unless-stopped
+    mem_limit: 384m
+    environment: *api-environment
+    depends_on:
+      roles:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      security-init:
+        condition: service_completed_successfully
+      redis-control:
+        condition: service_healthy
+      redis-broker:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health/ready', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+
+  worker-publish:
+    <<: *worker
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: publish
+  worker-media:
+    <<: *worker
+    mem_limit: 320m
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: media
+  worker-search:
+    <<: *worker
+    mem_limit: 256m
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: search
+  worker-sitemap:
+    <<: *worker
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: sitemap
+  worker-cache:
+    <<: *worker
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: cache
+  worker-maintenance:
+    <<: *worker
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: maintenance
+  worker-scheduler:
+    <<: *worker
+    mem_limit: 192m
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: scheduler
+
+  admin:
+    build:
+      context: ../..
+      dockerfile: infrastructure/images/admin.Dockerfile
+    restart: unless-stopped
+    mem_limit: 64m
+    depends_on:
+      api:
+        condition: service_healthy
+
+  site-01:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-01-whats-your-rashi', SITE_DIR: apps/sites/site-01-whats-your-rashi}}
+  site-02:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-02-apki-rashi', SITE_DIR: apps/sites/site-02-apki-rashi}}
+  site-03:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-03-daily-rashi-360', SITE_DIR: apps/sites/site-03-daily-rashi-360}}
+  site-04:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-04-zodiac-daily', SITE_DIR: apps/sites/site-04-zodiac-daily}}
+  site-05:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-05-daily-horoscope-360', SITE_DIR: apps/sites/site-05-daily-horoscope-360}}
+  site-06:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-06-my-horoscope-360', SITE_DIR: apps/sites/site-06-my-horoscope-360}}
+  site-07:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-07-astro-today-360', SITE_DIR: apps/sites/site-07-astro-today-360}}
+  site-08:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-08-apki-kundli', SITE_DIR: apps/sites/site-08-apki-kundli}}
+  site-09:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-09-match-your-kundli', SITE_DIR: apps/sites/site-09-match-your-kundli}}
+  site-10:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-10-apka-nakshatra', SITE_DIR: apps/sites/site-10-apka-nakshatra}}
+  site-11:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-11-janiye-panchang', SITE_DIR: apps/sites/site-11-janiye-panchang}}
+  site-12:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-12-rashi-remedies', SITE_DIR: apps/sites/site-12-rashi-remedies}}
+  site-13:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-13-apka-pandit', SITE_DIR: apps/sites/site-13-apka-pandit}}
+  site-14:
+    <<: *site
+    build: {context: ../.., dockerfile: infrastructure/images/site.Dockerfile, args: {SITE_PACKAGE: '@bp/site-14-vastu-shastra-360', SITE_DIR: apps/sites/site-14-vastu-shastra-360}}
+
+volumes:
+  postgres-data:
+  postgres-tls:
+  migration-ledger:
+  redis-control-data:
+  redis-broker-data:
+  opensearch-data:
+  minio-data:
+  security-state-data:

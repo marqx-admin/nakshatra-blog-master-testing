@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": false
+  },
+  "include": [
+    "apps/sites/*/next.config.ts",
+    "apps/sites/*/src/**/*.ts",
+    "apps/admin/src/**/*.ts",
+    "packages/ts/*/src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "tooling/scaffolds/**"
+  ]
+}

@@ -1,0 +1,3 @@
+bp-domain
+bp-ports
+pyvips<4,>=3

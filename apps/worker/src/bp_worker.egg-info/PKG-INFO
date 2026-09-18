@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: bp-worker
+Version: 0.0.0
+Requires-Python: <3.14,>=3.13
+Requires-Dist: bp-background-contracts
+Requires-Dist: bp-domain
+Requires-Dist: bp-ports
+Requires-Dist: bp-adapters-postgres
+Requires-Dist: bp-adapters-queue
+Requires-Dist: bp-adapters-redis
+Requires-Dist: bp-adapters-search
+Requires-Dist: bp-adapters-object-storage
+Requires-Dist: bp-adapters-media
+Requires-Dist: celery<5.7,>=5.6

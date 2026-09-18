@@ -1,0 +1,50 @@
+{
+  "collision_fixture": "tests/fixtures/tenant-collision-v1.json",
+  "emit_success_signal_only_when": "The deliberate SITE-01 + SITE-02 end-to-end proof actually executes against the integrated real backend and all required evidence is PASS.",
+  "prerequisites": [
+    "CHAT07 SITE-01 + SITE-02 integrated with real backend",
+    "real PostgreSQL/RLS",
+    "API",
+    "Worker",
+    "Redis/cache",
+    "search",
+    "media/object storage",
+    "public frontends",
+    "Central Admin",
+    "candidate identity"
+  ],
+  "qa21_families": [
+    "ISO",
+    "DB",
+    "API",
+    "PERM",
+    "ADM",
+    "PUB",
+    "LIFE",
+    "MED",
+    "SEO",
+    "WRK",
+    "SEC"
+  ],
+  "required_system_path": [
+    "Admin operation",
+    "API",
+    "PostgreSQL/RLS",
+    "colliding identifiers",
+    "Preview",
+    "publish",
+    "public rendering",
+    "search",
+    "cache",
+    "media",
+    "Worker",
+    "sitemap/SEO",
+    "wrong-site access denial"
+  ],
+  "sites": [
+    "SITE-01",
+    "SITE-02"
+  ],
+  "status": "NOT_EXECUTED",
+  "success_signal": "C12 - TWO_SITE_E2E_PASS"
+}

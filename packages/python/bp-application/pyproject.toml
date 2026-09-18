@@ -1,0 +1,21 @@
+[project]
+name = "bp-application"
+version = "0.0.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "bp-domain",
+  "bp-ports",
+  "argon2-cffi>=25,<26",
+]
+
+[tool.uv.sources]
+bp-domain = { workspace = true }
+bp-ports = { workspace = true }
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = true

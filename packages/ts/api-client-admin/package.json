@@ -1,0 +1,20 @@
+{
+  "name": "@bp/api-client-admin",
+  "version": "0.0.0-chat01",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "echo \"ESLint execution requires controlled toolchain materialization\""
+  },
+  "bpBoundary": "Admin transport client generated from the canonical DOC-15 RC8 YAML; operation exposure is prefix-restricted by DOC-23.",
+  "dependencies": {
+    "@bp/api-contract": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+  "command": [
+    "python3",
+    "-m",
+    "bp_test_support",
+    "--repo-root",
+    ".",
+    "validate-fixtures"
+  ],
+  "completed_at": "2026-09-11T09:32:59.517668Z",
+  "description": "Fourteen-site collision fixture preserves stable site UUIDs, intentional collisions and all 182 directed pairs",
+  "environment_class": "ENV21-UNIT",
+  "evidence": [
+    {
+      "bytes": 551,
+      "evidence_class": "EV22-TEST",
+      "path": "tests/evidence/results/foundation/C12-FND-002.log",
+      "sha256": "e8f93c246f35f143f7c2a321478efdf706e42a2f2441bc3318b8db9663b79d7e"
+    }
+  ],
+  "executor": {
+    "executable": "/opt/pyvenv/bin/python3",
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "python": "3.13.5"
+  },
+  "kind": "FOUNDATION_CHECK",
+  "return_code": 0,
+  "started_at": "2026-09-11T09:32:58.923601Z",
+  "status": "PASS",
+  "test_id": "C12-FND-002"
+}

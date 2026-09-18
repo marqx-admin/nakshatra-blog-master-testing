@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: bp-adapters-media
+Version: 0.0.0
+Requires-Python: <3.14,>=3.13
+Requires-Dist: bp-domain
+Requires-Dist: bp-ports
+Requires-Dist: pyvips<4,>=3

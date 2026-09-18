@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/bp_adapters/object_storage/__init__.py
+src/bp_adapters_object_storage/__init__.py
+src/bp_adapters_object_storage/adapter.py
+src/bp_adapters_object_storage/sitemap.py
+src/bp_adapters_object_storage.egg-info/PKG-INFO
+src/bp_adapters_object_storage.egg-info/SOURCES.txt
+src/bp_adapters_object_storage.egg-info/dependency_links.txt
+src/bp_adapters_object_storage.egg-info/requires.txt
+src/bp_adapters_object_storage.egg-info/top_level.txt

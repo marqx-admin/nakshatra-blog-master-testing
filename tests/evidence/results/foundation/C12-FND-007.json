@@ -1,0 +1,28 @@
+{
+  "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+  "command": [
+    "python3",
+    "tests/contract/no-ai-runtime-dependencies.py"
+  ],
+  "completed_at": "2026-09-11T09:33:07.118338Z",
+  "description": "No prohibited OpenAI/LLM/AI-provider runtime dependency is declared",
+  "environment_class": "ENV21-UNIT",
+  "evidence": [
+    {
+      "bytes": 445,
+      "evidence_class": "EV22-TEST",
+      "path": "tests/evidence/results/foundation/C12-FND-007.log",
+      "sha256": "6eeaa5d9d482f5226262f81a11d4401e2e386bae8d65af52a1fd8d85472382fd"
+    }
+  ],
+  "executor": {
+    "executable": "/opt/pyvenv/bin/python3",
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "python": "3.13.5"
+  },
+  "kind": "FOUNDATION_CHECK",
+  "return_code": 0,
+  "started_at": "2026-09-11T09:33:06.483721Z",
+  "status": "PASS",
+  "test_id": "C12-FND-007"
+}

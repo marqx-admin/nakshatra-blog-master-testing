@@ -1,0 +1,3 @@
+bp-domain
+bp-ports
+boto3<2,>=1.43

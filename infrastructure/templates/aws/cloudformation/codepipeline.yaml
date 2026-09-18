@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: DOC-24 CodePipeline/CodeBuild immutable promotion pipeline.
+Parameters:
+  ConnectionArn: {Type: String, NoEcho: true}
+  FullRepositoryId: {Type: String}
+  BranchName: {Type: String, Default: main}
+  ArtifactBucketName: {Type: String}
+  ServiceRoleArn: {Type: String}
+Resources:
+  PullRequestBuild:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: bp-pr-verification
+      ServiceRole: {Ref: ServiceRoleArn}
+      Artifacts: {Type: CODEPIPELINE}
+      Source: {Type: CODEPIPELINE, BuildSpec: infrastructure/templates/ci/buildspec-pr.yaml}
+      Environment: {ComputeType: BUILD_GENERAL1_MEDIUM, Image: aws/codebuild/standard:7.0, Type: LINUX_CONTAINER, PrivilegedMode: true}
+  ReleaseBuild:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: bp-release-build
+      ServiceRole: {Ref: ServiceRoleArn}
+      Artifacts: {Type: CODEPIPELINE}
+      Source: {Type: CODEPIPELINE, BuildSpec: infrastructure/templates/ci/buildspec-release.yaml}
+      Environment: {ComputeType: BUILD_GENERAL1_LARGE, Image: aws/codebuild/standard:7.0, Type: LINUX_CONTAINER, PrivilegedMode: true}
+  StagingDeploy:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: bp-staging-deploy
+      ServiceRole: {Ref: ServiceRoleArn}
+      Artifacts: {Type: CODEPIPELINE}
+      Source: {Type: CODEPIPELINE, BuildSpec: infrastructure/templates/ci/buildspec-deploy.yaml}
+      Environment: {ComputeType: BUILD_GENERAL1_MEDIUM, Image: aws/codebuild/standard:7.0, Type: LINUX_CONTAINER}
+  ProductionDeploy:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: bp-production-deploy
+      ServiceRole: {Ref: ServiceRoleArn}
+      Artifacts: {Type: CODEPIPELINE}
+      Source: {Type: CODEPIPELINE, BuildSpec: infrastructure/templates/ci/buildspec-deploy.yaml}
+      Environment: {ComputeType: BUILD_GENERAL1_MEDIUM, Image: aws/codebuild/standard:7.0, Type: LINUX_CONTAINER}
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: {Ref: ServiceRoleArn}
+      ArtifactStore: {Type: S3, Location: {Ref: ArtifactBucketName}}
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: Source
+              ActionTypeId: {Category: Source, Owner: AWS, Provider: CodeStarSourceConnection, Version: '1'}
+              Configuration: {ConnectionArn: {Ref: ConnectionArn}, FullRepositoryId: {Ref: FullRepositoryId}, BranchName: {Ref: BranchName}, DetectChanges: true}
+              OutputArtifacts: [{Name: SourceArtifact}]
+        - Name: VerifyAndBuildOnce
+          Actions:
+            - Name: ReleaseBuild
+              ActionTypeId: {Category: Build, Owner: AWS, Provider: CodeBuild, Version: '1'}
+              Configuration: {ProjectName: {Ref: ReleaseBuild}}
+              InputArtifacts: [{Name: SourceArtifact}]
+              OutputArtifacts: [{Name: ReleaseArtifact}]
+        - Name: Staging
+          Actions:
+            - Name: DeployExactArtifact
+              ActionTypeId: {Category: Build, Owner: AWS, Provider: CodeBuild, Version: '1'}
+              Configuration: {ProjectName: {Ref: StagingDeploy}}
+              InputArtifacts: [{Name: ReleaseArtifact}]
+              OutputArtifacts: [{Name: StagingEvidence}]
+        - Name: ProductionApproval
+          Actions:
+            - Name: ManualApproval
+              ActionTypeId: {Category: Approval, Owner: AWS, Provider: Manual, Version: '1'}
+        - Name: Production
+          Actions:
+            - Name: PromoteExactArtifact
+              ActionTypeId: {Category: Build, Owner: AWS, Provider: CodeBuild, Version: '1'}
+              Configuration: {ProjectName: {Ref: ProductionDeploy}}
+              InputArtifacts: [{Name: ReleaseArtifact}]

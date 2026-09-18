@@ -1,0 +1,22 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions: {nodejs: 24, python: 3.13}
+    commands:
+      - corepack enable
+      - pnpm install --frozen-lockfile
+  pre_build:
+    commands:
+      - python3 infrastructure/scripts/validate_all.py
+      - pnpm contract:check-source
+      - pnpm contract:generate
+      - pnpm contract:drift
+      - pnpm foundation:boundaries
+  build:
+    commands:
+      - pnpm foundation:check
+      - pnpm foundation:typecheck
+      - pnpm foundation:test
+      - python3 infrastructure/scripts/check_migrations.py --database-root database
+artifacts:
+  files: ["evidence/**/*"]

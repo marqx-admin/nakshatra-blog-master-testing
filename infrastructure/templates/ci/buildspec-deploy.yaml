@@ -1,0 +1,14 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - test -f release-manifest.json
+      - python3 infrastructure/scripts/validate_release_manifest.py release-manifest.json
+      - echo "Staging and Production consume the same release manifest and OCI digests; no source rebuild is permitted here."
+  build:
+    commands:
+      - echo "Apply environment Kustomize overlay after provider substitutions/signature checks."
+      - echo "Run migration preflight/job before API rollout when approved migrations are pending."
+      - echo "Production requires protected manual approval and QA21 evidence for this exact release manifest."
+artifacts:
+  files: [release-manifest.json]

@@ -1,0 +1,72 @@
+version: 1
+prefix: BP_
+explicit_non_bp_deployment_inputs:
+  - SITE_01_TIMEZONE
+  - SITE_02_TIMEZONE
+  - SITE_03_TIMEZONE
+  - SITE_04_TIMEZONE
+  - SITE_05_TIMEZONE
+  - SITE_06_TIMEZONE
+  - SITE_07_TIMEZONE
+  - SITE_08_TIMEZONE
+  - SITE_09_TIMEZONE
+  - SITE_10_TIMEZONE
+  - SITE_11_TIMEZONE
+  - SITE_12_TIMEZONE
+  - SITE_13_TIMEZONE
+  - SITE_14_TIMEZONE
+variables:
+  BP_ENV: {consumers: [all], required: true, exposure: nonsecret, enum: [development, test, staging, production]}
+  BP_RUNTIME_COMPOSITION: {consumers: [api, worker], required: false, exposure: nonsecret, enum: [two-site-e2e], note: e2e_only_runtime_wiring}
+  BP_RELEASE_SHA: {consumers: [all], required: true, exposure: nonsecret, pattern: '^[0-9a-f]{7,64}$'}
+  BP_SERVICE_NAME: {consumers: [server], required: true, exposure: nonsecret, pattern: '^(api|worker|admin|site-[0-9]{2}.*|migrate)$'}
+  BP_HTTP_PORT: {consumers: [http], required: true, exposure: nonsecret, type: integer, minimum: 1, maximum: 65535}
+  BP_LOG_LEVEL: {consumers: [server], required: true, exposure: nonsecret, enum: [DEBUG, INFO, WARNING, ERROR, CRITICAL]}
+  BP_OTEL_EXPORTER_OTLP_ENDPOINT: {consumers: [server], required_in: [staging, production], exposure: nonsecret, type: uri}
+  BP_SITE_APP_KEY: {consumers: [site], required: true, exposure: nonsecret, pattern: '^SITE-[0-9]{2}$', note: diagnostic_only_never_authority}
+  BP_API_BASE_PATH: {consumers: [browser], required: true, exposure: browser_allowlist, const: /api/v1}
+  BP_API_INTERNAL_ORIGIN: {consumers: [site], required: false, exposure: server_nonsecret, type: uri}
+  BP_TRUSTED_PROXY_MODE: {consumers: [api], required_in: [staging, production], exposure: nonsecret, type: string}
+  BP_POSTGRES_HOST: {consumers: [api, worker, migrate], required: true, exposure: server_nonsecret, type: string}
+  BP_POSTGRES_PORT: {consumers: [api, worker, migrate], required: true, exposure: server_nonsecret, type: integer, const: 5432}
+  BP_POSTGRES_DATABASE: {consumers: [api, worker, migrate], required: true, exposure: server_nonsecret, type: string}
+  BP_MIGRATION_DATABASE_USER: {consumers: [migrate], required: true, exposure: server_nonsecret, type: string}
+  BP_MIGRATION_CREDENTIAL_FILE: {consumers: [migrate], required: true, exposure: secret_reference, type: path}
+  SITE_01_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_02_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_03_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_04_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_05_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_06_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_07_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_08_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_09_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_10_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_11_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_12_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_13_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  SITE_14_TIMEZONE: {consumers: [migrate], required: true, exposure: nonsecret, type: string, note: explicit_IANA_timezone_bootstrap_input}
+  BP_POSTGRES_SSL_MODE: {consumers: [api, worker, migrate], required: true, exposure: server_nonsecret, enum: [disable, prefer, require, verify-ca, verify-full], must_equal_in: {staging: verify-full, production: verify-full}}
+  BP_POSTGRES_POOL_MAX: {consumers: [api, worker], required: true, exposure: server_nonsecret, type: integer, minimum: 1, maximum: 20}
+  BP_POSTGRES_SITE_CREDENTIAL_FILE: {consumers: [api, worker], required: true, exposure: secret_reference, type: path}
+  BP_POSTGRES_PLATFORM_CREDENTIAL_FILE: {consumers: [api, worker], required: false, exposure: secret_reference, type: path}
+  BP_REDIS_CONTROL_ENDPOINT: {consumers: [api, worker], required: true, exposure: server_nonsecret, type: uri}
+  BP_REDIS_CONTROL_PASSWORD_FILE: {consumers: [api, worker], required: false, exposure: secret_reference, type: path}
+  BP_REDIS_BROKER_ENDPOINT: {consumers: [api, worker], required: true, exposure: server_nonsecret, type: uri}
+  BP_REDIS_BROKER_PASSWORD_FILE: {consumers: [api, worker], required: false, exposure: secret_reference, type: path}
+  BP_OPENSEARCH_ENDPOINT: {consumers: [api, worker], required: true, exposure: server_nonsecret, type: uri}
+  BP_MEDIA_BUCKET: {consumers: [api, worker], required: true, exposure: server_nonsecret, type: string}
+  BP_OBJECT_STORAGE_ENDPOINT: {consumers: [worker], required: false, exposure: server_nonsecret, type: uri, note: development_test_s3_compatible_endpoint_only}
+  BP_MEDIA_STAGING_PREFIX: {consumers: [api, worker], required: true, exposure: server_nonsecret, type: string}
+  BP_MEDIA_CDN_ORIGIN: {consumers: [api, worker, public_projection], required: true, exposure: safe_output, type: uri}
+  BP_TWO_SITE_STATIC_CONTENT_FILE: {consumers: [api], required: false, exposure: server_nonsecret, type: path, note: required_only_for_two_site_e2e_composition}
+  BP_EMBED_PROVIDER_REGISTRY_FILE: {consumers: [api], required: false, exposure: server_nonsecret, type: path, note: optional_override_default_authority_config_content_embed_provider_registry_v1_json}
+  BP_SITEMAP_ARTIFACT_ROOT: {consumers: [worker], required: false, exposure: server_nonsecret, type: path, note: development_test_sitemap_artifact_root}
+  BP_SECURITY_STATE_TABLE: {consumers: [api], required: true, exposure: server_nonsecret, type: string}
+  BP_SECURITY_STATE_ENDPOINT: {consumers: [api], required: false, exposure: server_nonsecret, type: uri, note: development_test_provider_endpoint_only}
+  BP_VAULT_ADDR: {consumers: [api, worker, migrate], required: true, exposure: server_nonsecret, type: uri}
+  BP_VAULT_ROLE: {consumers: [workload], required: true, exposure: nonsecret, type: string}
+  BP_SMTP_HOST: {consumers: [api], required: true, exposure: server_nonsecret, type: string}
+  BP_SMTP_PORT: {consumers: [api], required: true, exposure: server_nonsecret, type: integer, minimum: 1, maximum: 65535}
+  BP_SMTP_CREDENTIAL_FILE: {consumers: [api], required: true, exposure: secret_reference, type: path}
+  BP_WORKER_PROFILE: {consumers: [worker], required: true, exposure: nonsecret, enum: [publish, media, search, sitemap, cache, maintenance, scheduler]}

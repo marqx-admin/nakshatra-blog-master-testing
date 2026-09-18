@@ -1,0 +1,35 @@
+[project]
+name = "bp-worker"
+version = "0.0.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "bp-background-contracts",
+  "bp-domain",
+  "bp-ports",
+  "bp-adapters-postgres",
+  "bp-adapters-queue",
+  "bp-adapters-redis",
+  "bp-adapters-search",
+  "bp-adapters-object-storage",
+  "bp-adapters-media",
+  "celery>=5.6,<5.7",
+]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = true
+
+[tool.uv.sources]
+bp-background-contracts = { workspace = true }
+bp-domain = { workspace = true }
+bp-ports = { workspace = true }
+bp-adapters-postgres = { workspace = true }
+bp-adapters-queue = { workspace = true }
+bp-adapters-redis = { workspace = true }
+bp-adapters-search = { workspace = true }
+bp-adapters-object-storage = { workspace = true }
+bp-adapters-media = { workspace = true }

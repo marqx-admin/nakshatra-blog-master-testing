@@ -1,0 +1,32 @@
+{
+  "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+  "command": [
+    "python3",
+    "-m",
+    "bp_test_support",
+    "--repo-root",
+    ".",
+    "validate-registry"
+  ],
+  "completed_at": "2026-09-11T09:32:58.338003Z",
+  "description": "QA21 registry preserves exactly 180 IDs, family counts, evidence expressions and four-state status model",
+  "environment_class": "ENV21-UNIT",
+  "evidence": [
+    {
+      "bytes": 695,
+      "evidence_class": "EV22-TEST",
+      "path": "tests/evidence/results/foundation/C12-FND-001.log",
+      "sha256": "a6832c2d353b1f16f0c20416030fae92789ecc315e4216c5d4c3fa99f322785b"
+    }
+  ],
+  "executor": {
+    "executable": "/opt/pyvenv/bin/python3",
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "python": "3.13.5"
+  },
+  "kind": "FOUNDATION_CHECK",
+  "return_code": 0,
+  "started_at": "2026-09-11T09:32:57.778290Z",
+  "status": "PASS",
+  "test_id": "C12-FND-001"
+}

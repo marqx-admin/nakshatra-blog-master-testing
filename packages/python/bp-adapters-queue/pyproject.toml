@@ -1,0 +1,24 @@
+[project]
+name = "bp-adapters-queue"
+version = "0.0.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "bp-background-contracts",
+  "bp-domain",
+  "bp-ports",
+  "celery>=5.6,<5.7",
+  "redis>=8.1,<8.2",
+]
+
+[tool.uv.sources]
+bp-background-contracts = { workspace = true }
+bp-domain = { workspace = true }
+bp-ports = { workspace = true }
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = true

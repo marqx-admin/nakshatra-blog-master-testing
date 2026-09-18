@@ -1,0 +1,41 @@
+{
+  "name": "@bp/root",
+  "private": true,
+  "version": "0.0.0-chat01",
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": ">=10 <11"
+  },
+  "scripts": {
+    "dev": "node tooling/scripts/dev.mjs",
+    "dev:admin": "corepack pnpm --filter @bp/admin dev",
+    "dev:api": "uv run --frozen --package bp-api python -m bp_api",
+    "dev:full": "node --env-file=infrastructure/local/.env.local tooling/scripts/dev.mjs",
+    "dev:sites": "node --env-file=infrastructure/local/.env.local tooling/scripts/dev-sites.mjs",
+    "local:up": "docker compose --parallel 1 -f infrastructure/local/compose.yaml --profile core --profile search --profile media --profile security up -d",
+    "test": "uv run --frozen python -m pytest -q",
+    "foundation:check": "node tooling/scripts/check-foundation.mjs",
+    "foundation:boundaries": "node tooling/scripts/check-js-boundaries.mjs && python3 tooling/scripts/check-python-boundaries.py",
+    "foundation:test": "node --test --test-concurrency=1 tests/dependency/foundation.test.mjs tests/contract/openapi-contract.test.mjs",
+    "foundation:format": "node tooling/scripts/check-format.mjs",
+    "foundation:typecheck": "tsc --noEmit -p tsconfig.foundation.json",
+    "contract:check-source": "node tooling/scripts/check-openapi-source.mjs",
+    "contract:generate": "node tooling/generators/generate-api-contract.mjs",
+    "contract:drift": "node tooling/scripts/check-generated-drift.mjs",
+    "site:scaffold": "node tooling/generators/create-public-site.mjs",
+    "turbo:check": "turbo run foundation:check",
+    "turbo:typecheck": "turbo run typecheck",
+    "contract:verify": "python3 tooling/scripts/verify-openapi-contract.py --json-out evidence/chat01/openapi-verification.json"
+  },
+  "bpTechnology": {
+    "node": "24.x",
+    "pnpm": "10.x",
+    "turborepo": "2.x",
+    "typescript": "5.x",
+    "public": "Next.js 16.3.x + React 19.x",
+    "admin": "React 19.x + Vite 7.x + React Router 7.x + TanStack Query 5.x",
+    "backend": "Python 3.13.x + FastAPI 0.141.x"
+  },
+  "bpDependencyMaterialization": "DEFERRED_ENVIRONMENT_NO_PACKAGE_REGISTRY"
+}

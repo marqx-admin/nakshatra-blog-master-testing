@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata: {name: db-migrate, labels: {app: db-migrate, component: migration}}
+spec:
+  backoffLimit: 0
+  template:
+    metadata: {labels: {app: db-migrate, component: migration}}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: bp-migrate
+      containers:
+      - name: migrate
+        image: bp/migrate@sha256:REPLACE_DIGEST
+        envFrom: [{configMapRef: {name: bp-migrate-config}}]
+        securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, runAsNonRoot: true, runAsUser: 10001}
+        volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {}}]

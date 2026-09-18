@@ -1,0 +1,68 @@
+{
+  "assets": [
+    {
+      "asset": "PostgreSQL canonical data",
+      "id": "DR20-01",
+      "rpo": "<=5m",
+      "rto": "<=60m"
+    },
+    {
+      "asset": "Private media originals",
+      "id": "DR20-02",
+      "rpo": "<=15m",
+      "rto": "<=2h"
+    },
+    {
+      "asset": "API/Admin/Auth processes",
+      "id": "DR20-03",
+      "rpo": "0 canonical data loss - stateless",
+      "rto": "<=30m after infrastructure available"
+    },
+    {
+      "asset": "Broker accepted work",
+      "id": "DR20-04",
+      "rpo": "<=5m catastrophic / 0 for normal HA restart",
+      "rto": "<=30m"
+    },
+    {
+      "asset": "Redis cache/coordination",
+      "id": "DR20-05",
+      "rpo": "No canonical RPO",
+      "rto": "<=15m service restore; lazy rebuild continues"
+    },
+    {
+      "asset": "Public search index",
+      "id": "DR20-06",
+      "rpo": "Rebuildable",
+      "rto": "<=2h site service; <=4h all-site rebuild"
+    },
+    {
+      "asset": "Sitemap artifacts",
+      "id": "DR20-07",
+      "rpo": "Rebuildable",
+      "rto": "<=2h all ACTIVE sites"
+    },
+    {
+      "asset": "Media derived variants",
+      "id": "DR20-08",
+      "rpo": "Rebuildable",
+      "rto": "<=4h backlog recovery after originals available"
+    },
+    {
+      "asset": "Admin/session ephemeral state",
+      "id": "DR20-09",
+      "rpo": "Intentionally not restored stale",
+      "rto": "<=60m auth service; users may re-login"
+    }
+  ],
+  "authority": "DOC-20 RC1 Appendix C + DOC-21 DR suite + DOC-24 RC3 deployment/recovery wiring.",
+  "backup_controls": {
+    "base_backup": "<=24h",
+    "db_recovery_window": "35d",
+    "full_platform_dr_game_day": "Every 6 months",
+    "pitr_drill": "Quarterly",
+    "postgresql_pitr": "ADOPTED",
+    "wal_archive_lag": "<=5m"
+  },
+  "current_status": "NOT_EXECUTED"
+}

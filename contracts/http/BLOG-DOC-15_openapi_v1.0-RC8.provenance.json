@@ -1,0 +1,18 @@
+{
+  "artifact": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml",
+  "authority": "BLOG-DOC-15 v1.0-RC8",
+  "status": "OWNER_APPROVED_WAVE2_CONTRACT_RECONCILIATION",
+  "sha256": "bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00",
+  "supersedes": {
+    "artifact": "BLOG-DOC-15_openapi_v1.0-RC7.yaml",
+    "sha256": "b338acb443500f06ed2141db66b416f7f0378d26fc96a57b93bfef50d19eff15"
+  },
+  "scope": [
+    "CB-W2-01",
+    "CB-W2-02",
+    "CB-W2-03",
+    "CB-W2-05",
+    "CB-W2-07"
+  ],
+  "note": "RC8 makes only owner-authorized minimum Wave-2 reconciliation changes; FastAPI /openapi.json is not canonical."
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@bp/public-contracts",
+  "version": "0.0.0-chat01",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "echo \"ESLint execution requires controlled toolchain materialization\""
+  },
+  "bpBoundary": "DOC-13 public contract package boundary. No public fields are reconstructed from prose in CHAT01.",
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}

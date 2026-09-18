@@ -1,0 +1,29 @@
+{
+  "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+  "command": [
+    "bash",
+    "-lc",
+    "python3 tests/contract/wave1-integration-guard.py && node --test tests/contract/openapi-contract.test.mjs"
+  ],
+  "completed_at": "2026-09-11T09:33:20.019704Z",
+  "description": "Integrated Wave-1 architecture/contract guard and RC7 contract test execute against this source candidate; the CHAT01-only empty-placeholder assertion is no longer applicable after CHAT02 population",
+  "environment_class": "ENV21-UNIT",
+  "evidence": [
+    {
+      "bytes": 2824,
+      "evidence_class": "EV22-TEST",
+      "path": "tests/evidence/results/foundation/C12-FND-009.log",
+      "sha256": "18e216a80c759b3ba7a83a0b1a7ab39eba580645279e5d4b79de0bd9bab18c1e"
+    }
+  ],
+  "executor": {
+    "executable": "/opt/pyvenv/bin/python3",
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "python": "3.13.5"
+  },
+  "kind": "FOUNDATION_CHECK",
+  "return_code": 0,
+  "started_at": "2026-09-11T09:33:09.015836Z",
+  "status": "PASS",
+  "test_id": "C12-FND-009"
+}

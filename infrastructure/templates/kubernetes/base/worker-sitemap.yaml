@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: worker-sitemap, labels: {app: worker, component: worker-sitemap}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: worker, profile: sitemap}}
+  template:
+    metadata: {labels: {app: worker, profile: sitemap, component: worker-sitemap}}
+    spec:
+      terminationGracePeriodSeconds: 120
+      serviceAccountName: bp-worker
+      containers:
+      - name: worker
+        image: bp/worker@sha256:REPLACE_DIGEST
+        env:
+        - {name: BP_WORKER_PROFILE, value: sitemap}
+        envFrom: [{configMapRef: {name: bp-worker-config}}]
+        resources: {requests: {cpu: 200m, memory: 256Mi}, limits: {cpu: "2", memory: 1Gi}}
+        securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, runAsNonRoot: true, runAsUser: 10001}
+        volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {}}]

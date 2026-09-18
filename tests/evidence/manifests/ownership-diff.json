@@ -1,0 +1,12 @@
+{
+  "pristine_source": "WAVE1-INTEGRATED-4f08467ef901",
+  "pristine_source_sha256": "4f08467ef9010deb8c78d2a9a8807041e78be53ece441c308ab8815d569469cf",
+  "changed_file_count": 104,
+  "changed_outside_owned_roots": [],
+  "owned_roots": [
+    "tests/",
+    "packages/python/bp-test-support/"
+  ],
+  "integration_note": "CHAT03 tests are preserved under tests/; CHAT12 is continuing test-tree owner after Wave-1 integration.",
+  "status": "PASS"
+}

@@ -1,0 +1,22 @@
+{
+  "authority": "DOC-23 v1.0-RC2",
+  "mapping": {
+    "packages/python/bp-domain": "bp_domain",
+    "packages/python/bp-ports": "bp_ports",
+    "packages/python/bp-application": "bp_application",
+    "packages/python/bp-background-contracts": "bp_background_contracts",
+    "packages/python/bp-adapters-postgres": "bp_adapters.postgres",
+    "packages/python/bp-adapters-redis": "bp_adapters.redis",
+    "packages/python/bp-adapters-queue": "bp_adapters.queue",
+    "packages/python/bp-adapters-search": "bp_adapters.search",
+    "packages/python/bp-adapters-object-storage": "bp_adapters.object_storage",
+    "packages/python/bp-adapters-media": "bp_adapters.media",
+    "packages/python/bp-adapters-security-store": "bp_adapters.security_store",
+    "packages/python/bp-adapters-secrets": "bp_adapters.secrets",
+    "packages/python/bp-adapters-mail": "bp_adapters.mail",
+    "packages/python/bp-observability": "bp_observability",
+    "packages/python/bp-test-support": "bp_test_support",
+    "apps/api": "bp_api",
+    "apps/worker": "bp_worker"
+  }
+}

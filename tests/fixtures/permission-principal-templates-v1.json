@@ -1,0 +1,67 @@
+{
+  "authority": "DOC-21 section 6 PERMISSION-USERS; exact permission semantics remain DOC-02 authority.",
+  "principals": [
+    {
+      "fixture_id": "PRINCIPAL-NO-ROLE",
+      "kind": "no-role",
+      "permission_key_parameters": [],
+      "site_assignment": "SITE-01"
+    },
+    {
+      "fixture_id": "PRINCIPAL-VIEW-ONLY",
+      "kind": "view-only",
+      "permission_key_parameters": [
+        "view_permission_under_test"
+      ],
+      "site_assignment": "SITE-01"
+    },
+    {
+      "fixture_id": "PRINCIPAL-EXACT-ACTION",
+      "kind": "exact-action",
+      "permission_key_parameters": [
+        "exact_action_permission_under_test",
+        "all_required_prerequisites"
+      ],
+      "site_assignment": "SITE-01"
+    },
+    {
+      "fixture_id": "PRINCIPAL-MISSING-PREREQUISITE",
+      "intentionally_omits": "required prerequisite permission",
+      "kind": "missing-prerequisite",
+      "permission_key_parameters": [
+        "action_permission_under_test"
+      ],
+      "site_assignment": "SITE-01"
+    },
+    {
+      "fixture_id": "PRINCIPAL-SITE-ASSIGNED",
+      "kind": "SITE-assigned",
+      "permission_key_parameters": [
+        "permissions_required_by_test"
+      ],
+      "site_assignment": "SITE-01"
+    },
+    {
+      "fixture_id": "PRINCIPAL-OTHER-SITE-ASSIGNED",
+      "kind": "other-site-assigned",
+      "permission_key_parameters": [
+        "permissions_required_by_test"
+      ],
+      "site_assignment": "SITE-02"
+    },
+    {
+      "fixture_id": "PRINCIPAL-GLOBAL-ONLY",
+      "kind": "GLOBAL-only",
+      "permission_key_parameters": [
+        "global_permission_required_by_test"
+      ],
+      "site_assignment": null
+    },
+    {
+      "fixture_id": "PRINCIPAL-DESIGNATED-SUPER-ADMIN",
+      "kind": "designated Super Admin",
+      "source": "reference the existing designated Super Admin fixture; never create a second one"
+    }
+  ],
+  "rule": "Templates do not invent roles or permission keys. Runtime fixture builders substitute only existing DOC-02 permission keys/prerequisites for the operation under test."
+}

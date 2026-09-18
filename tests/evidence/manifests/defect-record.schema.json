@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CHAT12 Defect Record",
+  "type": "object",
+  "required": ["defect_id", "test_id", "instance", "candidate_id", "owner_chat", "owning_requirement", "summary", "first_seen_at", "evidence"],
+  "properties": {
+    "defect_id": {"type": "string", "minLength": 1},
+    "test_id": {"type": "string", "minLength": 1},
+    "instance": {"type": "string", "minLength": 1},
+    "candidate_id": {"type": "string", "minLength": 1},
+    "owner_chat": {"type": "string", "minLength": 1},
+    "owning_requirement": {"type": "string", "minLength": 1},
+    "summary": {"type": "string", "minLength": 1},
+    "first_seen_at": {"type": "string", "minLength": 1},
+    "evidence": {"type": "array"},
+    "resolved_at": {"type": ["string", "null"]},
+    "fix_candidate_id": {"type": ["string", "null"]},
+    "retest_evidence": {"type": "array"}
+  },
+  "additionalProperties": false
+}

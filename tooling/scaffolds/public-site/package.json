@@ -1,0 +1,21 @@
+{
+  "name": "__PACKAGE__",
+  "version": "0.0.0-chat01",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "foundation:check": "node ../../../tooling/scripts/check-site-package.mjs __FOLDER__",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "bp": {
+    "appId": "__APP_ID__",
+    "siteId": "__SITE_ID__",
+    "canonicalDomain": "__DOMAIN__",
+    "role": "public-site",
+    "frameworkLine": "Next.js 16.3.x + React 19.x + TypeScript 5.x",
+    "tenantAuthority": "trusted Host -> SiteContext; package metadata is diagnostic only"
+  }
+}

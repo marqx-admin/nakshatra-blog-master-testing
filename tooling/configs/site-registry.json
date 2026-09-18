@@ -1,0 +1,100 @@
+[
+  {
+    "app_id": "APP-01",
+    "site_id": "SITE-01",
+    "canonical_domain": "WhatsYourRashi.in",
+    "folder": "site-01-whats-your-rashi",
+    "package": "@bp/site-01-whats-your-rashi"
+  },
+  {
+    "app_id": "APP-02",
+    "site_id": "SITE-02",
+    "canonical_domain": "ApkiRashi.com",
+    "folder": "site-02-apki-rashi",
+    "package": "@bp/site-02-apki-rashi"
+  },
+  {
+    "app_id": "APP-03",
+    "site_id": "SITE-03",
+    "canonical_domain": "DailyRashi360.com",
+    "folder": "site-03-daily-rashi-360",
+    "package": "@bp/site-03-daily-rashi-360"
+  },
+  {
+    "app_id": "APP-04",
+    "site_id": "SITE-04",
+    "canonical_domain": "ZodiacDaily.in",
+    "folder": "site-04-zodiac-daily",
+    "package": "@bp/site-04-zodiac-daily"
+  },
+  {
+    "app_id": "APP-05",
+    "site_id": "SITE-05",
+    "canonical_domain": "DailyHoroscope360.com",
+    "folder": "site-05-daily-horoscope-360",
+    "package": "@bp/site-05-daily-horoscope-360"
+  },
+  {
+    "app_id": "APP-06",
+    "site_id": "SITE-06",
+    "canonical_domain": "MyHoroscope360.com",
+    "folder": "site-06-my-horoscope-360",
+    "package": "@bp/site-06-my-horoscope-360"
+  },
+  {
+    "app_id": "APP-07",
+    "site_id": "SITE-07",
+    "canonical_domain": "AstroToday360.com",
+    "folder": "site-07-astro-today-360",
+    "package": "@bp/site-07-astro-today-360"
+  },
+  {
+    "app_id": "APP-08",
+    "site_id": "SITE-08",
+    "canonical_domain": "ApkiKundli.com",
+    "folder": "site-08-apki-kundli",
+    "package": "@bp/site-08-apki-kundli"
+  },
+  {
+    "app_id": "APP-09",
+    "site_id": "SITE-09",
+    "canonical_domain": "MatchYourKundli.com",
+    "folder": "site-09-match-your-kundli",
+    "package": "@bp/site-09-match-your-kundli"
+  },
+  {
+    "app_id": "APP-10",
+    "site_id": "SITE-10",
+    "canonical_domain": "ApkaNakshatra.com",
+    "folder": "site-10-apka-nakshatra",
+    "package": "@bp/site-10-apka-nakshatra"
+  },
+  {
+    "app_id": "APP-11",
+    "site_id": "SITE-11",
+    "canonical_domain": "JaniyePanchang.com",
+    "folder": "site-11-janiye-panchang",
+    "package": "@bp/site-11-janiye-panchang"
+  },
+  {
+    "app_id": "APP-12",
+    "site_id": "SITE-12",
+    "canonical_domain": "RashiRemedies.com",
+    "folder": "site-12-rashi-remedies",
+    "package": "@bp/site-12-rashi-remedies"
+  },
+  {
+    "app_id": "APP-13",
+    "site_id": "SITE-13",
+    "canonical_domain": "ApkaPandit.in",
+    "folder": "site-13-apka-pandit",
+    "package": "@bp/site-13-apka-pandit"
+  },
+  {
+    "app_id": "APP-14",
+    "site_id": "SITE-14",
+    "canonical_domain": "VastuShastra360.in",
+    "folder": "site-14-vastu-shastra-360",
+    "package": "@bp/site-14-vastu-shastra-360"
+  }
+]

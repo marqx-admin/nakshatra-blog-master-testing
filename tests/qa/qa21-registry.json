@@ -1,0 +1,2961 @@
+{
+  "allowed_result_statuses": [
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "NOT_EXECUTED"
+  ],
+  "authority": "DOC-21 RC2 deterministic QA IDs + DOC-22 RC2 Appendix D evidence mapping",
+  "family_counts": {
+    "A11Y": 10,
+    "ADM": 10,
+    "API": 10,
+    "CONC": 12,
+    "DB": 10,
+    "DR": 8,
+    "ISO": 16,
+    "LIFE": 10,
+    "MED": 10,
+    "PERF": 12,
+    "PERM": 12,
+    "PUB": 10,
+    "REG": 10,
+    "SEC": 16,
+    "SEO": 12,
+    "WRK": 12
+  },
+  "qa21_total": 180,
+  "release_gates": [
+    {
+      "exit_condition": "No frozen-count/OpenAPI/import drift.",
+      "families": [
+        "REG",
+        "API"
+      ],
+      "gate_id": "G21-0",
+      "name": "Contract/static"
+    },
+    {
+      "exit_condition": "100% PASS; any leak stops all later gates.",
+      "families": [
+        "ISO",
+        "DB"
+      ],
+      "gate_id": "G21-1",
+      "name": "Isolation/data"
+    },
+    {
+      "exit_condition": "100% PASS; no bypass/secret/privacy failure.",
+      "families": [
+        "PERM",
+        "SEC"
+      ],
+      "gate_id": "G21-2",
+      "name": "Authorization/security"
+    },
+    {
+      "exit_condition": "100% PASS across required parameter matrices.",
+      "families": [
+        "ADM",
+        "PUB",
+        "CONC",
+        "LIFE",
+        "MED",
+        "SEO",
+        "WRK"
+      ],
+      "gate_id": "G21-3",
+      "name": "Functional/runtime"
+    },
+    {
+      "exit_condition": "All frozen WCAG/semantic/responsive assertions PASS.",
+      "families": [
+        "A11Y"
+      ],
+      "gate_id": "G21-4",
+      "name": "Accessibility"
+    },
+    {
+      "exit_condition": "All DOC-20 numeric SLO/fairness/load gates PASS.",
+      "families": [
+        "PERF"
+      ],
+      "gate_id": "G21-5",
+      "name": "Performance"
+    },
+    {
+      "exit_condition": "Required PITR/media/derived/full-DR drill evidence current and PASS.",
+      "families": [
+        "DR"
+      ],
+      "gate_id": "G21-6",
+      "name": "Recovery"
+    },
+    {
+      "exit_condition": "Final REG smoke and failure-neighbor reruns have no unresolved release failure.",
+      "families": [
+        "REG"
+      ],
+      "gate_id": "G21-7",
+      "name": "Final regression"
+    }
+  ],
+  "tests": [
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-001",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-002",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-003",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-004",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-005",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-006",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-007",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-008",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-009",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-010",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-011",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-012",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-013",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-014",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-015",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 9",
+      "expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ],
+      "family": "ISO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ISO-016",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB/REDIS/QUEUE as applicable"
+    },
+    {
+      "definition_authority": "DOC-21 section 10",
+      "expected_behavior_authority": [
+        "DOC-08"
+      ],
+      "family": "DB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DB-001",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 10",
+      "expected_behavior_authority": [
+        "DOC-08"
+      ],
+      "family": "DB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DB-002",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 10",
+      "expected_behavior_authority": [
+        "DOC-08"
+      ],
+      "family": "DB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DB-003",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 10",
+      "expected_behavior_authority": [
+        "DOC-08"
+      ],
+      "family": "DB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DB-004",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 10",
+      "expected_behavior_authority": [
+        "DOC-08"
+      ],
+      "family": "DB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DB-005",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 10",
+      "expected_behavior_authority": [
+        "DOC-08"
+      ],
+      "family": "DB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DB-006",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 10",
+      "expected_behavior_authority": [
+        "DOC-08"
+      ],
+      "family": "DB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DB-007",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 10",
+      "expected_behavior_authority": [
+        "DOC-08"
+      ],
+      "family": "DB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DB-008",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 10",
+      "expected_behavior_authority": [
+        "DOC-08"
+      ],
+      "family": "DB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DB-009",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 10",
+      "expected_behavior_authority": [
+        "DOC-08"
+      ],
+      "family": "DB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DB-010",
+      "release_gates": [
+        "G21-1"
+      ],
+      "required_evidence_expression": "EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 11",
+      "expected_behavior_authority": [
+        "DOC-15 RC8",
+        "approved RC8 OpenAPI YAML"
+      ],
+      "family": "API",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-API-001",
+      "release_gates": [
+        "G21-0"
+      ],
+      "required_evidence_expression": "EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 11",
+      "expected_behavior_authority": [
+        "DOC-15 RC8",
+        "approved RC8 OpenAPI YAML"
+      ],
+      "family": "API",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-API-002",
+      "release_gates": [
+        "G21-0"
+      ],
+      "required_evidence_expression": "EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 11",
+      "expected_behavior_authority": [
+        "DOC-15 RC8",
+        "approved RC8 OpenAPI YAML"
+      ],
+      "family": "API",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-API-003",
+      "release_gates": [
+        "G21-0"
+      ],
+      "required_evidence_expression": "EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 11",
+      "expected_behavior_authority": [
+        "DOC-15 RC8",
+        "approved RC8 OpenAPI YAML"
+      ],
+      "family": "API",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-API-004",
+      "release_gates": [
+        "G21-0"
+      ],
+      "required_evidence_expression": "EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 11",
+      "expected_behavior_authority": [
+        "DOC-15 RC8",
+        "approved RC8 OpenAPI YAML"
+      ],
+      "family": "API",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-API-005",
+      "release_gates": [
+        "G21-0"
+      ],
+      "required_evidence_expression": "EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 11",
+      "expected_behavior_authority": [
+        "DOC-15 RC8",
+        "approved RC8 OpenAPI YAML"
+      ],
+      "family": "API",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-API-006",
+      "release_gates": [
+        "G21-0"
+      ],
+      "required_evidence_expression": "EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 11",
+      "expected_behavior_authority": [
+        "DOC-15 RC8",
+        "approved RC8 OpenAPI YAML"
+      ],
+      "family": "API",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-API-007",
+      "release_gates": [
+        "G21-0"
+      ],
+      "required_evidence_expression": "EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 11",
+      "expected_behavior_authority": [
+        "DOC-15 RC8",
+        "approved RC8 OpenAPI YAML"
+      ],
+      "family": "API",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-API-008",
+      "release_gates": [
+        "G21-0"
+      ],
+      "required_evidence_expression": "EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 11",
+      "expected_behavior_authority": [
+        "DOC-15 RC8",
+        "approved RC8 OpenAPI YAML"
+      ],
+      "family": "API",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-API-009",
+      "release_gates": [
+        "G21-0"
+      ],
+      "required_evidence_expression": "EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 11",
+      "expected_behavior_authority": [
+        "DOC-15 RC8",
+        "approved RC8 OpenAPI YAML"
+      ],
+      "family": "API",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-API-010",
+      "release_gates": [
+        "G21-0"
+      ],
+      "required_evidence_expression": "EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-001",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-002",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-003",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-004",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-005",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-006",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-007",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-008",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-009",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-010",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-011",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 12",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "PERM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERM-012",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 13",
+      "expected_behavior_authority": [
+        "DOC-06",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-25 RC3"
+      ],
+      "family": "ADM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ADM-001",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 13",
+      "expected_behavior_authority": [
+        "DOC-06",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-25 RC3"
+      ],
+      "family": "ADM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ADM-002",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 13",
+      "expected_behavior_authority": [
+        "DOC-06",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-25 RC3"
+      ],
+      "family": "ADM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ADM-003",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 13",
+      "expected_behavior_authority": [
+        "DOC-06",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-25 RC3"
+      ],
+      "family": "ADM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ADM-004",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 13",
+      "expected_behavior_authority": [
+        "DOC-06",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-25 RC3"
+      ],
+      "family": "ADM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ADM-005",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 13",
+      "expected_behavior_authority": [
+        "DOC-06",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-25 RC3"
+      ],
+      "family": "ADM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ADM-006",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 13",
+      "expected_behavior_authority": [
+        "DOC-06",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-25 RC3"
+      ],
+      "family": "ADM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ADM-007",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 13",
+      "expected_behavior_authority": [
+        "DOC-06",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-25 RC3"
+      ],
+      "family": "ADM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ADM-008",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 13",
+      "expected_behavior_authority": [
+        "DOC-06",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-25 RC3"
+      ],
+      "family": "ADM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ADM-009",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 13",
+      "expected_behavior_authority": [
+        "DOC-06",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-25 RC3"
+      ],
+      "family": "ADM",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-ADM-010",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 14",
+      "expected_behavior_authority": [
+        "DOC-05",
+        "DOC-09",
+        "DOC-11",
+        "DOC-12",
+        "DOC-13",
+        "DOC-14",
+        "DOC-15 RC8",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "PUB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PUB-001",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 14",
+      "expected_behavior_authority": [
+        "DOC-05",
+        "DOC-09",
+        "DOC-11",
+        "DOC-12",
+        "DOC-13",
+        "DOC-14",
+        "DOC-15 RC8",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "PUB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PUB-002",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 14",
+      "expected_behavior_authority": [
+        "DOC-05",
+        "DOC-09",
+        "DOC-11",
+        "DOC-12",
+        "DOC-13",
+        "DOC-14",
+        "DOC-15 RC8",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "PUB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PUB-003",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 14",
+      "expected_behavior_authority": [
+        "DOC-05",
+        "DOC-09",
+        "DOC-11",
+        "DOC-12",
+        "DOC-13",
+        "DOC-14",
+        "DOC-15 RC8",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "PUB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PUB-004",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 14",
+      "expected_behavior_authority": [
+        "DOC-05",
+        "DOC-09",
+        "DOC-11",
+        "DOC-12",
+        "DOC-13",
+        "DOC-14",
+        "DOC-15 RC8",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "PUB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PUB-005",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 14",
+      "expected_behavior_authority": [
+        "DOC-05",
+        "DOC-09",
+        "DOC-11",
+        "DOC-12",
+        "DOC-13",
+        "DOC-14",
+        "DOC-15 RC8",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "PUB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PUB-006",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 14",
+      "expected_behavior_authority": [
+        "DOC-05",
+        "DOC-09",
+        "DOC-11",
+        "DOC-12",
+        "DOC-13",
+        "DOC-14",
+        "DOC-15 RC8",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "PUB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PUB-007",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 14",
+      "expected_behavior_authority": [
+        "DOC-05",
+        "DOC-09",
+        "DOC-11",
+        "DOC-12",
+        "DOC-13",
+        "DOC-14",
+        "DOC-15 RC8",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "PUB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PUB-008",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 14",
+      "expected_behavior_authority": [
+        "DOC-05",
+        "DOC-09",
+        "DOC-11",
+        "DOC-12",
+        "DOC-13",
+        "DOC-14",
+        "DOC-15 RC8",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "PUB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PUB-009",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 14",
+      "expected_behavior_authority": [
+        "DOC-05",
+        "DOC-09",
+        "DOC-11",
+        "DOC-12",
+        "DOC-13",
+        "DOC-14",
+        "DOC-15 RC8",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "PUB",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PUB-010",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-001",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-002",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-003",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-004",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-005",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-006",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-007",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-008",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-009",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-010",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-011",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 15",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ],
+      "family": "CONC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-CONC-012",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 16",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-19 RC3"
+      ],
+      "family": "LIFE",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-LIFE-001",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-QUEUE + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 16",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-19 RC3"
+      ],
+      "family": "LIFE",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-LIFE-002",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-QUEUE + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 16",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-19 RC3"
+      ],
+      "family": "LIFE",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-LIFE-003",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-QUEUE + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 16",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-19 RC3"
+      ],
+      "family": "LIFE",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-LIFE-004",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-QUEUE + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 16",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-19 RC3"
+      ],
+      "family": "LIFE",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-LIFE-005",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-QUEUE + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 16",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-19 RC3"
+      ],
+      "family": "LIFE",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-LIFE-006",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-QUEUE + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 16",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-19 RC3"
+      ],
+      "family": "LIFE",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-LIFE-007",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-QUEUE + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 16",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-19 RC3"
+      ],
+      "family": "LIFE",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-LIFE-008",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-QUEUE + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 16",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-19 RC3"
+      ],
+      "family": "LIFE",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-LIFE-009",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-QUEUE + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 16",
+      "expected_behavior_authority": [
+        "DOC-07",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-19 RC3"
+      ],
+      "family": "LIFE",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-LIFE-010",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-DB + EV21-QUEUE + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 17",
+      "expected_behavior_authority": [
+        "DOC-17 RC3"
+      ],
+      "family": "MED",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-MED-001",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-MEDIA + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 17",
+      "expected_behavior_authority": [
+        "DOC-17 RC3"
+      ],
+      "family": "MED",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-MED-002",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-MEDIA + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 17",
+      "expected_behavior_authority": [
+        "DOC-17 RC3"
+      ],
+      "family": "MED",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-MED-003",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-MEDIA + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 17",
+      "expected_behavior_authority": [
+        "DOC-17 RC3"
+      ],
+      "family": "MED",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-MED-004",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-MEDIA + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 17",
+      "expected_behavior_authority": [
+        "DOC-17 RC3"
+      ],
+      "family": "MED",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-MED-005",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-MEDIA + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 17",
+      "expected_behavior_authority": [
+        "DOC-17 RC3"
+      ],
+      "family": "MED",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-MED-006",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-MEDIA + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 17",
+      "expected_behavior_authority": [
+        "DOC-17 RC3"
+      ],
+      "family": "MED",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-MED-007",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-MEDIA + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 17",
+      "expected_behavior_authority": [
+        "DOC-17 RC3"
+      ],
+      "family": "MED",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-MED-008",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-MEDIA + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 17",
+      "expected_behavior_authority": [
+        "DOC-17 RC3"
+      ],
+      "family": "MED",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-MED-009",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-MEDIA + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 17",
+      "expected_behavior_authority": [
+        "DOC-17 RC3"
+      ],
+      "family": "MED",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-MED-010",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-MEDIA + EV21-HTTP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-001",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-002",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-003",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-004",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-005",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-006",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-007",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-008",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-009",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-010",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-011",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 18",
+      "expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ],
+      "family": "SEO",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEO-012",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-SEARCH + EV21-SITEMAP"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-001",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-002",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-003",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-004",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-005",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-006",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-007",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-008",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-009",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-010",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-011",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 19",
+      "expected_behavior_authority": [
+        "DOC-18 RC3"
+      ],
+      "family": "WRK",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-WRK-012",
+      "release_gates": [
+        "G21-3"
+      ],
+      "required_evidence_expression": "EV21-QUEUE + EV21-REDIS + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-001",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-002",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-003",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-004",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-005",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-006",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-007",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-008",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-009",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-010",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-011",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-012",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-013",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-014",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-015",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 20",
+      "expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ],
+      "family": "SEC",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-SEC-016",
+      "release_gates": [
+        "G21-2"
+      ],
+      "required_evidence_expression": "EV21-HTTP + EV21-AUDIT"
+    },
+    {
+      "definition_authority": "DOC-21 section 21",
+      "expected_behavior_authority": [
+        "DOC-12",
+        "DOC-21",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "A11Y",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-A11Y-001",
+      "release_gates": [
+        "G21-4"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-A11Y"
+    },
+    {
+      "definition_authority": "DOC-21 section 21",
+      "expected_behavior_authority": [
+        "DOC-12",
+        "DOC-21",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "A11Y",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-A11Y-002",
+      "release_gates": [
+        "G21-4"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-A11Y"
+    },
+    {
+      "definition_authority": "DOC-21 section 21",
+      "expected_behavior_authority": [
+        "DOC-12",
+        "DOC-21",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "A11Y",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-A11Y-003",
+      "release_gates": [
+        "G21-4"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-A11Y"
+    },
+    {
+      "definition_authority": "DOC-21 section 21",
+      "expected_behavior_authority": [
+        "DOC-12",
+        "DOC-21",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "A11Y",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-A11Y-004",
+      "release_gates": [
+        "G21-4"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-A11Y"
+    },
+    {
+      "definition_authority": "DOC-21 section 21",
+      "expected_behavior_authority": [
+        "DOC-12",
+        "DOC-21",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "A11Y",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-A11Y-005",
+      "release_gates": [
+        "G21-4"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-A11Y"
+    },
+    {
+      "definition_authority": "DOC-21 section 21",
+      "expected_behavior_authority": [
+        "DOC-12",
+        "DOC-21",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "A11Y",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-A11Y-006",
+      "release_gates": [
+        "G21-4"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-A11Y"
+    },
+    {
+      "definition_authority": "DOC-21 section 21",
+      "expected_behavior_authority": [
+        "DOC-12",
+        "DOC-21",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "A11Y",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-A11Y-007",
+      "release_gates": [
+        "G21-4"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-A11Y"
+    },
+    {
+      "definition_authority": "DOC-21 section 21",
+      "expected_behavior_authority": [
+        "DOC-12",
+        "DOC-21",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "A11Y",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-A11Y-008",
+      "release_gates": [
+        "G21-4"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-A11Y"
+    },
+    {
+      "definition_authority": "DOC-21 section 21",
+      "expected_behavior_authority": [
+        "DOC-12",
+        "DOC-21",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "A11Y",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-A11Y-009",
+      "release_gates": [
+        "G21-4"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-A11Y"
+    },
+    {
+      "definition_authority": "DOC-21 section 21",
+      "expected_behavior_authority": [
+        "DOC-12",
+        "DOC-21",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ],
+      "family": "A11Y",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-A11Y-010",
+      "release_gates": [
+        "G21-4"
+      ],
+      "required_evidence_expression": "EV21-UI + EV21-A11Y"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-001",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-002",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-003",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-004",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-005",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-006",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-007",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-008",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-009",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-010",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-011",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 22",
+      "expected_behavior_authority": [
+        "DOC-20 RC2"
+      ],
+      "family": "PERF",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-PERF-012",
+      "release_gates": [
+        "G21-5"
+      ],
+      "required_evidence_expression": "EV21-METRIC + EV21-TRACE"
+    },
+    {
+      "definition_authority": "DOC-21 section 23",
+      "expected_behavior_authority": [
+        "DOC-20 RC2",
+        "DOC-24 RC4"
+      ],
+      "family": "DR",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DR-001",
+      "release_gates": [
+        "G21-6"
+      ],
+      "required_evidence_expression": "EV21-BACKUP + EV21-RESTORE + EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 23",
+      "expected_behavior_authority": [
+        "DOC-20 RC2",
+        "DOC-24 RC4"
+      ],
+      "family": "DR",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DR-002",
+      "release_gates": [
+        "G21-6"
+      ],
+      "required_evidence_expression": "EV21-BACKUP + EV21-RESTORE + EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 23",
+      "expected_behavior_authority": [
+        "DOC-20 RC2",
+        "DOC-24 RC4"
+      ],
+      "family": "DR",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DR-003",
+      "release_gates": [
+        "G21-6"
+      ],
+      "required_evidence_expression": "EV21-BACKUP + EV21-RESTORE + EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 23",
+      "expected_behavior_authority": [
+        "DOC-20 RC2",
+        "DOC-24 RC4"
+      ],
+      "family": "DR",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DR-004",
+      "release_gates": [
+        "G21-6"
+      ],
+      "required_evidence_expression": "EV21-BACKUP + EV21-RESTORE + EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 23",
+      "expected_behavior_authority": [
+        "DOC-20 RC2",
+        "DOC-24 RC4"
+      ],
+      "family": "DR",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DR-005",
+      "release_gates": [
+        "G21-6"
+      ],
+      "required_evidence_expression": "EV21-BACKUP + EV21-RESTORE + EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 23",
+      "expected_behavior_authority": [
+        "DOC-20 RC2",
+        "DOC-24 RC4"
+      ],
+      "family": "DR",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DR-006",
+      "release_gates": [
+        "G21-6"
+      ],
+      "required_evidence_expression": "EV21-BACKUP + EV21-RESTORE + EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 23",
+      "expected_behavior_authority": [
+        "DOC-20 RC2",
+        "DOC-24 RC4"
+      ],
+      "family": "DR",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DR-007",
+      "release_gates": [
+        "G21-6"
+      ],
+      "required_evidence_expression": "EV21-BACKUP + EV21-RESTORE + EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 23",
+      "expected_behavior_authority": [
+        "DOC-20 RC2",
+        "DOC-24 RC4"
+      ],
+      "family": "DR",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-DR-008",
+      "release_gates": [
+        "G21-6"
+      ],
+      "required_evidence_expression": "EV21-BACKUP + EV21-RESTORE + EV21-DB"
+    },
+    {
+      "definition_authority": "DOC-21 section 24",
+      "expected_behavior_authority": [
+        "DOC-01 through DOC-20",
+        "DOC-23 RC3",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2 as applicable"
+      ],
+      "family": "REG",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-REG-001",
+      "release_gates": [
+        "G21-0",
+        "G21-7"
+      ],
+      "required_evidence_expression": "EV21-HTTP/DB/UI as assertion requires"
+    },
+    {
+      "definition_authority": "DOC-21 section 24",
+      "expected_behavior_authority": [
+        "DOC-01 through DOC-20",
+        "DOC-23 RC3",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2 as applicable"
+      ],
+      "family": "REG",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-REG-002",
+      "release_gates": [
+        "G21-0",
+        "G21-7"
+      ],
+      "required_evidence_expression": "EV21-HTTP/DB/UI as assertion requires"
+    },
+    {
+      "definition_authority": "DOC-21 section 24",
+      "expected_behavior_authority": [
+        "DOC-01 through DOC-20",
+        "DOC-23 RC3",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2 as applicable"
+      ],
+      "family": "REG",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-REG-003",
+      "release_gates": [
+        "G21-0",
+        "G21-7"
+      ],
+      "required_evidence_expression": "EV21-HTTP/DB/UI as assertion requires"
+    },
+    {
+      "definition_authority": "DOC-21 section 24",
+      "expected_behavior_authority": [
+        "DOC-01 through DOC-20",
+        "DOC-23 RC3",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2 as applicable"
+      ],
+      "family": "REG",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-REG-004",
+      "release_gates": [
+        "G21-0",
+        "G21-7"
+      ],
+      "required_evidence_expression": "EV21-HTTP/DB/UI as assertion requires"
+    },
+    {
+      "definition_authority": "DOC-21 section 24",
+      "expected_behavior_authority": [
+        "DOC-01 through DOC-20",
+        "DOC-23 RC3",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2 as applicable"
+      ],
+      "family": "REG",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-REG-005",
+      "release_gates": [
+        "G21-0",
+        "G21-7"
+      ],
+      "required_evidence_expression": "EV21-HTTP/DB/UI as assertion requires"
+    },
+    {
+      "definition_authority": "DOC-21 section 24",
+      "expected_behavior_authority": [
+        "DOC-01 through DOC-20",
+        "DOC-23 RC3",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2 as applicable"
+      ],
+      "family": "REG",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-REG-006",
+      "release_gates": [
+        "G21-0",
+        "G21-7"
+      ],
+      "required_evidence_expression": "EV21-HTTP/DB/UI as assertion requires"
+    },
+    {
+      "definition_authority": "DOC-21 section 24",
+      "expected_behavior_authority": [
+        "DOC-01 through DOC-20",
+        "DOC-23 RC3",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2 as applicable"
+      ],
+      "family": "REG",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-REG-007",
+      "release_gates": [
+        "G21-0",
+        "G21-7"
+      ],
+      "required_evidence_expression": "EV21-HTTP/DB/UI as assertion requires"
+    },
+    {
+      "definition_authority": "DOC-21 section 24",
+      "expected_behavior_authority": [
+        "DOC-01 through DOC-20",
+        "DOC-23 RC3",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2 as applicable"
+      ],
+      "family": "REG",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-REG-008",
+      "release_gates": [
+        "G21-0",
+        "G21-7"
+      ],
+      "required_evidence_expression": "EV21-HTTP/DB/UI as assertion requires"
+    },
+    {
+      "definition_authority": "DOC-21 section 24",
+      "expected_behavior_authority": [
+        "DOC-01 through DOC-20",
+        "DOC-23 RC3",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2 as applicable"
+      ],
+      "family": "REG",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-REG-009",
+      "release_gates": [
+        "G21-0",
+        "G21-7"
+      ],
+      "required_evidence_expression": "EV21-HTTP/DB/UI as assertion requires"
+    },
+    {
+      "definition_authority": "DOC-21 section 24",
+      "expected_behavior_authority": [
+        "DOC-01 through DOC-20",
+        "DOC-23 RC3",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2 as applicable"
+      ],
+      "family": "REG",
+      "initial_status": "NOT_EXECUTED",
+      "qa_id": "QA21-REG-010",
+      "release_gates": [
+        "G21-0",
+        "G21-7"
+      ],
+      "required_evidence_expression": "EV21-HTTP/DB/UI as assertion requires"
+    }
+  ]
+}

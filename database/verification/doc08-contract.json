@@ -1,0 +1,2484 @@
+{
+  "source": "BLOG-DOC-08 v1.0-RC2",
+  "purpose": "Derived verification aid only; raw SQL migrations and DOC-08 remain authoritative.",
+  "table_count": 33,
+  "site_table_count": 20,
+  "global_table_count": 13,
+  "tables": {
+    "sites": {
+      "table_id": "DB-TBL-001",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "display_name": {
+          "type": "text",
+          "nullable": false
+        },
+        "status": {
+          "type": "text",
+          "nullable": false
+        },
+        "timezone_id": {
+          "type": "text",
+          "nullable": false
+        },
+        "locale_code": {
+          "type": "text",
+          "nullable": true
+        },
+        "default_language_code": {
+          "type": "text",
+          "nullable": true
+        },
+        "disabled_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "archived_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "deletion_requested_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "domains": {
+      "table_id": "DB-TBL-002",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "domain_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "hostname": {
+          "type": "text",
+          "nullable": false
+        },
+        "is_canonical": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "hostname_normalized": {
+          "type": "text",
+          "nullable": false
+        }
+      }
+    },
+    "admin_accounts": {
+      "table_id": "DB-TBL-003",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "email": {
+          "type": "text",
+          "nullable": false
+        },
+        "email_normalized": {
+          "type": "text",
+          "nullable": false
+        },
+        "display_name": {
+          "type": "text",
+          "nullable": false
+        },
+        "status": {
+          "type": "text",
+          "nullable": false
+        },
+        "is_super_admin": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "disabled_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        }
+      }
+    },
+    "permissions": {
+      "table_id": "DB-TBL-004",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "permission_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "scope": {
+          "type": "text",
+          "nullable": false
+        },
+        "module_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "risk": {
+          "type": "text",
+          "nullable": false
+        },
+        "label": {
+          "type": "text",
+          "nullable": false
+        },
+        "description": {
+          "type": "text",
+          "nullable": false
+        },
+        "seed_version": {
+          "type": "integer",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "permission_prerequisites": {
+      "table_id": "DB-TBL-005",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "permission_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "required_permission_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "roles": {
+      "table_id": "DB-TBL-006",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "role_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "scope": {
+          "type": "text",
+          "nullable": false
+        },
+        "name": {
+          "type": "text",
+          "nullable": false
+        },
+        "name_normalized": {
+          "type": "text",
+          "nullable": false
+        },
+        "description": {
+          "type": "text",
+          "nullable": true
+        },
+        "status": {
+          "type": "text",
+          "nullable": false
+        },
+        "created_by_admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "updated_by_admin_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "retired_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        }
+      }
+    },
+    "role_permissions": {
+      "table_id": "DB-TBL-007",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "role_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "permission_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "scope": {
+          "type": "text",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "account_site_assignments": {
+      "table_id": "DB-TBL-008",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "assigned_by_admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "assigned_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "account_site_role_assignments": {
+      "table_id": "DB-TBL-009",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "assignment_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "role_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "scope": {
+          "type": "text",
+          "nullable": false
+        },
+        "assigned_by_admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "assigned_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "account_global_role_assignments": {
+      "table_id": "DB-TBL-010",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "assignment_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "role_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "scope": {
+          "type": "text",
+          "nullable": false
+        },
+        "assigned_by_admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "assigned_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "categories": {
+      "table_id": "DB-TBL-011",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "category_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "parent_category_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "name": {
+          "type": "text",
+          "nullable": false
+        },
+        "name_normalized": {
+          "type": "text",
+          "nullable": false
+        },
+        "slug": {
+          "type": "text",
+          "nullable": false
+        },
+        "description": {
+          "type": "text",
+          "nullable": true
+        },
+        "seo_title": {
+          "type": "text",
+          "nullable": true
+        },
+        "meta_description": {
+          "type": "text",
+          "nullable": true
+        },
+        "canonical_override": {
+          "type": "text",
+          "nullable": true
+        },
+        "index_policy": {
+          "type": "text",
+          "nullable": false
+        },
+        "status": {
+          "type": "text",
+          "nullable": false
+        },
+        "retired_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "tags": {
+      "table_id": "DB-TBL-012",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "tag_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "name": {
+          "type": "text",
+          "nullable": false
+        },
+        "name_normalized": {
+          "type": "text",
+          "nullable": false
+        },
+        "slug": {
+          "type": "text",
+          "nullable": false
+        },
+        "description": {
+          "type": "text",
+          "nullable": true
+        },
+        "status": {
+          "type": "text",
+          "nullable": false
+        },
+        "merged_into_tag_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "retired_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "media": {
+      "table_id": "DB-TBL-013",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "media_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "status": {
+          "type": "text",
+          "nullable": false
+        },
+        "original_filename": {
+          "type": "text",
+          "nullable": false
+        },
+        "mime_type": {
+          "type": "text",
+          "nullable": false
+        },
+        "byte_size": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "width_px": {
+          "type": "integer",
+          "nullable": true
+        },
+        "height_px": {
+          "type": "integer",
+          "nullable": true
+        },
+        "checksum_sha256": {
+          "type": "character(64)",
+          "nullable": false
+        },
+        "object_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "alt_text": {
+          "type": "text",
+          "nullable": true
+        },
+        "title": {
+          "type": "text",
+          "nullable": true
+        },
+        "caption": {
+          "type": "text",
+          "nullable": true
+        },
+        "credit_text": {
+          "type": "text",
+          "nullable": true
+        },
+        "source_url": {
+          "type": "text",
+          "nullable": true
+        },
+        "created_by_admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "updated_by_admin_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "deleted_by_admin_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "deleted_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        }
+      }
+    },
+    "media_variants": {
+      "table_id": "DB-TBL-014",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "variant_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "media_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "variant_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "mime_type": {
+          "type": "text",
+          "nullable": false
+        },
+        "byte_size": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "width_px": {
+          "type": "integer",
+          "nullable": true
+        },
+        "height_px": {
+          "type": "integer",
+          "nullable": true
+        },
+        "object_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "author_site_profiles": {
+      "table_id": "DB-TBL-015",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "author_profile_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "display_name": {
+          "type": "text",
+          "nullable": false
+        },
+        "slug": {
+          "type": "text",
+          "nullable": false
+        },
+        "photo_media_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "bio": {
+          "type": "text",
+          "nullable": true
+        },
+        "designation": {
+          "type": "text",
+          "nullable": true
+        },
+        "expertise": {
+          "type": "text[]",
+          "nullable": false
+        },
+        "social_profiles": {
+          "type": "jsonb",
+          "nullable": false
+        },
+        "seo_title": {
+          "type": "text",
+          "nullable": true
+        },
+        "meta_description": {
+          "type": "text",
+          "nullable": true
+        },
+        "canonical_override": {
+          "type": "text",
+          "nullable": true
+        },
+        "index_policy": {
+          "type": "text",
+          "nullable": false
+        },
+        "status": {
+          "type": "text",
+          "nullable": false
+        },
+        "retired_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "posts": {
+      "table_id": "DB-TBL-016",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "post_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "content_schema_version": {
+          "type": "smallint",
+          "nullable": false
+        },
+        "status": {
+          "type": "text",
+          "nullable": false
+        },
+        "version": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "title": {
+          "type": "text",
+          "nullable": false
+        },
+        "excerpt": {
+          "type": "text",
+          "nullable": true
+        },
+        "body": {
+          "type": "jsonb",
+          "nullable": false
+        },
+        "author_site_profile_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "featured_media_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "slug": {
+          "type": "text",
+          "nullable": true
+        },
+        "seo_title": {
+          "type": "text",
+          "nullable": true
+        },
+        "meta_description": {
+          "type": "text",
+          "nullable": true
+        },
+        "canonical_override": {
+          "type": "text",
+          "nullable": true
+        },
+        "index_policy": {
+          "type": "text",
+          "nullable": false
+        },
+        "link_robots_policy": {
+          "type": "text",
+          "nullable": false
+        },
+        "og_title": {
+          "type": "text",
+          "nullable": true
+        },
+        "og_description": {
+          "type": "text",
+          "nullable": true
+        },
+        "og_image_media_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "structured_data_inputs": {
+          "type": "jsonb",
+          "nullable": false
+        },
+        "breadcrumb_label": {
+          "type": "text",
+          "nullable": true
+        },
+        "scheduled_for_utc": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "schedule_local_input": {
+          "type": "timestamp without time zone",
+          "nullable": true
+        },
+        "schedule_timezone_id": {
+          "type": "text",
+          "nullable": true
+        },
+        "first_published_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "published_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "archived_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "trashed_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "created_by_admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_by_admin_id": {
+          "type": "uuid",
+          "nullable": true
+        }
+      }
+    },
+    "post_categories": {
+      "table_id": "DB-TBL-017",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "post_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "category_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "post_tags": {
+      "table_id": "DB-TBL-018",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "post_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "tag_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "post_related_posts": {
+      "table_id": "DB-TBL-019",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "post_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "related_post_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "position": {
+          "type": "integer",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "post_revisions": {
+      "table_id": "DB-TBL-020",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "revision_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "post_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "revision_number": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "source_action": {
+          "type": "text",
+          "nullable": false
+        },
+        "actor_type": {
+          "type": "text",
+          "nullable": false
+        },
+        "actor_admin_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "resulting_post_version": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "snapshot": {
+          "type": "jsonb",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "post_autosaves": {
+      "table_id": "DB-TBL-021",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "autosave_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "post_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "editor_admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "base_post_version": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "content_schema_version": {
+          "type": "smallint",
+          "nullable": false
+        },
+        "working_copy": {
+          "type": "jsonb",
+          "nullable": false
+        },
+        "saved_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "editor_instance_id": {
+          "type": "text",
+          "nullable": false
+        }
+      }
+    },
+    "post_url_history": {
+      "table_id": "DB-TBL-022",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "url_history_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "post_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "slug": {
+          "type": "text",
+          "nullable": false
+        },
+        "became_public_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "ceased_public_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "created_by_admin_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "media_usages": {
+      "table_id": "DB-TBL-023",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "usage_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "media_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "usage_kind": {
+          "type": "text",
+          "nullable": false
+        },
+        "post_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "author_profile_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "setting_slot": {
+          "type": "text",
+          "nullable": true
+        },
+        "block_id": {
+          "type": "text",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "navigation_menus": {
+      "table_id": "DB-TBL-024",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "menu_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "menu_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "navigation_items": {
+      "table_id": "DB-TBL-025",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "item_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "menu_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "parent_item_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "label": {
+          "type": "text",
+          "nullable": false
+        },
+        "sort_order": {
+          "type": "integer",
+          "nullable": false
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "destination_kind": {
+          "type": "text",
+          "nullable": false
+        },
+        "target_post_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "target_category_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "target_tag_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "target_author_profile_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "static_page_key": {
+          "type": "text",
+          "nullable": true
+        },
+        "external_url": {
+          "type": "text",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "homepage_sections": {
+      "table_id": "DB-TBL-026",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "section_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "section_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "section_kind": {
+          "type": "text",
+          "nullable": false
+        },
+        "contract_version": {
+          "type": "text",
+          "nullable": false
+        },
+        "position_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "display_label": {
+          "type": "text",
+          "nullable": true
+        },
+        "max_items": {
+          "type": "smallint",
+          "nullable": true
+        },
+        "allow_visibility_edit": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "allow_label_edit": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "allow_post_selection": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "allow_category_selection": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "homepage_section_posts": {
+      "table_id": "DB-TBL-027",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "section_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "post_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "position": {
+          "type": "integer",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "homepage_section_categories": {
+      "table_id": "DB-TBL-028",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "section_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "category_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "position": {
+          "type": "integer",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "site_settings": {
+      "table_id": "DB-TBL-029",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "logo_media_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "favicon_media_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "contact_info": {
+          "type": "jsonb",
+          "nullable": false
+        },
+        "social_profiles": {
+          "type": "jsonb",
+          "nullable": false
+        },
+        "copyright_text": {
+          "type": "text",
+          "nullable": true
+        },
+        "seo_defaults": {
+          "type": "jsonb",
+          "nullable": false
+        },
+        "analytics_verification": {
+          "type": "jsonb",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_by_admin_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "default_social_image_media_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "homepage_lead_post_id": {
+          "type": "uuid",
+          "nullable": true
+        }
+      }
+    },
+    "redirects": {
+      "table_id": "DB-TBL-030",
+      "scope": "SITE",
+      "rls": true,
+      "columns": {
+        "redirect_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "source_path": {
+          "type": "text",
+          "nullable": false
+        },
+        "destination_kind": {
+          "type": "text",
+          "nullable": false
+        },
+        "destination_value": {
+          "type": "text",
+          "nullable": false
+        },
+        "status_code": {
+          "type": "smallint",
+          "nullable": false
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "created_by_admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "updated_by_admin_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      }
+    },
+    "platform_settings": {
+      "table_id": "DB-TBL-031",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "setting_key": {
+          "type": "text",
+          "nullable": false
+        },
+        "value_jsonb": {
+          "type": "jsonb",
+          "nullable": false
+        },
+        "value_type": {
+          "type": "text",
+          "nullable": false
+        },
+        "is_editable": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "description": {
+          "type": "text",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "updated_by_admin_id": {
+          "type": "uuid",
+          "nullable": true
+        }
+      }
+    },
+    "audit_events": {
+      "table_id": "DB-TBL-032",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "audit_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "occurred_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "scope": {
+          "type": "text",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "actor_type": {
+          "type": "text",
+          "nullable": false
+        },
+        "actor_admin_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "event_code": {
+          "type": "text",
+          "nullable": false
+        },
+        "module_key": {
+          "type": "text",
+          "nullable": true
+        },
+        "action_key": {
+          "type": "text",
+          "nullable": true
+        },
+        "target_type": {
+          "type": "text",
+          "nullable": true
+        },
+        "target_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "request_id": {
+          "type": "text",
+          "nullable": true
+        },
+        "outcome": {
+          "type": "text",
+          "nullable": false
+        },
+        "details": {
+          "type": "jsonb",
+          "nullable": false
+        }
+      }
+    },
+    "site_deletion_requests": {
+      "table_id": "DB-TBL-033",
+      "scope": "GLOBAL",
+      "rls": false,
+      "columns": {
+        "request_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "site_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "requested_by_admin_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "reason": {
+          "type": "text",
+          "nullable": false
+        },
+        "requested_at": {
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        "closed_at": {
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        "closed_by_admin_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "resolution_note": {
+          "type": "text",
+          "nullable": true
+        }
+      }
+    }
+  },
+  "required_baseline_indexes": [
+    {
+      "table": "sites",
+      "name": "uq_sites__site_key"
+    },
+    {
+      "table": "sites",
+      "name": "ix_sites__status"
+    },
+    {
+      "table": "domains",
+      "name": "uq_domains__hostname_normalized"
+    },
+    {
+      "table": "domains",
+      "name": "uq_domains__one_active_canonical_per_site"
+    },
+    {
+      "table": "domains",
+      "name": "ix_domains__site_id_active"
+    },
+    {
+      "table": "admin_accounts",
+      "name": "uq_admin_accounts__email_normalized"
+    },
+    {
+      "table": "admin_accounts",
+      "name": "uq_admin_accounts__single_super_admin"
+    },
+    {
+      "table": "admin_accounts",
+      "name": "ix_admin_accounts__status"
+    },
+    {
+      "table": "permissions",
+      "name": "ix_permissions__scope_module"
+    },
+    {
+      "table": "permission_prerequisites",
+      "name": "ix_permission_prerequisites__required"
+    },
+    {
+      "table": "roles",
+      "name": "uq_roles__scope_name"
+    },
+    {
+      "table": "roles",
+      "name": "ix_roles__scope_status"
+    },
+    {
+      "table": "role_permissions",
+      "name": "ix_role_permissions__permission_key"
+    },
+    {
+      "table": "account_site_assignments",
+      "name": "ix_account_site_assignments__site_id"
+    },
+    {
+      "table": "account_site_role_assignments",
+      "name": "ix_account_site_role_assignments__admin_site"
+    },
+    {
+      "table": "account_site_role_assignments",
+      "name": "ix_account_site_role_assignments__role"
+    },
+    {
+      "table": "account_global_role_assignments",
+      "name": "ix_account_global_role_assignments__admin"
+    },
+    {
+      "table": "account_global_role_assignments",
+      "name": "ix_account_global_role_assignments__role"
+    },
+    {
+      "table": "categories",
+      "name": "uq_categories__site_slug"
+    },
+    {
+      "table": "categories",
+      "name": "uq_categories__site_name"
+    },
+    {
+      "table": "categories",
+      "name": "ix_categories__site_parent"
+    },
+    {
+      "table": "categories",
+      "name": "ix_categories__site_status"
+    },
+    {
+      "table": "tags",
+      "name": "uq_tags__site_slug"
+    },
+    {
+      "table": "tags",
+      "name": "uq_tags__site_name"
+    },
+    {
+      "table": "tags",
+      "name": "ix_tags__site_status"
+    },
+    {
+      "table": "media",
+      "name": "uq_media__site_object_key"
+    },
+    {
+      "table": "media",
+      "name": "ix_media__site_status_created"
+    },
+    {
+      "table": "media",
+      "name": "ix_media__site_checksum"
+    },
+    {
+      "table": "media_variants",
+      "name": "uq_media_variants__media_key"
+    },
+    {
+      "table": "media_variants",
+      "name": "uq_media_variants__site_object_key"
+    },
+    {
+      "table": "author_site_profiles",
+      "name": "uq_author_profiles__site_slug"
+    },
+    {
+      "table": "author_site_profiles",
+      "name": "ix_author_profiles__site_status"
+    },
+    {
+      "table": "author_site_profiles",
+      "name": "ix_author_profiles__site_name"
+    },
+    {
+      "table": "posts",
+      "name": "uq_posts__site_slug"
+    },
+    {
+      "table": "posts",
+      "name": "ix_posts__site_status_published"
+    },
+    {
+      "table": "posts",
+      "name": "ix_posts__site_status_scheduled"
+    },
+    {
+      "table": "posts",
+      "name": "ix_posts__site_author"
+    },
+    {
+      "table": "posts",
+      "name": "ix_posts__site_updated"
+    },
+    {
+      "table": "posts",
+      "name": "ix_posts__site_created"
+    },
+    {
+      "table": "post_categories",
+      "name": "ix_post_categories__site_category"
+    },
+    {
+      "table": "post_tags",
+      "name": "ix_post_tags__site_tag"
+    },
+    {
+      "table": "post_related_posts",
+      "name": "ix_post_related_posts__site_related"
+    },
+    {
+      "table": "post_revisions",
+      "name": "ix_post_revisions__site_post_created"
+    },
+    {
+      "table": "post_revisions",
+      "name": "ix_post_revisions__site_post_revision"
+    },
+    {
+      "table": "post_autosaves",
+      "name": "uq_post_autosaves__post_editor"
+    },
+    {
+      "table": "post_autosaves",
+      "name": "ix_post_autosaves__editor_saved"
+    },
+    {
+      "table": "post_url_history",
+      "name": "ix_post_url_history__site_post"
+    },
+    {
+      "table": "post_url_history",
+      "name": "ix_post_url_history__site_slug"
+    },
+    {
+      "table": "post_url_history",
+      "name": "ix_post_url_history__site_open_episode"
+    },
+    {
+      "table": "media_usages",
+      "name": "ix_media_usages__site_media"
+    },
+    {
+      "table": "media_usages",
+      "name": "ix_media_usages__site_post"
+    },
+    {
+      "table": "media_usages",
+      "name": "ix_media_usages__site_author"
+    },
+    {
+      "table": "navigation_menus",
+      "name": "uq_navigation_menus__site_key"
+    },
+    {
+      "table": "navigation_items",
+      "name": "ix_navigation_items__site_menu_parent_order"
+    },
+    {
+      "table": "navigation_items",
+      "name": "ix_navigation_items__site_enabled"
+    },
+    {
+      "table": "homepage_sections",
+      "name": "uq_homepage_sections__site_key"
+    },
+    {
+      "table": "homepage_sections",
+      "name": "ix_homepage_sections__site_enabled"
+    },
+    {
+      "table": "homepage_section_posts",
+      "name": "ix_homepage_section_posts__site_post"
+    },
+    {
+      "table": "homepage_section_categories",
+      "name": "ix_homepage_section_categories__site_category"
+    },
+    {
+      "table": "site_settings",
+      "name": "ix_site_settings__updated_at"
+    },
+    {
+      "table": "redirects",
+      "name": "uq_redirects__site_source"
+    },
+    {
+      "table": "redirects",
+      "name": "ix_redirects__site_active"
+    },
+    {
+      "table": "platform_settings",
+      "name": "ix_platform_settings__editable"
+    },
+    {
+      "table": "audit_events",
+      "name": "ix_audit_events__occurred_at"
+    },
+    {
+      "table": "audit_events",
+      "name": "ix_audit_events__site_time"
+    },
+    {
+      "table": "audit_events",
+      "name": "ix_audit_events__actor_time"
+    },
+    {
+      "table": "audit_events",
+      "name": "ix_audit_events__target"
+    },
+    {
+      "table": "audit_events",
+      "name": "ix_audit_events__event_code_time"
+    },
+    {
+      "table": "site_deletion_requests",
+      "name": "ix_site_deletion_requests__site_time"
+    },
+    {
+      "table": "site_deletion_requests",
+      "name": "ix_site_deletion_requests__open"
+    },
+    {
+      "table": "post_autosaves",
+      "name": "ix_post_autosaves__site_post_editor_instance_saved"
+    },
+    {
+      "table": "site_settings",
+      "name": "ix_site_settings__homepage_lead"
+    }
+  ],
+  "permission_count": 69,
+  "permission_site_count": 44,
+  "permission_global_count": 25,
+  "permission_prerequisite_count": 57,
+  "permission_registry": [
+    {
+      "permission_key": "dashboard.view",
+      "scope": "SITE",
+      "module_key": "Dashboard",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "posts.view",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "posts.create",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "posts.edit",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "posts.preview",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "posts.duplicate",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "posts.revisions.view",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "posts.revisions.restore",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "posts.publish",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "posts.schedule",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "posts.archive",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "posts.trash",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "posts.restore",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "posts.delete",
+      "scope": "SITE",
+      "module_key": "Posts",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "categories.view",
+      "scope": "SITE",
+      "module_key": "Categories",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "categories.create",
+      "scope": "SITE",
+      "module_key": "Categories",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "categories.edit",
+      "scope": "SITE",
+      "module_key": "Categories",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "categories.delete",
+      "scope": "SITE",
+      "module_key": "Categories",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "tags.view",
+      "scope": "SITE",
+      "module_key": "Tags",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "tags.create",
+      "scope": "SITE",
+      "module_key": "Tags",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "tags.edit",
+      "scope": "SITE",
+      "module_key": "Tags",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "tags.delete",
+      "scope": "SITE",
+      "module_key": "Tags",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "authors.view",
+      "scope": "SITE",
+      "module_key": "Authors",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "authors.create",
+      "scope": "SITE",
+      "module_key": "Authors",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "authors.edit",
+      "scope": "SITE",
+      "module_key": "Authors",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "authors.retire",
+      "scope": "SITE",
+      "module_key": "Authors",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "media.view",
+      "scope": "SITE",
+      "module_key": "Media",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "media.upload",
+      "scope": "SITE",
+      "module_key": "Media",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "media.edit",
+      "scope": "SITE",
+      "module_key": "Media",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "media.replace",
+      "scope": "SITE",
+      "module_key": "Media",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "media.delete",
+      "scope": "SITE",
+      "module_key": "Media",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "navigation.view",
+      "scope": "SITE",
+      "module_key": "Navigation",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "navigation.manage",
+      "scope": "SITE",
+      "module_key": "Navigation",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "seo.view",
+      "scope": "SITE",
+      "module_key": "SEO",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "seo.edit",
+      "scope": "SITE",
+      "module_key": "SEO",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "redirects.view",
+      "scope": "SITE",
+      "module_key": "Redirects",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "redirects.create",
+      "scope": "SITE",
+      "module_key": "Redirects",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "redirects.edit",
+      "scope": "SITE",
+      "module_key": "Redirects",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "redirects.delete",
+      "scope": "SITE",
+      "module_key": "Redirects",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "search.view",
+      "scope": "SITE",
+      "module_key": "Search",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "search.reindex",
+      "scope": "SITE",
+      "module_key": "Search",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "calendar.view",
+      "scope": "SITE",
+      "module_key": "Editorial Calendar",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "site_settings.view",
+      "scope": "SITE",
+      "module_key": "Site Settings",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "site_settings.edit",
+      "scope": "SITE",
+      "module_key": "Site Settings",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "network_dashboard.view",
+      "scope": "GLOBAL",
+      "module_key": "Network",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "sites.view",
+      "scope": "GLOBAL",
+      "module_key": "Sites",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "sites.create",
+      "scope": "GLOBAL",
+      "module_key": "Sites",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "sites.edit",
+      "scope": "GLOBAL",
+      "module_key": "Sites",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "sites.enable",
+      "scope": "GLOBAL",
+      "module_key": "Sites",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "sites.disable",
+      "scope": "GLOBAL",
+      "module_key": "Sites",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "sites.archive",
+      "scope": "GLOBAL",
+      "module_key": "Sites",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "sites.deletion_request",
+      "scope": "GLOBAL",
+      "module_key": "Sites",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "sites.manage_domains",
+      "scope": "GLOBAL",
+      "module_key": "Sites",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "admin_users.view",
+      "scope": "GLOBAL",
+      "module_key": "Admin Users",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "admin_users.invite",
+      "scope": "GLOBAL",
+      "module_key": "Admin Users",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "admin_users.edit",
+      "scope": "GLOBAL",
+      "module_key": "Admin Users",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "admin_users.enable",
+      "scope": "GLOBAL",
+      "module_key": "Admin Users",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "admin_users.disable",
+      "scope": "GLOBAL",
+      "module_key": "Admin Users",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "admin_users.manage_site_assignments",
+      "scope": "GLOBAL",
+      "module_key": "Admin Users",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "roles.view",
+      "scope": "GLOBAL",
+      "module_key": "Roles",
+      "risk": "STANDARD"
+    },
+    {
+      "permission_key": "roles.create",
+      "scope": "GLOBAL",
+      "module_key": "Roles",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "roles.edit",
+      "scope": "GLOBAL",
+      "module_key": "Roles",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "roles.retire",
+      "scope": "GLOBAL",
+      "module_key": "Roles",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "roles.assign",
+      "scope": "GLOBAL",
+      "module_key": "Roles",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "audit.view",
+      "scope": "GLOBAL",
+      "module_key": "Audit",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "audit.export",
+      "scope": "GLOBAL",
+      "module_key": "Audit",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "platform_settings.view",
+      "scope": "GLOBAL",
+      "module_key": "Platform Settings",
+      "risk": "SENSITIVE"
+    },
+    {
+      "permission_key": "platform_settings.edit",
+      "scope": "GLOBAL",
+      "module_key": "Platform Settings",
+      "risk": "DESTRUCTIVE"
+    },
+    {
+      "permission_key": "permissions.view",
+      "scope": "GLOBAL",
+      "module_key": "Permissions",
+      "risk": "STANDARD"
+    }
+  ],
+  "permission_prerequisites": [
+    {
+      "permission_key": "admin_users.disable",
+      "required_permission_key": "admin_users.view"
+    },
+    {
+      "permission_key": "admin_users.edit",
+      "required_permission_key": "admin_users.view"
+    },
+    {
+      "permission_key": "admin_users.enable",
+      "required_permission_key": "admin_users.view"
+    },
+    {
+      "permission_key": "admin_users.invite",
+      "required_permission_key": "admin_users.view"
+    },
+    {
+      "permission_key": "admin_users.manage_site_assignments",
+      "required_permission_key": "admin_users.view"
+    },
+    {
+      "permission_key": "audit.export",
+      "required_permission_key": "audit.view"
+    },
+    {
+      "permission_key": "authors.create",
+      "required_permission_key": "authors.view"
+    },
+    {
+      "permission_key": "authors.edit",
+      "required_permission_key": "authors.view"
+    },
+    {
+      "permission_key": "authors.retire",
+      "required_permission_key": "authors.view"
+    },
+    {
+      "permission_key": "categories.create",
+      "required_permission_key": "categories.view"
+    },
+    {
+      "permission_key": "categories.delete",
+      "required_permission_key": "categories.view"
+    },
+    {
+      "permission_key": "categories.edit",
+      "required_permission_key": "categories.view"
+    },
+    {
+      "permission_key": "media.delete",
+      "required_permission_key": "media.view"
+    },
+    {
+      "permission_key": "media.edit",
+      "required_permission_key": "media.view"
+    },
+    {
+      "permission_key": "media.replace",
+      "required_permission_key": "media.view"
+    },
+    {
+      "permission_key": "media.upload",
+      "required_permission_key": "media.view"
+    },
+    {
+      "permission_key": "navigation.manage",
+      "required_permission_key": "navigation.view"
+    },
+    {
+      "permission_key": "platform_settings.edit",
+      "required_permission_key": "platform_settings.view"
+    },
+    {
+      "permission_key": "posts.archive",
+      "required_permission_key": "posts.edit"
+    },
+    {
+      "permission_key": "posts.archive",
+      "required_permission_key": "posts.view"
+    },
+    {
+      "permission_key": "posts.create",
+      "required_permission_key": "posts.view"
+    },
+    {
+      "permission_key": "posts.delete",
+      "required_permission_key": "posts.view"
+    },
+    {
+      "permission_key": "posts.duplicate",
+      "required_permission_key": "posts.create"
+    },
+    {
+      "permission_key": "posts.duplicate",
+      "required_permission_key": "posts.view"
+    },
+    {
+      "permission_key": "posts.edit",
+      "required_permission_key": "posts.view"
+    },
+    {
+      "permission_key": "posts.publish",
+      "required_permission_key": "posts.edit"
+    },
+    {
+      "permission_key": "posts.publish",
+      "required_permission_key": "posts.view"
+    },
+    {
+      "permission_key": "posts.restore",
+      "required_permission_key": "posts.edit"
+    },
+    {
+      "permission_key": "posts.restore",
+      "required_permission_key": "posts.view"
+    },
+    {
+      "permission_key": "posts.revisions.restore",
+      "required_permission_key": "posts.edit"
+    },
+    {
+      "permission_key": "posts.revisions.restore",
+      "required_permission_key": "posts.revisions.view"
+    },
+    {
+      "permission_key": "posts.revisions.restore",
+      "required_permission_key": "posts.view"
+    },
+    {
+      "permission_key": "posts.revisions.view",
+      "required_permission_key": "posts.view"
+    },
+    {
+      "permission_key": "posts.schedule",
+      "required_permission_key": "posts.edit"
+    },
+    {
+      "permission_key": "posts.schedule",
+      "required_permission_key": "posts.view"
+    },
+    {
+      "permission_key": "posts.trash",
+      "required_permission_key": "posts.edit"
+    },
+    {
+      "permission_key": "posts.trash",
+      "required_permission_key": "posts.view"
+    },
+    {
+      "permission_key": "redirects.create",
+      "required_permission_key": "redirects.view"
+    },
+    {
+      "permission_key": "redirects.delete",
+      "required_permission_key": "redirects.view"
+    },
+    {
+      "permission_key": "redirects.edit",
+      "required_permission_key": "redirects.view"
+    },
+    {
+      "permission_key": "roles.assign",
+      "required_permission_key": "roles.view"
+    },
+    {
+      "permission_key": "roles.create",
+      "required_permission_key": "roles.view"
+    },
+    {
+      "permission_key": "roles.edit",
+      "required_permission_key": "roles.view"
+    },
+    {
+      "permission_key": "roles.retire",
+      "required_permission_key": "roles.view"
+    },
+    {
+      "permission_key": "search.reindex",
+      "required_permission_key": "search.view"
+    },
+    {
+      "permission_key": "seo.edit",
+      "required_permission_key": "seo.view"
+    },
+    {
+      "permission_key": "site_settings.edit",
+      "required_permission_key": "site_settings.view"
+    },
+    {
+      "permission_key": "sites.archive",
+      "required_permission_key": "sites.view"
+    },
+    {
+      "permission_key": "sites.create",
+      "required_permission_key": "sites.view"
+    },
+    {
+      "permission_key": "sites.deletion_request",
+      "required_permission_key": "sites.view"
+    },
+    {
+      "permission_key": "sites.disable",
+      "required_permission_key": "sites.view"
+    },
+    {
+      "permission_key": "sites.edit",
+      "required_permission_key": "sites.view"
+    },
+    {
+      "permission_key": "sites.enable",
+      "required_permission_key": "sites.view"
+    },
+    {
+      "permission_key": "sites.manage_domains",
+      "required_permission_key": "sites.view"
+    },
+    {
+      "permission_key": "tags.create",
+      "required_permission_key": "tags.view"
+    },
+    {
+      "permission_key": "tags.delete",
+      "required_permission_key": "tags.view"
+    },
+    {
+      "permission_key": "tags.edit",
+      "required_permission_key": "tags.view"
+    }
+  ]
+}

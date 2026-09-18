@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+src/bp_adapters/search/__init__.py
+src/bp_adapters_search/__init__.py
+src/bp_adapters_search/adapter.py
+src/bp_adapters_search.egg-info/PKG-INFO
+src/bp_adapters_search.egg-info/SOURCES.txt
+src/bp_adapters_search.egg-info/dependency_links.txt
+src/bp_adapters_search.egg-info/requires.txt
+src/bp_adapters_search.egg-info/top_level.txt

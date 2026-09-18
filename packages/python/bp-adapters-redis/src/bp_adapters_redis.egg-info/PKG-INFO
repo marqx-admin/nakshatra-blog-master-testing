@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: bp-adapters-redis
+Version: 0.0.0
+Requires-Python: <3.14,>=3.13
+Requires-Dist: bp-background-contracts
+Requires-Dist: bp-domain
+Requires-Dist: bp-ports
+Requires-Dist: redis<8.2,>=8.1

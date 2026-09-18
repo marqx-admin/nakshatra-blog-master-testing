@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - api.yaml
+  - admin.yaml
+  - migrate-job.yaml
+  - network-policy.yaml
+  - pdb.yaml
+  - worker-publish.yaml
+  - worker-media.yaml
+  - worker-search.yaml
+  - worker-sitemap.yaml
+  - worker-cache.yaml
+  - worker-maintenance.yaml
+  - worker-scheduler.yaml
+  - site-01.yaml
+  - site-02.yaml
+  - site-03.yaml
+  - site-04.yaml
+  - site-05.yaml
+  - site-06.yaml
+  - site-07.yaml
+  - site-08.yaml
+  - site-09.yaml
+  - site-10.yaml
+  - site-11.yaml
+  - site-12.yaml
+  - site-13.yaml
+  - site-14.yaml

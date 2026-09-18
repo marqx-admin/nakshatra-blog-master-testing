@@ -1,0 +1,10 @@
+bp-background-contracts
+bp-domain
+bp-ports
+bp-adapters-postgres
+bp-adapters-queue
+bp-adapters-redis
+bp-adapters-search
+bp-adapters-object-storage
+bp-adapters-media
+celery<5.7,>=5.6

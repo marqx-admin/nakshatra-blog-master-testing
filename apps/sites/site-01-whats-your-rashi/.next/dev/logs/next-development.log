@@ -1,0 +1,15 @@
+{"timestamp":"00:00:01.551","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:21.411","source":"Server","level":"LOG","message":"○ Compiling / ..."}
+{"timestamp":"00:00:34.083","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
+{"timestamp":"00:00:36.935","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
+{"timestamp":"00:00:40.448","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
+{"timestamp":"00:00:49.416","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
+{"timestamp":"00:04:20.185","source":"Server","level":"LOG","message":"✓ Compiled in 794ms"}
+{"timestamp":"00:04:22.645","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
+{"timestamp":"00:10:10.176","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
+{"timestamp":"00:10:30.206","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
+{"timestamp":"00:29:32.730","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
+{"timestamp":"01:28:47.802","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
+{"timestamp":"01:51:47.699","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
+{"timestamp":"01:52:17.575","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}
+{"timestamp":"02:08:25.173","source":"Server","level":"WARN","message":"Warning: viewport meta tags should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-viewport-meta"}

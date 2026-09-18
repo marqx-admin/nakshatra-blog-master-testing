@@ -1,0 +1,5 @@
+bp-background-contracts
+bp-domain
+bp-ports
+celery<5.7,>=5.6
+redis<8.2,>=8.1

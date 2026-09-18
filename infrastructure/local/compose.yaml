@@ -1,0 +1,180 @@
+name: bp-local
+services:
+  postgres:
+    image: postgres:17
+    profiles: [core]
+    mem_limit: 512m
+    environment:
+      POSTGRES_DB: bp
+      POSTGRES_USER: bp_owner
+      POSTGRES_PASSWORD: local-only-not-production
+    ports: ["5432:5432"]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U bp_owner -d bp"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes: [postgres-data:/var/lib/postgresql/data]
+  redis-control:
+    image: redis:7-alpine
+    profiles: [core]
+    mem_limit: 128m
+    command: [redis-server, --appendonly, "no", --maxmemory-policy, allkeys-lru]
+    ports: ["6379:6379"]
+    healthcheck: {test: [CMD, redis-cli, ping], interval: 5s, timeout: 3s, retries: 20}
+  redis-broker:
+    image: redis:7-alpine
+    profiles: [core]
+    mem_limit: 192m
+    command: [redis-server, --appendonly, "yes", --maxmemory-policy, noeviction]
+    ports: ["6380:6379"]
+    healthcheck: {test: [CMD, redis-cli, ping], interval: 5s, timeout: 3s, retries: 20}
+    volumes: [redis-broker-data:/data]
+  opensearch:
+    image: opensearchproject/opensearch:3
+    profiles: [search]
+    mem_limit: 896m
+    environment:
+      discovery.type: single-node
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms320m -Xmx320m
+    ports: ["9200:9200"]
+  minio:
+    image: minio/minio:latest
+    profiles: [media]
+    mem_limit: 320m
+    command: [server, /data, --console-address, ":9001"]
+    environment:
+      MINIO_ROOT_USER: localminio
+      MINIO_ROOT_PASSWORD: localminio-only
+      GOMEMLIMIT: 256MiB
+    ports: ["9010:9000", "9011:9001"]
+    volumes: [minio-data:/data]
+  security-state:
+    image: amazon/dynamodb-local:latest
+    profiles: [security]
+    mem_limit: 384m
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+    environment:
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -XX:+UseSerialGC
+    ports: ["8000:8000"]
+  vault-dev:
+    image: hashicorp/vault:1.20
+    profiles: [security]
+    mem_limit: 128m
+    cap_add: [IPC_LOCK]
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: local-root-only
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+    ports: ["8200:8200"]
+  smtp-sink:
+    image: axllent/mailpit:latest
+    profiles: [security]
+    mem_limit: 128m
+    ports: ["1025:1025", "8025:8025"]
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.136.0
+    profiles: [observability]
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ../observability/otel/collector.yaml:/etc/otelcol/config.yaml:ro
+    ports: ["4317:4317", "4318:4318", "8889:8889"]
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: [observability]
+    volumes:
+      - ../observability/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - ../observability/prometheus/alerts.yaml:/etc/prometheus/alerts.yaml:ro
+    ports: ["9090:9090"]
+  grafana:
+    image: grafana/grafana:12.1.0
+    profiles: [observability]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: local-only
+    volumes:
+      - ../observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["3001:3000"]
+  api:
+    profiles: [app-api]
+    build:
+      context: ../..
+      dockerfile: infrastructure/images/api.Dockerfile
+    environment:
+      BP_ENV: development
+      BP_RELEASE_SHA: 0000000
+      BP_SERVICE_NAME: api
+      BP_HTTP_PORT: 8080
+      BP_LOG_LEVEL: INFO
+    ports: ["8080:8080"]
+  worker:
+    profiles: [app-worker]
+    build:
+      context: ../..
+      dockerfile: infrastructure/images/worker.Dockerfile
+    environment:
+      BP_ENV: development
+      BP_RELEASE_SHA: 0000000
+      BP_SERVICE_NAME: worker
+      BP_LOG_LEVEL: INFO
+      BP_WORKER_PROFILE: ${BP_WORKER_PROFILE:-maintenance}
+  admin:
+    profiles: [app-admin]
+    build:
+      context: ../..
+      dockerfile: infrastructure/images/admin.Dockerfile
+    ports: ["4173:8080"]
+  migrate:
+    profiles: [migrate]
+    build:
+      context: ../..
+      dockerfile: infrastructure/images/migrate.Dockerfile
+    environment:
+      BP_ENV: development
+      BP_RELEASE_SHA: 0000000
+      BP_SERVICE_NAME: migrate
+      BP_POSTGRES_HOST: postgres
+      BP_POSTGRES_PORT: 5432
+      BP_POSTGRES_DATABASE: bp
+      BP_POSTGRES_SSL_MODE: disable
+      BP_MIGRATION_DATABASE_USER: bp_owner
+      BP_MIGRATION_CREDENTIAL_FILE: /run/secrets/bp/migration
+      SITE_01_TIMEZONE: ${SITE_01_TIMEZONE:-}
+      SITE_02_TIMEZONE: ${SITE_02_TIMEZONE:-}
+      SITE_03_TIMEZONE: ${SITE_03_TIMEZONE:-}
+      SITE_04_TIMEZONE: ${SITE_04_TIMEZONE:-}
+      SITE_05_TIMEZONE: ${SITE_05_TIMEZONE:-}
+      SITE_06_TIMEZONE: ${SITE_06_TIMEZONE:-}
+      SITE_07_TIMEZONE: ${SITE_07_TIMEZONE:-}
+      SITE_08_TIMEZONE: ${SITE_08_TIMEZONE:-}
+      SITE_09_TIMEZONE: ${SITE_09_TIMEZONE:-}
+      SITE_10_TIMEZONE: ${SITE_10_TIMEZONE:-}
+      SITE_11_TIMEZONE: ${SITE_11_TIMEZONE:-}
+      SITE_12_TIMEZONE: ${SITE_12_TIMEZONE:-}
+      SITE_13_TIMEZONE: ${SITE_13_TIMEZONE:-}
+      SITE_14_TIMEZONE: ${SITE_14_TIMEZONE:-}
+    volumes:
+      - "${BP_LOCAL_MIGRATION_CREDENTIAL_FILE:-./.secrets/migration}:/run/secrets/bp/migration:ro"
+    depends_on:
+      postgres: {condition: service_healthy}
+  site:
+    profiles: [app-site]
+    build:
+      context: ../..
+      dockerfile: infrastructure/images/site.Dockerfile
+      args:
+        SITE_PACKAGE: ${SITE_PACKAGE:-@bp/site-01-whats-your-rashi}
+        SITE_DIR: ${SITE_DIR:-apps/sites/site-01-whats-your-rashi}
+    environment:
+      BP_ENV: development
+      BP_RELEASE_SHA: 0000000
+      BP_SERVICE_NAME: ${SITE_SERVICE_NAME:-site-01-whats-your-rashi}
+      BP_SITE_APP_KEY: ${BP_SITE_APP_KEY:-SITE-01}
+      BP_HTTP_PORT: 3000
+      BP_LOG_LEVEL: INFO
+    ports: ["3000:3000"]
+volumes:
+  postgres-data: {}
+  redis-broker-data: {}
+  minio-data: {}

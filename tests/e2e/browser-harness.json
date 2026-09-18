@@ -1,0 +1,38 @@
+{
+  "authority": [
+    "DOC-21 sections 13,14,21",
+    "DOC-23 section 23",
+    "DOC-25 RC2",
+    "DOC-26 RC1",
+    "DOC-27 RC1"
+  ],
+  "current_status": "NOT_EXECUTED",
+  "doc27_reference_widths": [
+    360,
+    834,
+    1440
+  ],
+  "qa_viewports": [
+    "360x800",
+    "768x1024",
+    "1440x900"
+  ],
+  "required_context": [
+    "candidate identity",
+    "canonical Host per site",
+    "TLS",
+    "deterministic fixture version",
+    "browser version",
+    "viewport",
+    "DPR",
+    "locale/timezone",
+    "motion preference"
+  ],
+  "rules": [
+    "No mocked SiteContext authority",
+    "Each browser tab keeps independent site context",
+    "Late old-context responses cannot repaint new context",
+    "Visual runs require approved fonts/assets/goldens before pixel comparison"
+  ],
+  "runner": "Playwright once the root dependency graph is materialized by the owning integration chat."
+}

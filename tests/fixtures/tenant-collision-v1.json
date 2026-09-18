@@ -1,0 +1,342 @@
+{
+  "authority": [
+    "DOC-21 section 6",
+    "DOC-08 Appendix D for site UUIDs",
+    "DOC-00 canonical site/domain/application crosswalk"
+  ],
+  "collision_values": {
+    "author_slug": "shared-author",
+    "category_slug": "shared-category",
+    "media_original_filename": "shared-image.jpg",
+    "navigation_menu_key": "shared-menu",
+    "post_slug": "shared-article",
+    "redirect_source_path": "/shared-legacy-path",
+    "tag_slug": "shared-tag"
+  },
+  "directed_cross_site_pair_count": 182,
+  "purpose": "Fourteen-site deterministic collision fixture. Human-visible identifiers intentionally collide; unique markers reveal tenant leaks.",
+  "sites": [
+    {
+      "canonical_domain": "whatsyourrashi.in",
+      "display_domain": "WhatsYourRashi.in",
+      "frontend_folder": "site-01-whats-your-rashi",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000001",
+        "category": "22000000-0000-4000-8000-000000000001",
+        "media": "25000000-0000-4000-8000-000000000001",
+        "post": "21000000-0000-4000-8000-000000000001",
+        "redirect": "26000000-0000-4000-8000-000000000001",
+        "tag": "23000000-0000-4000-8000-000000000001"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-01",
+      "site_uuid": "10000000-0000-4000-8000-000000000001",
+      "unique_marker": "QA_MARKER_SITE_01"
+    },
+    {
+      "canonical_domain": "apkirashi.com",
+      "display_domain": "ApkiRashi.com",
+      "frontend_folder": "site-02-apki-rashi",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000002",
+        "category": "22000000-0000-4000-8000-000000000002",
+        "media": "25000000-0000-4000-8000-000000000002",
+        "post": "21000000-0000-4000-8000-000000000002",
+        "redirect": "26000000-0000-4000-8000-000000000002",
+        "tag": "23000000-0000-4000-8000-000000000002"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-02",
+      "site_uuid": "10000000-0000-4000-8000-000000000002",
+      "unique_marker": "QA_MARKER_SITE_02"
+    },
+    {
+      "canonical_domain": "dailyrashi360.com",
+      "display_domain": "DailyRashi360.com",
+      "frontend_folder": "site-03-daily-rashi-360",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000003",
+        "category": "22000000-0000-4000-8000-000000000003",
+        "media": "25000000-0000-4000-8000-000000000003",
+        "post": "21000000-0000-4000-8000-000000000003",
+        "redirect": "26000000-0000-4000-8000-000000000003",
+        "tag": "23000000-0000-4000-8000-000000000003"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-03",
+      "site_uuid": "10000000-0000-4000-8000-000000000003",
+      "unique_marker": "QA_MARKER_SITE_03"
+    },
+    {
+      "canonical_domain": "zodiacdaily.in",
+      "display_domain": "ZodiacDaily.in",
+      "frontend_folder": "site-04-zodiac-daily",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000004",
+        "category": "22000000-0000-4000-8000-000000000004",
+        "media": "25000000-0000-4000-8000-000000000004",
+        "post": "21000000-0000-4000-8000-000000000004",
+        "redirect": "26000000-0000-4000-8000-000000000004",
+        "tag": "23000000-0000-4000-8000-000000000004"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-04",
+      "site_uuid": "10000000-0000-4000-8000-000000000004",
+      "unique_marker": "QA_MARKER_SITE_04"
+    },
+    {
+      "canonical_domain": "dailyhoroscope360.com",
+      "display_domain": "DailyHoroscope360.com",
+      "frontend_folder": "site-05-daily-horoscope-360",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000005",
+        "category": "22000000-0000-4000-8000-000000000005",
+        "media": "25000000-0000-4000-8000-000000000005",
+        "post": "21000000-0000-4000-8000-000000000005",
+        "redirect": "26000000-0000-4000-8000-000000000005",
+        "tag": "23000000-0000-4000-8000-000000000005"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-05",
+      "site_uuid": "10000000-0000-4000-8000-000000000005",
+      "unique_marker": "QA_MARKER_SITE_05"
+    },
+    {
+      "canonical_domain": "myhoroscope360.com",
+      "display_domain": "MyHoroscope360.com",
+      "frontend_folder": "site-06-my-horoscope-360",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000006",
+        "category": "22000000-0000-4000-8000-000000000006",
+        "media": "25000000-0000-4000-8000-000000000006",
+        "post": "21000000-0000-4000-8000-000000000006",
+        "redirect": "26000000-0000-4000-8000-000000000006",
+        "tag": "23000000-0000-4000-8000-000000000006"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-06",
+      "site_uuid": "10000000-0000-4000-8000-000000000006",
+      "unique_marker": "QA_MARKER_SITE_06"
+    },
+    {
+      "canonical_domain": "astrotoday360.com",
+      "display_domain": "AstroToday360.com",
+      "frontend_folder": "site-07-astro-today-360",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000007",
+        "category": "22000000-0000-4000-8000-000000000007",
+        "media": "25000000-0000-4000-8000-000000000007",
+        "post": "21000000-0000-4000-8000-000000000007",
+        "redirect": "26000000-0000-4000-8000-000000000007",
+        "tag": "23000000-0000-4000-8000-000000000007"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-07",
+      "site_uuid": "10000000-0000-4000-8000-000000000007",
+      "unique_marker": "QA_MARKER_SITE_07"
+    },
+    {
+      "canonical_domain": "apkikundli.com",
+      "display_domain": "ApkiKundli.com",
+      "frontend_folder": "site-08-apki-kundli",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000008",
+        "category": "22000000-0000-4000-8000-000000000008",
+        "media": "25000000-0000-4000-8000-000000000008",
+        "post": "21000000-0000-4000-8000-000000000008",
+        "redirect": "26000000-0000-4000-8000-000000000008",
+        "tag": "23000000-0000-4000-8000-000000000008"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-08",
+      "site_uuid": "10000000-0000-4000-8000-000000000008",
+      "unique_marker": "QA_MARKER_SITE_08"
+    },
+    {
+      "canonical_domain": "matchyourkundli.com",
+      "display_domain": "MatchYourKundli.com",
+      "frontend_folder": "site-09-match-your-kundli",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000009",
+        "category": "22000000-0000-4000-8000-000000000009",
+        "media": "25000000-0000-4000-8000-000000000009",
+        "post": "21000000-0000-4000-8000-000000000009",
+        "redirect": "26000000-0000-4000-8000-000000000009",
+        "tag": "23000000-0000-4000-8000-000000000009"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-09",
+      "site_uuid": "10000000-0000-4000-8000-000000000009",
+      "unique_marker": "QA_MARKER_SITE_09"
+    },
+    {
+      "canonical_domain": "apkanakshatra.com",
+      "display_domain": "ApkaNakshatra.com",
+      "frontend_folder": "site-10-apka-nakshatra",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000010",
+        "category": "22000000-0000-4000-8000-000000000010",
+        "media": "25000000-0000-4000-8000-000000000010",
+        "post": "21000000-0000-4000-8000-000000000010",
+        "redirect": "26000000-0000-4000-8000-000000000010",
+        "tag": "23000000-0000-4000-8000-000000000010"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-10",
+      "site_uuid": "10000000-0000-4000-8000-000000000010",
+      "unique_marker": "QA_MARKER_SITE_10"
+    },
+    {
+      "canonical_domain": "janiyepanchang.com",
+      "display_domain": "JaniyePanchang.com",
+      "frontend_folder": "site-11-janiye-panchang",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000011",
+        "category": "22000000-0000-4000-8000-000000000011",
+        "media": "25000000-0000-4000-8000-000000000011",
+        "post": "21000000-0000-4000-8000-000000000011",
+        "redirect": "26000000-0000-4000-8000-000000000011",
+        "tag": "23000000-0000-4000-8000-000000000011"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-11",
+      "site_uuid": "10000000-0000-4000-8000-000000000011",
+      "unique_marker": "QA_MARKER_SITE_11"
+    },
+    {
+      "canonical_domain": "rashiremedies.com",
+      "display_domain": "RashiRemedies.com",
+      "frontend_folder": "site-12-rashi-remedies",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000012",
+        "category": "22000000-0000-4000-8000-000000000012",
+        "media": "25000000-0000-4000-8000-000000000012",
+        "post": "21000000-0000-4000-8000-000000000012",
+        "redirect": "26000000-0000-4000-8000-000000000012",
+        "tag": "23000000-0000-4000-8000-000000000012"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-12",
+      "site_uuid": "10000000-0000-4000-8000-000000000012",
+      "unique_marker": "QA_MARKER_SITE_12"
+    },
+    {
+      "canonical_domain": "apkapandit.in",
+      "display_domain": "ApkaPandit.in",
+      "frontend_folder": "site-13-apka-pandit",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000013",
+        "category": "22000000-0000-4000-8000-000000000013",
+        "media": "25000000-0000-4000-8000-000000000013",
+        "post": "21000000-0000-4000-8000-000000000013",
+        "redirect": "26000000-0000-4000-8000-000000000013",
+        "tag": "23000000-0000-4000-8000-000000000013"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-13",
+      "site_uuid": "10000000-0000-4000-8000-000000000013",
+      "unique_marker": "QA_MARKER_SITE_13"
+    },
+    {
+      "canonical_domain": "vastushastra360.in",
+      "display_domain": "VastuShastra360.in",
+      "frontend_folder": "site-14-vastu-shastra-360",
+      "logical_entity_ids": {
+        "author": "24000000-0000-4000-8000-000000000014",
+        "category": "22000000-0000-4000-8000-000000000014",
+        "media": "25000000-0000-4000-8000-000000000014",
+        "post": "21000000-0000-4000-8000-000000000014",
+        "redirect": "26000000-0000-4000-8000-000000000014",
+        "tag": "23000000-0000-4000-8000-000000000014"
+      },
+      "post_state_fixture_required": [
+        "DRAFT",
+        "SCHEDULED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "TRASH"
+      ],
+      "site_key": "SITE-14",
+      "site_uuid": "10000000-0000-4000-8000-000000000014",
+      "unique_marker": "QA_MARKER_SITE_14"
+    }
+  ]
+}

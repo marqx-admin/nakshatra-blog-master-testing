@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 40, "column": 0}, "map": {"version":3,"sources":["file:///Users/raghvendra1605/Documents/Local%20Dev/nakshatra-blog-master-main-local/apps/sites/site-05-daily-horoscope-360/src/pages/_document.tsx"],"sourcesContent":["import { Head, Html, Main, NextScript } from \"next/document\";\n\nexport default function Document() {\n  return <Html lang=\"en-IN\"><Head><meta name=\"color-scheme\" content=\"light\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /></Head><body><Main /><NextScript /></body></Html>;\n}\n"],"names":["Document","lang","name","content"],"mappings":";;;;;AAAA;;;AAEe,SAASA;IACtB,qBAAO,qKAAC,mSAAI;QAACC,MAAK;;0BAAQ,qKAAC,mSAAI;;kCAAC,qKAAC;wBAAKC,MAAK;wBAAeC,SAAQ;;;;;;kCAAU,qKAAC;wBAAKD,MAAK;wBAAWC,SAAQ;;;;;;;;;;;;0BAA+C,qKAAC;;kCAAK,qKAAC,mSAAI;;;;;kCAAG,qKAAC,ySAAU;;;;;;;;;;;;;;;;;AACpL"}}]
+}

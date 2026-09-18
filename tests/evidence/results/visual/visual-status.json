@@ -1,0 +1,7 @@
+{
+  "status_model": ["PASS", "FAIL", "BLOCKED", "NOT_EXECUTED"],
+  "doc25": {"status": "NOT_EXECUTED", "total_assertions": 89, "passed_assertions": 0, "evidence": []},
+  "doc26": {"status": "NOT_EXECUTED", "total_assertions": 112, "passed_assertions": 0, "evidence": []},
+  "doc27": {"status": "NOT_EXECUTED", "total_assertions": 2281, "passed_assertions": 0, "evidence": []},
+  "note": "Specification renders are not frontend implementation evidence. Runtime visual acceptance remains unexecuted."
+}

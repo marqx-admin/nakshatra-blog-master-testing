@@ -1,0 +1,3838 @@
+{
+  "site_key": "SITE-04",
+  "canonical_domain": "ZodiacDaily.in",
+  "same_slug": "shared-slug",
+  "pages": {
+    "/": {
+      "context": {
+        "page_id": "PUB-HOME-01",
+        "page_kind": "CONTENT",
+        "render_mode": "PUBLIC",
+        "locale_code": "en-IN"
+      },
+      "site": {
+        "site_key": "SITE-04",
+        "display_name": "ZodiacDaily",
+        "canonical_domain": "ZodiacDaily.in",
+        "home_destination": {
+          "kind": "HOME",
+          "url": "https://zodiacdaily.in/",
+          "is_external": false,
+          "page_id": "PUB-HOME-01"
+        },
+        "default_language": "en",
+        "locale_code": "en-IN",
+        "timezone_id": "Asia/Kolkata"
+      },
+      "settings": {
+        "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+        "social_profiles": []
+      },
+      "navigation": {
+        "header": {
+          "menu_key": "HEADER",
+          "items": [
+            {
+              "label": "Home",
+              "destination": {
+                "kind": "HOME",
+                "url": "https://zodiacdaily.in/",
+                "is_external": false,
+                "page_id": "PUB-HOME-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Zodiac perspectives",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Sign pairs",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              },
+              "children": []
+            },
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Search",
+              "destination": {
+                "kind": "SEARCH",
+                "url": "https://ZodiacDaily.in/search",
+                "is_external": false,
+                "page_id": "PUB-SEARCH-01"
+              },
+              "children": []
+            }
+          ]
+        },
+        "footer": {
+          "menu_key": "FOOTER",
+          "items": [
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Contact",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/contact",
+                "is_external": false,
+                "page_id": "PUB-STATIC-CONTACT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Privacy Policy",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/privacy-policy",
+                "is_external": false,
+                "page_id": "PUB-STATIC-PRIVACY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Terms of Use",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/terms-of-use",
+                "is_external": false,
+                "page_id": "PUB-STATIC-TERMS-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Disclaimer",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/disclaimer",
+                "is_external": false,
+                "page_id": "PUB-STATIC-DISCLAIMER-01"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "intro": {
+        "h1": "Different signs. Thoughtful perspectives.",
+        "intro_text": "An editorial exploration of similarities and differences, without reducing people to a label."
+      },
+      "lead_article": {
+        "article_id": "site-04-article-shared",
+        "destination": {
+          "kind": "ARTICLE",
+          "url": "https://zodiacdaily.in/article/shared-slug",
+          "is_external": false,
+          "page_id": "PUB-ARTICLE-01"
+        },
+        "title": "ZodiacDaily: Understanding your Rashi step by step",
+        "excerpt": "A practical introduction to Rashi concepts, written for clear editorial reading.",
+        "featured_media": {
+          "media_id": "site-04-media-hero",
+          "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+          "mime_type": "image/webp",
+          "width": 1200,
+          "height": 900,
+          "alt_text": "ZodiacDaily editorial zodiac illustration",
+          "variants": [
+            {
+              "variant_key": "card-480-webp",
+              "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+              "mime_type": "image/webp",
+              "width": 480,
+              "height": 360
+            },
+            {
+              "variant_key": "card-800-webp",
+              "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+              "mime_type": "image/webp",
+              "width": 800,
+              "height": 600
+            },
+            {
+              "variant_key": "card-1200-avif",
+              "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+              "mime_type": "image/avif",
+              "width": 1200,
+              "height": 900
+            }
+          ],
+          "credit_text": "Fixture artwork"
+        },
+        "author": {
+          "author_id": "site-04-author-1",
+          "display_name": "Editorial Desk",
+          "destination": {
+            "kind": "AUTHOR",
+            "url": "https://zodiacdaily.in/author/editorial-desk",
+            "is_external": false,
+            "page_id": "PUB-AUTHOR-01"
+          },
+          "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+        },
+        "published_at": "2026-09-12T06:30:00Z",
+        "taxonomy_label": "Rashi basics"
+      },
+      "sections": [
+        {
+          "section_key": "featured-rashi",
+          "section_kind": "POST_SELECTION",
+          "label": "Start with the essentials",
+          "posts": [
+            {
+              "article_id": "site-04-article-shared",
+              "destination": {
+                "kind": "ARTICLE",
+                "url": "https://zodiacdaily.in/article/shared-slug",
+                "is_external": false,
+                "page_id": "PUB-ARTICLE-01"
+              },
+              "title": "ZodiacDaily: Understanding your Rashi step by step",
+              "excerpt": "A practical introduction to Rashi concepts, written for clear editorial reading.",
+              "featured_media": {
+                "media_id": "site-04-media-hero",
+                "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+                "mime_type": "image/webp",
+                "width": 1200,
+                "height": 900,
+                "alt_text": "ZodiacDaily editorial zodiac illustration",
+                "variants": [
+                  {
+                    "variant_key": "card-480-webp",
+                    "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+                    "mime_type": "image/webp",
+                    "width": 480,
+                    "height": 360
+                  },
+                  {
+                    "variant_key": "card-800-webp",
+                    "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+                    "mime_type": "image/webp",
+                    "width": 800,
+                    "height": 600
+                  },
+                  {
+                    "variant_key": "card-1200-avif",
+                    "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+                    "mime_type": "image/avif",
+                    "width": 1200,
+                    "height": 900
+                  }
+                ],
+                "credit_text": "Fixture artwork"
+              },
+              "author": {
+                "author_id": "site-04-author-1",
+                "display_name": "Editorial Desk",
+                "destination": {
+                  "kind": "AUTHOR",
+                  "url": "https://zodiacdaily.in/author/editorial-desk",
+                  "is_external": false,
+                  "page_id": "PUB-AUTHOR-01"
+                },
+                "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+              },
+              "published_at": "2026-09-12T06:30:00Z",
+              "taxonomy_label": "Rashi basics"
+            },
+            {
+              "article_id": "site-04-article-moon",
+              "destination": {
+                "kind": "ARTICLE",
+                "url": "https://zodiacdaily.in/article/moon-sign-guide",
+                "is_external": false,
+                "page_id": "PUB-ARTICLE-01"
+              },
+              "title": "ZodiacDaily: Moon sign reference guide",
+              "excerpt": "How to read Moon-sign context without turning editorial content into a calculator.",
+              "author": {
+                "author_id": "site-04-author-1",
+                "display_name": "Editorial Desk",
+                "destination": {
+                  "kind": "AUTHOR",
+                  "url": "https://zodiacdaily.in/author/editorial-desk",
+                  "is_external": false,
+                  "page_id": "PUB-AUTHOR-01"
+                },
+                "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+              },
+              "published_at": "2026-09-11T05:00:00Z",
+              "taxonomy_label": "Moon sign"
+            }
+          ]
+        },
+        {
+          "section_key": "featured-categories",
+          "section_kind": "CATEGORY_SELECTION",
+          "label": "Browse by topic",
+          "categories": [
+            {
+              "kind": "CATEGORY",
+              "name": "Rashi basics",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              }
+            },
+            {
+              "kind": "TAG",
+              "name": "Moon sign",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              }
+            }
+          ]
+        }
+      ],
+      "latest_articles": [
+        {
+          "article_id": "site-04-article-shared",
+          "destination": {
+            "kind": "ARTICLE",
+            "url": "https://zodiacdaily.in/article/shared-slug",
+            "is_external": false,
+            "page_id": "PUB-ARTICLE-01"
+          },
+          "title": "ZodiacDaily: Understanding your Rashi step by step",
+          "excerpt": "A practical introduction to Rashi concepts, written for clear editorial reading.",
+          "featured_media": {
+            "media_id": "site-04-media-hero",
+            "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+            "mime_type": "image/webp",
+            "width": 1200,
+            "height": 900,
+            "alt_text": "ZodiacDaily editorial zodiac illustration",
+            "variants": [
+              {
+                "variant_key": "card-480-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+                "mime_type": "image/webp",
+                "width": 480,
+                "height": 360
+              },
+              {
+                "variant_key": "card-800-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+                "mime_type": "image/webp",
+                "width": 800,
+                "height": 600
+              },
+              {
+                "variant_key": "card-1200-avif",
+                "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+                "mime_type": "image/avif",
+                "width": 1200,
+                "height": 900
+              }
+            ],
+            "credit_text": "Fixture artwork"
+          },
+          "author": {
+            "author_id": "site-04-author-1",
+            "display_name": "Editorial Desk",
+            "destination": {
+              "kind": "AUTHOR",
+              "url": "https://zodiacdaily.in/author/editorial-desk",
+              "is_external": false,
+              "page_id": "PUB-AUTHOR-01"
+            },
+            "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+          },
+          "published_at": "2026-09-12T06:30:00Z",
+          "taxonomy_label": "Rashi basics"
+        },
+        {
+          "article_id": "site-04-article-moon",
+          "destination": {
+            "kind": "ARTICLE",
+            "url": "https://zodiacdaily.in/article/moon-sign-guide",
+            "is_external": false,
+            "page_id": "PUB-ARTICLE-01"
+          },
+          "title": "ZodiacDaily: Moon sign reference guide",
+          "excerpt": "How to read Moon-sign context without turning editorial content into a calculator.",
+          "author": {
+            "author_id": "site-04-author-1",
+            "display_name": "Editorial Desk",
+            "destination": {
+              "kind": "AUTHOR",
+              "url": "https://zodiacdaily.in/author/editorial-desk",
+              "is_external": false,
+              "page_id": "PUB-AUTHOR-01"
+            },
+            "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+          },
+          "published_at": "2026-09-11T05:00:00Z",
+          "taxonomy_label": "Moon sign"
+        }
+      ],
+      "seo": {
+        "baseline_indexability": "INDEX-ELIGIBLE",
+        "title": "ZodiacDaily | Rashi knowledge",
+        "meta_description": "Explore Rashi knowledge on ZodiacDaily.",
+        "canonical_url": "https://zodiacdaily.in/",
+        "open_graph": {
+          "title": "ZodiacDaily | Rashi knowledge",
+          "description": "Explore Rashi knowledge on ZodiacDaily.",
+          "url": "https://zodiacdaily.in/",
+          "type": "WEBSITE",
+          "image": {
+            "media_id": "site-04-media-hero",
+            "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+            "mime_type": "image/webp",
+            "width": 1200,
+            "height": 900,
+            "alt_text": "ZodiacDaily editorial zodiac illustration",
+            "variants": [
+              {
+                "variant_key": "card-480-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+                "mime_type": "image/webp",
+                "width": 480,
+                "height": 360
+              },
+              {
+                "variant_key": "card-800-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+                "mime_type": "image/webp",
+                "width": 800,
+                "height": 600
+              },
+              {
+                "variant_key": "card-1200-avif",
+                "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+                "mime_type": "image/avif",
+                "width": 1200,
+                "height": 900
+              }
+            ],
+            "credit_text": "Fixture artwork"
+          }
+        },
+        "robots": {
+          "index": true,
+          "follow": true
+        },
+        "structured_data": [
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "ZodiacDaily",
+            "url": "https://zodiacdaily.in/"
+          }
+        ]
+      }
+    },
+    "/article/shared-slug": {
+      "context": {
+        "page_id": "PUB-ARTICLE-01",
+        "page_kind": "CONTENT",
+        "render_mode": "PUBLIC",
+        "locale_code": "en-IN"
+      },
+      "site": {
+        "site_key": "SITE-04",
+        "display_name": "ZodiacDaily",
+        "canonical_domain": "ZodiacDaily.in",
+        "home_destination": {
+          "kind": "HOME",
+          "url": "https://zodiacdaily.in/",
+          "is_external": false,
+          "page_id": "PUB-HOME-01"
+        },
+        "default_language": "en",
+        "locale_code": "en-IN",
+        "timezone_id": "Asia/Kolkata"
+      },
+      "settings": {
+        "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+        "social_profiles": []
+      },
+      "navigation": {
+        "header": {
+          "menu_key": "HEADER",
+          "items": [
+            {
+              "label": "Home",
+              "destination": {
+                "kind": "HOME",
+                "url": "https://zodiacdaily.in/",
+                "is_external": false,
+                "page_id": "PUB-HOME-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Zodiac perspectives",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Sign pairs",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              },
+              "children": []
+            },
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Search",
+              "destination": {
+                "kind": "SEARCH",
+                "url": "https://ZodiacDaily.in/search",
+                "is_external": false,
+                "page_id": "PUB-SEARCH-01"
+              },
+              "children": []
+            }
+          ]
+        },
+        "footer": {
+          "menu_key": "FOOTER",
+          "items": [
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Contact",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/contact",
+                "is_external": false,
+                "page_id": "PUB-STATIC-CONTACT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Privacy Policy",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/privacy-policy",
+                "is_external": false,
+                "page_id": "PUB-STATIC-PRIVACY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Terms of Use",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/terms-of-use",
+                "is_external": false,
+                "page_id": "PUB-STATIC-TERMS-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Disclaimer",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/disclaimer",
+                "is_external": false,
+                "page_id": "PUB-STATIC-DISCLAIMER-01"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "breadcrumbs": {
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "is_current": false
+          },
+          {
+            "label": "ZodiacDaily: Understanding your Rashi step by step",
+            "is_current": true
+          }
+        ]
+      },
+      "article": {
+        "article_id": "site-04-article-shared",
+        "destination": {
+          "kind": "ARTICLE",
+          "url": "https://zodiacdaily.in/article/shared-slug",
+          "is_external": false,
+          "page_id": "PUB-ARTICLE-01"
+        },
+        "title": "ZodiacDaily: Understanding your Rashi step by step",
+        "excerpt": "A practical introduction to Rashi concepts, written for clear editorial reading.",
+        "body": {
+          "content_schema_version": "1.0",
+          "blocks": [
+            {
+              "block_id": "b1",
+              "type": "PARAGRAPH",
+              "payload": {
+                "content": {
+                  "runs": [
+                    {
+                      "text": "Rashi is a structured editorial topic here; this paragraph is deterministic fixture content.",
+                      "marks": []
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "block_id": "b2",
+              "type": "HEADING",
+              "payload": {
+                "level": 2,
+                "content": {
+                  "runs": [
+                    {
+                      "text": "A clear starting point",
+                      "marks": []
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "block_id": "b3",
+              "type": "LIST",
+              "payload": {
+                "style": "UNORDERED",
+                "items": [
+                  {
+                    "runs": [
+                      {
+                        "text": "Read the supplied PageData in order.",
+                        "marks": []
+                      }
+                    ]
+                  },
+                  {
+                    "runs": [
+                      {
+                        "text": "Keep site context isolated.",
+                        "marks": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "block_id": "b4",
+              "type": "QUOTE",
+              "payload": {
+                "quote": {
+                  "runs": [
+                    {
+                      "text": "Clarity is more useful than decorative certainty.",
+                      "marks": []
+                    }
+                  ]
+                },
+                "attribution": "Editorial Desk",
+                "source": "Fixture note"
+              }
+            },
+            {
+              "block_id": "b5",
+              "type": "SEPARATOR",
+              "payload": {}
+            },
+            {
+              "block_id": "b6",
+              "type": "MEDIA",
+              "payload": {
+                "resolution_state": "READY",
+                "media": {
+                  "media_id": "site-04-media-hero",
+                  "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+                  "mime_type": "image/webp",
+                  "width": 1200,
+                  "height": 900,
+                  "alt_text": "ZodiacDaily editorial zodiac illustration",
+                  "variants": [
+                    {
+                      "variant_key": "card-480-webp",
+                      "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+                      "mime_type": "image/webp",
+                      "width": 480,
+                      "height": 360
+                    },
+                    {
+                      "variant_key": "card-800-webp",
+                      "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+                      "mime_type": "image/webp",
+                      "width": 800,
+                      "height": 600
+                    },
+                    {
+                      "variant_key": "card-1200-avif",
+                      "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+                      "mime_type": "image/avif",
+                      "width": 1200,
+                      "height": 900
+                    }
+                  ],
+                  "credit_text": "Fixture artwork"
+                },
+                "alt_override": "ZodiacDaily Rashi diagram",
+                "caption": "Fixture media using public CDN-style variants."
+              }
+            },
+            {
+              "block_id": "b7",
+              "type": "TABLE",
+              "payload": {
+                "header_row": true,
+                "rows": [
+                  [
+                    {
+                      "runs": [
+                        {
+                          "text": "Reading cue",
+                          "marks": []
+                        }
+                      ]
+                    },
+                    {
+                      "runs": [
+                        {
+                          "text": "Meaning",
+                          "marks": []
+                        }
+                      ]
+                    }
+                  ],
+                  [
+                    {
+                      "runs": [
+                        {
+                          "text": "Order",
+                          "marks": []
+                        }
+                      ]
+                    },
+                    {
+                      "runs": [
+                        {
+                          "text": "Preserve server order",
+                          "marks": []
+                        }
+                      ]
+                    }
+                  ],
+                  [
+                    {
+                      "runs": [
+                        {
+                          "text": "Scope",
+                          "marks": []
+                        }
+                      ]
+                    },
+                    {
+                      "runs": [
+                        {
+                          "text": "One trusted site",
+                          "marks": []
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            },
+            {
+              "block_id": "b8",
+              "type": "EMBED",
+              "payload": {
+                "provider_key": "approved-video-provider",
+                "source_url_or_id": "https://example.invalid/editorial-reference",
+                "caption": "Safe textual fallback when provider playback is unavailable."
+              }
+            },
+            {
+              "block_id": "b9",
+              "type": "CALLOUT",
+              "payload": {
+                "label": "Remember",
+                "body": {
+                  "runs": [
+                    {
+                      "text": "Presentation can differ by site; semantic contracts do not.",
+                      "marks": []
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "block_id": "b10",
+              "type": "CTA",
+              "payload": {
+                "label": "Browse Rashi basics",
+                "supporting_text": "Continue with the same-site category archive.",
+                "destination": {
+                  "kind": "CATEGORY",
+                  "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                  "is_external": false,
+                  "page_id": "PUB-CATEGORY-01"
+                }
+              }
+            },
+            {
+              "block_id": "b11",
+              "type": "DISCLAIMER",
+              "payload": {
+                "label": "Editorial disclaimer",
+                "body": {
+                  "runs": [
+                    {
+                      "text": "This fixture demonstrates layout behavior and is not personalized astrological advice.",
+                      "marks": []
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "block_id": "b12",
+              "type": "SOURCES_REFERENCES",
+              "payload": {
+                "entries": [
+                  {
+                    "title": "Fixture source reference",
+                    "url": "https://example.invalid/reference",
+                    "publisher": "Documentation fixture",
+                    "note": "Used only for CHAT07 UI verification."
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "featured_media": {
+          "media_id": "site-04-media-hero",
+          "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+          "mime_type": "image/webp",
+          "width": 1200,
+          "height": 900,
+          "alt_text": "ZodiacDaily editorial zodiac illustration",
+          "variants": [
+            {
+              "variant_key": "card-480-webp",
+              "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+              "mime_type": "image/webp",
+              "width": 480,
+              "height": 360
+            },
+            {
+              "variant_key": "card-800-webp",
+              "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+              "mime_type": "image/webp",
+              "width": 800,
+              "height": 600
+            },
+            {
+              "variant_key": "card-1200-avif",
+              "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+              "mime_type": "image/avif",
+              "width": 1200,
+              "height": 900
+            }
+          ],
+          "credit_text": "Fixture artwork"
+        },
+        "author": {
+          "author_id": "site-04-author-1",
+          "display_name": "Editorial Desk",
+          "destination": {
+            "kind": "AUTHOR",
+            "url": "https://zodiacdaily.in/author/editorial-desk",
+            "is_external": false,
+            "page_id": "PUB-AUTHOR-01"
+          },
+          "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+        },
+        "categories": [
+          {
+            "kind": "CATEGORY",
+            "name": "Rashi basics",
+            "destination": {
+              "kind": "CATEGORY",
+              "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+              "is_external": false,
+              "page_id": "PUB-CATEGORY-01"
+            }
+          }
+        ],
+        "tags": [
+          {
+            "kind": "TAG",
+            "name": "Moon sign",
+            "destination": {
+              "kind": "TAG",
+              "url": "https://zodiacdaily.in/tag/sign-pairs",
+              "is_external": false,
+              "page_id": "PUB-TAG-01"
+            }
+          }
+        ],
+        "published_at": "2026-09-12T06:30:00Z",
+        "updated_at": "2026-09-12T07:00:00Z"
+      },
+      "related_content": {
+        "articles": [
+          {
+            "article_id": "site-04-article-moon",
+            "destination": {
+              "kind": "ARTICLE",
+              "url": "https://zodiacdaily.in/article/moon-sign-guide",
+              "is_external": false,
+              "page_id": "PUB-ARTICLE-01"
+            },
+            "title": "ZodiacDaily: Moon sign reference guide",
+            "excerpt": "How to read Moon-sign context without turning editorial content into a calculator.",
+            "author": {
+              "author_id": "site-04-author-1",
+              "display_name": "Editorial Desk",
+              "destination": {
+                "kind": "AUTHOR",
+                "url": "https://zodiacdaily.in/author/editorial-desk",
+                "is_external": false,
+                "page_id": "PUB-AUTHOR-01"
+              },
+              "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+            },
+            "published_at": "2026-09-11T05:00:00Z",
+            "taxonomy_label": "Moon sign"
+          }
+        ]
+      },
+      "seo": {
+        "baseline_indexability": "INDEX-ELIGIBLE",
+        "title": "ZodiacDaily: Understanding your Rashi step by step",
+        "meta_description": "A practical introduction to Rashi concepts, written for clear editorial reading.",
+        "canonical_url": "https://zodiacdaily.in/article/shared-slug",
+        "open_graph": {
+          "title": "ZodiacDaily: Understanding your Rashi step by step",
+          "description": "A practical introduction to Rashi concepts, written for clear editorial reading.",
+          "url": "https://zodiacdaily.in/article/shared-slug",
+          "type": "ARTICLE",
+          "image": {
+            "media_id": "site-04-media-hero",
+            "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+            "mime_type": "image/webp",
+            "width": 1200,
+            "height": 900,
+            "alt_text": "ZodiacDaily editorial zodiac illustration",
+            "variants": [
+              {
+                "variant_key": "card-480-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+                "mime_type": "image/webp",
+                "width": 480,
+                "height": 360
+              },
+              {
+                "variant_key": "card-800-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+                "mime_type": "image/webp",
+                "width": 800,
+                "height": 600
+              },
+              {
+                "variant_key": "card-1200-avif",
+                "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+                "mime_type": "image/avif",
+                "width": 1200,
+                "height": 900
+              }
+            ],
+            "credit_text": "Fixture artwork"
+          }
+        },
+        "robots": {
+          "index": true,
+          "follow": true
+        },
+        "structured_data": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": "ZodiacDaily: Understanding your Rashi step by step",
+            "mainEntityOfPage": "https://zodiacdaily.in/article/shared-slug"
+          }
+        ]
+      }
+    },
+    "/author/editorial-desk": {
+      "context": {
+        "page_id": "PUB-AUTHOR-01",
+        "page_kind": "CONTENT",
+        "render_mode": "PUBLIC",
+        "locale_code": "en-IN"
+      },
+      "site": {
+        "site_key": "SITE-04",
+        "display_name": "ZodiacDaily",
+        "canonical_domain": "ZodiacDaily.in",
+        "home_destination": {
+          "kind": "HOME",
+          "url": "https://zodiacdaily.in/",
+          "is_external": false,
+          "page_id": "PUB-HOME-01"
+        },
+        "default_language": "en",
+        "locale_code": "en-IN",
+        "timezone_id": "Asia/Kolkata"
+      },
+      "settings": {
+        "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+        "social_profiles": []
+      },
+      "navigation": {
+        "header": {
+          "menu_key": "HEADER",
+          "items": [
+            {
+              "label": "Home",
+              "destination": {
+                "kind": "HOME",
+                "url": "https://zodiacdaily.in/",
+                "is_external": false,
+                "page_id": "PUB-HOME-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Zodiac perspectives",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Sign pairs",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              },
+              "children": []
+            },
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Search",
+              "destination": {
+                "kind": "SEARCH",
+                "url": "https://ZodiacDaily.in/search",
+                "is_external": false,
+                "page_id": "PUB-SEARCH-01"
+              },
+              "children": []
+            }
+          ]
+        },
+        "footer": {
+          "menu_key": "FOOTER",
+          "items": [
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Contact",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/contact",
+                "is_external": false,
+                "page_id": "PUB-STATIC-CONTACT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Privacy Policy",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/privacy-policy",
+                "is_external": false,
+                "page_id": "PUB-STATIC-PRIVACY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Terms of Use",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/terms-of-use",
+                "is_external": false,
+                "page_id": "PUB-STATIC-TERMS-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Disclaimer",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/disclaimer",
+                "is_external": false,
+                "page_id": "PUB-STATIC-DISCLAIMER-01"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "breadcrumbs": {
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "is_current": false
+          },
+          {
+            "label": "Editorial Desk",
+            "is_current": true
+          }
+        ]
+      },
+      "author": {
+        "author_id": "site-04-author-1",
+        "display_name": "Editorial Desk",
+        "destination": {
+          "kind": "AUTHOR",
+          "url": "https://zodiacdaily.in/author/editorial-desk",
+          "is_external": false,
+          "page_id": "PUB-AUTHOR-01"
+        },
+        "bio": "Editorial profile fixture for same-site attribution.",
+        "designation": "Editorial Team",
+        "expertise": [
+          "Rashi education",
+          "Astrology explainers"
+        ],
+        "social_profiles": []
+      },
+      "articles": [
+        {
+          "article_id": "site-04-article-shared",
+          "destination": {
+            "kind": "ARTICLE",
+            "url": "https://zodiacdaily.in/article/shared-slug",
+            "is_external": false,
+            "page_id": "PUB-ARTICLE-01"
+          },
+          "title": "ZodiacDaily: Understanding your Rashi step by step",
+          "excerpt": "A practical introduction to Rashi concepts, written for clear editorial reading.",
+          "featured_media": {
+            "media_id": "site-04-media-hero",
+            "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+            "mime_type": "image/webp",
+            "width": 1200,
+            "height": 900,
+            "alt_text": "ZodiacDaily editorial zodiac illustration",
+            "variants": [
+              {
+                "variant_key": "card-480-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+                "mime_type": "image/webp",
+                "width": 480,
+                "height": 360
+              },
+              {
+                "variant_key": "card-800-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+                "mime_type": "image/webp",
+                "width": 800,
+                "height": 600
+              },
+              {
+                "variant_key": "card-1200-avif",
+                "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+                "mime_type": "image/avif",
+                "width": 1200,
+                "height": 900
+              }
+            ],
+            "credit_text": "Fixture artwork"
+          },
+          "author": {
+            "author_id": "site-04-author-1",
+            "display_name": "Editorial Desk",
+            "destination": {
+              "kind": "AUTHOR",
+              "url": "https://zodiacdaily.in/author/editorial-desk",
+              "is_external": false,
+              "page_id": "PUB-AUTHOR-01"
+            },
+            "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+          },
+          "published_at": "2026-09-12T06:30:00Z",
+          "taxonomy_label": "Rashi basics"
+        },
+        {
+          "article_id": "site-04-article-moon",
+          "destination": {
+            "kind": "ARTICLE",
+            "url": "https://zodiacdaily.in/article/moon-sign-guide",
+            "is_external": false,
+            "page_id": "PUB-ARTICLE-01"
+          },
+          "title": "ZodiacDaily: Moon sign reference guide",
+          "excerpt": "How to read Moon-sign context without turning editorial content into a calculator.",
+          "author": {
+            "author_id": "site-04-author-1",
+            "display_name": "Editorial Desk",
+            "destination": {
+              "kind": "AUTHOR",
+              "url": "https://zodiacdaily.in/author/editorial-desk",
+              "is_external": false,
+              "page_id": "PUB-AUTHOR-01"
+            },
+            "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+          },
+          "published_at": "2026-09-11T05:00:00Z",
+          "taxonomy_label": "Moon sign"
+        }
+      ],
+      "seo": {
+        "baseline_indexability": "CONDITIONAL-INDEX",
+        "title": "Editorial Desk | ZodiacDaily",
+        "canonical_url": "https://zodiacdaily.in/author/editorial-desk",
+        "robots": {
+          "index": true,
+          "follow": true
+        },
+        "structured_data": []
+      }
+    },
+    "/search": {
+      "context": {
+        "page_id": "PUB-SEARCH-01",
+        "page_kind": "CONTENT",
+        "render_mode": "PUBLIC",
+        "locale_code": "en-IN"
+      },
+      "site": {
+        "site_key": "SITE-04",
+        "display_name": "ZodiacDaily",
+        "canonical_domain": "ZodiacDaily.in",
+        "home_destination": {
+          "kind": "HOME",
+          "url": "https://zodiacdaily.in/",
+          "is_external": false,
+          "page_id": "PUB-HOME-01"
+        },
+        "default_language": "en",
+        "locale_code": "en-IN",
+        "timezone_id": "Asia/Kolkata"
+      },
+      "settings": {
+        "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+        "social_profiles": []
+      },
+      "navigation": {
+        "header": {
+          "menu_key": "HEADER",
+          "items": [
+            {
+              "label": "Home",
+              "destination": {
+                "kind": "HOME",
+                "url": "https://zodiacdaily.in/",
+                "is_external": false,
+                "page_id": "PUB-HOME-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Zodiac perspectives",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Sign pairs",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              },
+              "children": []
+            },
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Search",
+              "destination": {
+                "kind": "SEARCH",
+                "url": "https://ZodiacDaily.in/search",
+                "is_external": false,
+                "page_id": "PUB-SEARCH-01"
+              },
+              "children": []
+            }
+          ]
+        },
+        "footer": {
+          "menu_key": "FOOTER",
+          "items": [
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Contact",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/contact",
+                "is_external": false,
+                "page_id": "PUB-STATIC-CONTACT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Privacy Policy",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/privacy-policy",
+                "is_external": false,
+                "page_id": "PUB-STATIC-PRIVACY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Terms of Use",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/terms-of-use",
+                "is_external": false,
+                "page_id": "PUB-STATIC-TERMS-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Disclaimer",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/disclaimer",
+                "is_external": false,
+                "page_id": "PUB-STATIC-DISCLAIMER-01"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "intro": {
+        "h1": "Search this site",
+        "intro_text": "Results stay inside the trusted current-site context."
+      },
+      "query": "rashi",
+      "search_state": "RESULTS",
+      "articles": [
+        {
+          "article_id": "site-04-article-shared",
+          "destination": {
+            "kind": "ARTICLE",
+            "url": "https://zodiacdaily.in/article/shared-slug",
+            "is_external": false,
+            "page_id": "PUB-ARTICLE-01"
+          },
+          "title": "ZodiacDaily: Understanding your Rashi step by step",
+          "excerpt": "A practical introduction to Rashi concepts, written for clear editorial reading.",
+          "featured_media": {
+            "media_id": "site-04-media-hero",
+            "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+            "mime_type": "image/webp",
+            "width": 1200,
+            "height": 900,
+            "alt_text": "ZodiacDaily editorial zodiac illustration",
+            "variants": [
+              {
+                "variant_key": "card-480-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+                "mime_type": "image/webp",
+                "width": 480,
+                "height": 360
+              },
+              {
+                "variant_key": "card-800-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+                "mime_type": "image/webp",
+                "width": 800,
+                "height": 600
+              },
+              {
+                "variant_key": "card-1200-avif",
+                "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+                "mime_type": "image/avif",
+                "width": 1200,
+                "height": 900
+              }
+            ],
+            "credit_text": "Fixture artwork"
+          },
+          "author": {
+            "author_id": "site-04-author-1",
+            "display_name": "Editorial Desk",
+            "destination": {
+              "kind": "AUTHOR",
+              "url": "https://zodiacdaily.in/author/editorial-desk",
+              "is_external": false,
+              "page_id": "PUB-AUTHOR-01"
+            },
+            "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+          },
+          "published_at": "2026-09-12T06:30:00Z",
+          "taxonomy_label": "Rashi basics"
+        },
+        {
+          "article_id": "site-04-article-moon",
+          "destination": {
+            "kind": "ARTICLE",
+            "url": "https://zodiacdaily.in/article/moon-sign-guide",
+            "is_external": false,
+            "page_id": "PUB-ARTICLE-01"
+          },
+          "title": "ZodiacDaily: Moon sign reference guide",
+          "excerpt": "How to read Moon-sign context without turning editorial content into a calculator.",
+          "author": {
+            "author_id": "site-04-author-1",
+            "display_name": "Editorial Desk",
+            "destination": {
+              "kind": "AUTHOR",
+              "url": "https://zodiacdaily.in/author/editorial-desk",
+              "is_external": false,
+              "page_id": "PUB-AUTHOR-01"
+            },
+            "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+          },
+          "published_at": "2026-09-11T05:00:00Z",
+          "taxonomy_label": "Moon sign"
+        }
+      ],
+      "result_summary": "2 results for rashi",
+      "seo": {
+        "baseline_indexability": "NOINDEX",
+        "title": "Search | ZodiacDaily",
+        "canonical_url": "https://zodiacdaily.in/search",
+        "robots": {
+          "index": false,
+          "follow": true
+        },
+        "structured_data": []
+      }
+    },
+    "/about": {
+      "context": {
+        "page_id": "PUB-STATIC-ABOUT-01",
+        "page_kind": "STATIC",
+        "render_mode": "PUBLIC",
+        "locale_code": "en-IN"
+      },
+      "site": {
+        "site_key": "SITE-04",
+        "display_name": "ZodiacDaily",
+        "canonical_domain": "ZodiacDaily.in",
+        "home_destination": {
+          "kind": "HOME",
+          "url": "https://zodiacdaily.in/",
+          "is_external": false,
+          "page_id": "PUB-HOME-01"
+        },
+        "default_language": "en",
+        "locale_code": "en-IN",
+        "timezone_id": "Asia/Kolkata"
+      },
+      "settings": {
+        "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+        "social_profiles": []
+      },
+      "navigation": {
+        "header": {
+          "menu_key": "HEADER",
+          "items": [
+            {
+              "label": "Home",
+              "destination": {
+                "kind": "HOME",
+                "url": "https://zodiacdaily.in/",
+                "is_external": false,
+                "page_id": "PUB-HOME-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Zodiac perspectives",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Sign pairs",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              },
+              "children": []
+            },
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Search",
+              "destination": {
+                "kind": "SEARCH",
+                "url": "https://ZodiacDaily.in/search",
+                "is_external": false,
+                "page_id": "PUB-SEARCH-01"
+              },
+              "children": []
+            }
+          ]
+        },
+        "footer": {
+          "menu_key": "FOOTER",
+          "items": [
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Contact",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/contact",
+                "is_external": false,
+                "page_id": "PUB-STATIC-CONTACT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Privacy Policy",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/privacy-policy",
+                "is_external": false,
+                "page_id": "PUB-STATIC-PRIVACY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Terms of Use",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/terms-of-use",
+                "is_external": false,
+                "page_id": "PUB-STATIC-TERMS-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Disclaimer",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/disclaimer",
+                "is_external": false,
+                "page_id": "PUB-STATIC-DISCLAIMER-01"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "breadcrumbs": {
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "is_current": false
+          },
+          {
+            "label": "About",
+            "is_current": true
+          }
+        ]
+      },
+      "content": {
+        "static_key": "ABOUT",
+        "title": "About",
+        "intro_text": "Approved read-only about information for ZodiacDaily.",
+        "sections": [
+          {
+            "heading": "Information",
+            "paragraphs": [
+              {
+                "runs": [
+                  {
+                    "text": "This fixture represents approved about content for responsive UI verification.",
+                    "marks": []
+                  }
+                ]
+              }
+            ],
+            "list_items": []
+          }
+        ]
+      },
+      "seo": {
+        "baseline_indexability": "INDEX-ELIGIBLE",
+        "title": "About | ZodiacDaily",
+        "canonical_url": "https://zodiacdaily.in/about",
+        "robots": {
+          "index": true,
+          "follow": true
+        },
+        "structured_data": []
+      }
+    },
+    "/contact": {
+      "context": {
+        "page_id": "PUB-STATIC-CONTACT-01",
+        "page_kind": "STATIC",
+        "render_mode": "PUBLIC",
+        "locale_code": "en-IN"
+      },
+      "site": {
+        "site_key": "SITE-04",
+        "display_name": "ZodiacDaily",
+        "canonical_domain": "ZodiacDaily.in",
+        "home_destination": {
+          "kind": "HOME",
+          "url": "https://zodiacdaily.in/",
+          "is_external": false,
+          "page_id": "PUB-HOME-01"
+        },
+        "default_language": "en",
+        "locale_code": "en-IN",
+        "timezone_id": "Asia/Kolkata"
+      },
+      "settings": {
+        "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+        "social_profiles": []
+      },
+      "navigation": {
+        "header": {
+          "menu_key": "HEADER",
+          "items": [
+            {
+              "label": "Home",
+              "destination": {
+                "kind": "HOME",
+                "url": "https://zodiacdaily.in/",
+                "is_external": false,
+                "page_id": "PUB-HOME-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Zodiac perspectives",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Sign pairs",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              },
+              "children": []
+            },
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Search",
+              "destination": {
+                "kind": "SEARCH",
+                "url": "https://ZodiacDaily.in/search",
+                "is_external": false,
+                "page_id": "PUB-SEARCH-01"
+              },
+              "children": []
+            }
+          ]
+        },
+        "footer": {
+          "menu_key": "FOOTER",
+          "items": [
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Contact",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/contact",
+                "is_external": false,
+                "page_id": "PUB-STATIC-CONTACT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Privacy Policy",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/privacy-policy",
+                "is_external": false,
+                "page_id": "PUB-STATIC-PRIVACY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Terms of Use",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/terms-of-use",
+                "is_external": false,
+                "page_id": "PUB-STATIC-TERMS-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Disclaimer",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/disclaimer",
+                "is_external": false,
+                "page_id": "PUB-STATIC-DISCLAIMER-01"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "breadcrumbs": {
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "is_current": false
+          },
+          {
+            "label": "Contact",
+            "is_current": true
+          }
+        ]
+      },
+      "content": {
+        "static_key": "CONTACT",
+        "title": "Contact",
+        "intro_text": "Approved read-only contact information for ZodiacDaily.",
+        "sections": [
+          {
+            "heading": "Information",
+            "paragraphs": [
+              {
+                "runs": [
+                  {
+                    "text": "This fixture represents approved contact content for responsive UI verification.",
+                    "marks": []
+                  }
+                ]
+              }
+            ],
+            "list_items": []
+          }
+        ]
+      },
+      "seo": {
+        "baseline_indexability": "INDEX-ELIGIBLE",
+        "title": "Contact | ZodiacDaily",
+        "canonical_url": "https://zodiacdaily.in/contact",
+        "robots": {
+          "index": true,
+          "follow": true
+        },
+        "structured_data": []
+      },
+      "contact_info": {
+        "items": [
+          {
+            "kind": "EMAIL",
+            "label": "Editorial email",
+            "display_value": "editorial@example.invalid",
+            "destination": {
+              "kind": "MAILTO",
+              "url": "mailto:editorial@example.invalid",
+              "is_external": false
+            }
+          },
+          {
+            "kind": "HOURS",
+            "label": "Editorial hours",
+            "display_value": "Monday-Friday, 10:00-18:00 IST"
+          }
+        ]
+      }
+    },
+    "/privacy-policy": {
+      "context": {
+        "page_id": "PUB-STATIC-PRIVACY-01",
+        "page_kind": "STATIC",
+        "render_mode": "PUBLIC",
+        "locale_code": "en-IN"
+      },
+      "site": {
+        "site_key": "SITE-04",
+        "display_name": "ZodiacDaily",
+        "canonical_domain": "ZodiacDaily.in",
+        "home_destination": {
+          "kind": "HOME",
+          "url": "https://zodiacdaily.in/",
+          "is_external": false,
+          "page_id": "PUB-HOME-01"
+        },
+        "default_language": "en",
+        "locale_code": "en-IN",
+        "timezone_id": "Asia/Kolkata"
+      },
+      "settings": {
+        "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+        "social_profiles": []
+      },
+      "navigation": {
+        "header": {
+          "menu_key": "HEADER",
+          "items": [
+            {
+              "label": "Home",
+              "destination": {
+                "kind": "HOME",
+                "url": "https://zodiacdaily.in/",
+                "is_external": false,
+                "page_id": "PUB-HOME-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Zodiac perspectives",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Sign pairs",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              },
+              "children": []
+            },
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Search",
+              "destination": {
+                "kind": "SEARCH",
+                "url": "https://ZodiacDaily.in/search",
+                "is_external": false,
+                "page_id": "PUB-SEARCH-01"
+              },
+              "children": []
+            }
+          ]
+        },
+        "footer": {
+          "menu_key": "FOOTER",
+          "items": [
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Contact",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/contact",
+                "is_external": false,
+                "page_id": "PUB-STATIC-CONTACT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Privacy Policy",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/privacy-policy",
+                "is_external": false,
+                "page_id": "PUB-STATIC-PRIVACY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Terms of Use",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/terms-of-use",
+                "is_external": false,
+                "page_id": "PUB-STATIC-TERMS-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Disclaimer",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/disclaimer",
+                "is_external": false,
+                "page_id": "PUB-STATIC-DISCLAIMER-01"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "breadcrumbs": {
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "is_current": false
+          },
+          {
+            "label": "Privacy Policy",
+            "is_current": true
+          }
+        ]
+      },
+      "content": {
+        "static_key": "PRIVACY",
+        "title": "Privacy Policy",
+        "intro_text": "Approved read-only privacy policy information for ZodiacDaily.",
+        "sections": [
+          {
+            "heading": "Information",
+            "paragraphs": [
+              {
+                "runs": [
+                  {
+                    "text": "This fixture represents approved privacy policy content for responsive UI verification.",
+                    "marks": []
+                  }
+                ]
+              }
+            ],
+            "list_items": []
+          }
+        ]
+      },
+      "seo": {
+        "baseline_indexability": "INDEX-ELIGIBLE",
+        "title": "Privacy Policy | ZodiacDaily",
+        "canonical_url": "https://zodiacdaily.in/privacy-policy",
+        "robots": {
+          "index": true,
+          "follow": true
+        },
+        "structured_data": []
+      }
+    },
+    "/terms-of-use": {
+      "context": {
+        "page_id": "PUB-STATIC-TERMS-01",
+        "page_kind": "STATIC",
+        "render_mode": "PUBLIC",
+        "locale_code": "en-IN"
+      },
+      "site": {
+        "site_key": "SITE-04",
+        "display_name": "ZodiacDaily",
+        "canonical_domain": "ZodiacDaily.in",
+        "home_destination": {
+          "kind": "HOME",
+          "url": "https://zodiacdaily.in/",
+          "is_external": false,
+          "page_id": "PUB-HOME-01"
+        },
+        "default_language": "en",
+        "locale_code": "en-IN",
+        "timezone_id": "Asia/Kolkata"
+      },
+      "settings": {
+        "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+        "social_profiles": []
+      },
+      "navigation": {
+        "header": {
+          "menu_key": "HEADER",
+          "items": [
+            {
+              "label": "Home",
+              "destination": {
+                "kind": "HOME",
+                "url": "https://zodiacdaily.in/",
+                "is_external": false,
+                "page_id": "PUB-HOME-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Zodiac perspectives",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Sign pairs",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              },
+              "children": []
+            },
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Search",
+              "destination": {
+                "kind": "SEARCH",
+                "url": "https://ZodiacDaily.in/search",
+                "is_external": false,
+                "page_id": "PUB-SEARCH-01"
+              },
+              "children": []
+            }
+          ]
+        },
+        "footer": {
+          "menu_key": "FOOTER",
+          "items": [
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Contact",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/contact",
+                "is_external": false,
+                "page_id": "PUB-STATIC-CONTACT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Privacy Policy",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/privacy-policy",
+                "is_external": false,
+                "page_id": "PUB-STATIC-PRIVACY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Terms of Use",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/terms-of-use",
+                "is_external": false,
+                "page_id": "PUB-STATIC-TERMS-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Disclaimer",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/disclaimer",
+                "is_external": false,
+                "page_id": "PUB-STATIC-DISCLAIMER-01"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "breadcrumbs": {
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "is_current": false
+          },
+          {
+            "label": "Terms of Use",
+            "is_current": true
+          }
+        ]
+      },
+      "content": {
+        "static_key": "TERMS",
+        "title": "Terms of Use",
+        "intro_text": "Approved read-only terms of use information for ZodiacDaily.",
+        "sections": [
+          {
+            "heading": "Information",
+            "paragraphs": [
+              {
+                "runs": [
+                  {
+                    "text": "This fixture represents approved terms of use content for responsive UI verification.",
+                    "marks": []
+                  }
+                ]
+              }
+            ],
+            "list_items": []
+          }
+        ]
+      },
+      "seo": {
+        "baseline_indexability": "INDEX-ELIGIBLE",
+        "title": "Terms of Use | ZodiacDaily",
+        "canonical_url": "https://zodiacdaily.in/terms-of-use",
+        "robots": {
+          "index": true,
+          "follow": true
+        },
+        "structured_data": []
+      }
+    },
+    "/disclaimer": {
+      "context": {
+        "page_id": "PUB-STATIC-DISCLAIMER-01",
+        "page_kind": "STATIC",
+        "render_mode": "PUBLIC",
+        "locale_code": "en-IN"
+      },
+      "site": {
+        "site_key": "SITE-04",
+        "display_name": "ZodiacDaily",
+        "canonical_domain": "ZodiacDaily.in",
+        "home_destination": {
+          "kind": "HOME",
+          "url": "https://zodiacdaily.in/",
+          "is_external": false,
+          "page_id": "PUB-HOME-01"
+        },
+        "default_language": "en",
+        "locale_code": "en-IN",
+        "timezone_id": "Asia/Kolkata"
+      },
+      "settings": {
+        "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+        "social_profiles": []
+      },
+      "navigation": {
+        "header": {
+          "menu_key": "HEADER",
+          "items": [
+            {
+              "label": "Home",
+              "destination": {
+                "kind": "HOME",
+                "url": "https://zodiacdaily.in/",
+                "is_external": false,
+                "page_id": "PUB-HOME-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Zodiac perspectives",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Sign pairs",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              },
+              "children": []
+            },
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Search",
+              "destination": {
+                "kind": "SEARCH",
+                "url": "https://ZodiacDaily.in/search",
+                "is_external": false,
+                "page_id": "PUB-SEARCH-01"
+              },
+              "children": []
+            }
+          ]
+        },
+        "footer": {
+          "menu_key": "FOOTER",
+          "items": [
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Contact",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/contact",
+                "is_external": false,
+                "page_id": "PUB-STATIC-CONTACT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Privacy Policy",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/privacy-policy",
+                "is_external": false,
+                "page_id": "PUB-STATIC-PRIVACY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Terms of Use",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/terms-of-use",
+                "is_external": false,
+                "page_id": "PUB-STATIC-TERMS-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Disclaimer",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/disclaimer",
+                "is_external": false,
+                "page_id": "PUB-STATIC-DISCLAIMER-01"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "breadcrumbs": {
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "is_current": false
+          },
+          {
+            "label": "Disclaimer",
+            "is_current": true
+          }
+        ]
+      },
+      "content": {
+        "static_key": "DISCLAIMER",
+        "title": "Disclaimer",
+        "intro_text": "Approved read-only disclaimer information for ZodiacDaily.",
+        "sections": [
+          {
+            "heading": "Information",
+            "paragraphs": [
+              {
+                "runs": [
+                  {
+                    "text": "This fixture represents approved disclaimer content for responsive UI verification.",
+                    "marks": []
+                  }
+                ]
+              }
+            ],
+            "list_items": []
+          }
+        ]
+      },
+      "seo": {
+        "baseline_indexability": "INDEX-ELIGIBLE",
+        "title": "Disclaimer | ZodiacDaily",
+        "canonical_url": "https://zodiacdaily.in/disclaimer",
+        "robots": {
+          "index": true,
+          "follow": true
+        },
+        "structured_data": []
+      }
+    },
+    "/category/zodiac-perspectives": {
+      "context": {
+        "page_id": "PUB-CATEGORY-01",
+        "page_kind": "CONTENT",
+        "render_mode": "PUBLIC",
+        "locale_code": "en-IN"
+      },
+      "site": {
+        "site_key": "SITE-04",
+        "display_name": "ZodiacDaily",
+        "canonical_domain": "ZodiacDaily.in",
+        "home_destination": {
+          "kind": "HOME",
+          "url": "https://zodiacdaily.in/",
+          "is_external": false,
+          "page_id": "PUB-HOME-01"
+        },
+        "default_language": "en",
+        "locale_code": "en-IN",
+        "timezone_id": "Asia/Kolkata"
+      },
+      "settings": {
+        "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+        "social_profiles": []
+      },
+      "navigation": {
+        "header": {
+          "menu_key": "HEADER",
+          "items": [
+            {
+              "label": "Home",
+              "destination": {
+                "kind": "HOME",
+                "url": "https://zodiacdaily.in/",
+                "is_external": false,
+                "page_id": "PUB-HOME-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Zodiac perspectives",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Sign pairs",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              },
+              "children": []
+            },
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Search",
+              "destination": {
+                "kind": "SEARCH",
+                "url": "https://ZodiacDaily.in/search",
+                "is_external": false,
+                "page_id": "PUB-SEARCH-01"
+              },
+              "children": []
+            }
+          ]
+        },
+        "footer": {
+          "menu_key": "FOOTER",
+          "items": [
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Contact",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/contact",
+                "is_external": false,
+                "page_id": "PUB-STATIC-CONTACT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Privacy Policy",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/privacy-policy",
+                "is_external": false,
+                "page_id": "PUB-STATIC-PRIVACY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Terms of Use",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/terms-of-use",
+                "is_external": false,
+                "page_id": "PUB-STATIC-TERMS-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Disclaimer",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/disclaimer",
+                "is_external": false,
+                "page_id": "PUB-STATIC-DISCLAIMER-01"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "breadcrumbs": {
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "is_current": false
+          },
+          {
+            "label": "Rashi basics",
+            "is_current": true
+          }
+        ]
+      },
+      "category": {
+        "category_id": "site-04-cat-1",
+        "name": "Zodiac perspectives",
+        "description": "An editorial exploration of similarities and differences, without reducing people to a label.",
+        "destination": {
+          "kind": "CATEGORY",
+          "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+          "is_external": false,
+          "page_id": "PUB-CATEGORY-01"
+        }
+      },
+      "articles": [
+        {
+          "article_id": "site-04-article-shared",
+          "destination": {
+            "kind": "ARTICLE",
+            "url": "https://zodiacdaily.in/article/shared-slug",
+            "is_external": false,
+            "page_id": "PUB-ARTICLE-01"
+          },
+          "title": "ZodiacDaily: Understanding your Rashi step by step",
+          "excerpt": "A practical introduction to Rashi concepts, written for clear editorial reading.",
+          "featured_media": {
+            "media_id": "site-04-media-hero",
+            "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+            "mime_type": "image/webp",
+            "width": 1200,
+            "height": 900,
+            "alt_text": "ZodiacDaily editorial zodiac illustration",
+            "variants": [
+              {
+                "variant_key": "card-480-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+                "mime_type": "image/webp",
+                "width": 480,
+                "height": 360
+              },
+              {
+                "variant_key": "card-800-webp",
+                "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+                "mime_type": "image/webp",
+                "width": 800,
+                "height": 600
+              },
+              {
+                "variant_key": "card-1200-avif",
+                "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+                "mime_type": "image/avif",
+                "width": 1200,
+                "height": 900
+              }
+            ],
+            "credit_text": "Fixture artwork"
+          },
+          "author": {
+            "author_id": "site-04-author-1",
+            "display_name": "Editorial Desk",
+            "destination": {
+              "kind": "AUTHOR",
+              "url": "https://zodiacdaily.in/author/editorial-desk",
+              "is_external": false,
+              "page_id": "PUB-AUTHOR-01"
+            },
+            "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+          },
+          "published_at": "2026-09-12T06:30:00Z",
+          "taxonomy_label": "Rashi basics"
+        },
+        {
+          "article_id": "site-04-article-moon",
+          "destination": {
+            "kind": "ARTICLE",
+            "url": "https://zodiacdaily.in/article/moon-sign-guide",
+            "is_external": false,
+            "page_id": "PUB-ARTICLE-01"
+          },
+          "title": "ZodiacDaily: Moon sign reference guide",
+          "excerpt": "How to read Moon-sign context without turning editorial content into a calculator.",
+          "author": {
+            "author_id": "site-04-author-1",
+            "display_name": "Editorial Desk",
+            "destination": {
+              "kind": "AUTHOR",
+              "url": "https://zodiacdaily.in/author/editorial-desk",
+              "is_external": false,
+              "page_id": "PUB-AUTHOR-01"
+            },
+            "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+          },
+          "published_at": "2026-09-11T05:00:00Z",
+          "taxonomy_label": "Moon sign"
+        }
+      ],
+      "pagination": {
+        "current_page": 1,
+        "links": [
+          {
+            "page_number": 1,
+            "destination": {
+              "kind": "CATEGORY",
+              "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+              "is_external": false,
+              "page_id": "PUB-CATEGORY-01"
+            },
+            "is_current": true
+          },
+          {
+            "page_number": 2,
+            "destination": {
+              "kind": "CATEGORY",
+              "url": "https://zodiacdaily.in/category/zodiac-perspectives?page=2",
+              "is_external": false,
+              "page_id": "PUB-CATEGORY-01"
+            },
+            "is_current": false
+          }
+        ],
+        "next": {
+          "kind": "CATEGORY",
+          "url": "https://zodiacdaily.in/category/zodiac-perspectives?page=2",
+          "is_external": false,
+          "page_id": "PUB-CATEGORY-01"
+        }
+      },
+      "seo": {
+        "baseline_indexability": "CONDITIONAL-INDEX",
+        "title": "Rashi basics | ZodiacDaily",
+        "canonical_url": "https://zodiacdaily.in/category/zodiac-perspectives",
+        "robots": {
+          "index": true,
+          "follow": true
+        },
+        "structured_data": []
+      }
+    },
+    "/tag/sign-pairs": {
+      "context": {
+        "page_id": "PUB-TAG-01",
+        "page_kind": "CONTENT",
+        "render_mode": "PUBLIC",
+        "locale_code": "en-IN"
+      },
+      "site": {
+        "site_key": "SITE-04",
+        "display_name": "ZodiacDaily",
+        "canonical_domain": "ZodiacDaily.in",
+        "home_destination": {
+          "kind": "HOME",
+          "url": "https://zodiacdaily.in/",
+          "is_external": false,
+          "page_id": "PUB-HOME-01"
+        },
+        "default_language": "en",
+        "locale_code": "en-IN",
+        "timezone_id": "Asia/Kolkata"
+      },
+      "settings": {
+        "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+        "social_profiles": []
+      },
+      "navigation": {
+        "header": {
+          "menu_key": "HEADER",
+          "items": [
+            {
+              "label": "Home",
+              "destination": {
+                "kind": "HOME",
+                "url": "https://zodiacdaily.in/",
+                "is_external": false,
+                "page_id": "PUB-HOME-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Zodiac perspectives",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Sign pairs",
+              "destination": {
+                "kind": "TAG",
+                "url": "https://zodiacdaily.in/tag/sign-pairs",
+                "is_external": false,
+                "page_id": "PUB-TAG-01"
+              },
+              "children": []
+            },
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Search",
+              "destination": {
+                "kind": "SEARCH",
+                "url": "https://ZodiacDaily.in/search",
+                "is_external": false,
+                "page_id": "PUB-SEARCH-01"
+              },
+              "children": []
+            }
+          ]
+        },
+        "footer": {
+          "menu_key": "FOOTER",
+          "items": [
+            {
+              "label": "About",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/about",
+                "is_external": false,
+                "page_id": "PUB-STATIC-ABOUT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Contact",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/contact",
+                "is_external": false,
+                "page_id": "PUB-STATIC-CONTACT-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Privacy Policy",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/privacy-policy",
+                "is_external": false,
+                "page_id": "PUB-STATIC-PRIVACY-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Terms of Use",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/terms-of-use",
+                "is_external": false,
+                "page_id": "PUB-STATIC-TERMS-01"
+              },
+              "children": []
+            },
+            {
+              "label": "Disclaimer",
+              "destination": {
+                "kind": "STATIC",
+                "url": "https://zodiacdaily.in/disclaimer",
+                "is_external": false,
+                "page_id": "PUB-STATIC-DISCLAIMER-01"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "breadcrumbs": {
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "is_current": false
+          },
+          {
+            "label": "Moon sign",
+            "is_current": true
+          }
+        ]
+      },
+      "tag": {
+        "tag_id": "site-04-tag-1",
+        "name": "Sign pairs",
+        "description": "An editorial exploration of similarities and differences, without reducing people to a label.",
+        "destination": {
+          "kind": "TAG",
+          "url": "https://zodiacdaily.in/tag/sign-pairs",
+          "is_external": false,
+          "page_id": "PUB-TAG-01"
+        }
+      },
+      "articles": [
+        {
+          "article_id": "site-04-article-moon",
+          "destination": {
+            "kind": "ARTICLE",
+            "url": "https://zodiacdaily.in/article/moon-sign-guide",
+            "is_external": false,
+            "page_id": "PUB-ARTICLE-01"
+          },
+          "title": "ZodiacDaily: Moon sign reference guide",
+          "excerpt": "How to read Moon-sign context without turning editorial content into a calculator.",
+          "author": {
+            "author_id": "site-04-author-1",
+            "display_name": "Editorial Desk",
+            "destination": {
+              "kind": "AUTHOR",
+              "url": "https://zodiacdaily.in/author/editorial-desk",
+              "is_external": false,
+              "page_id": "PUB-AUTHOR-01"
+            },
+            "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+          },
+          "published_at": "2026-09-11T05:00:00Z",
+          "taxonomy_label": "Moon sign"
+        }
+      ],
+      "seo": {
+        "baseline_indexability": "CONDITIONAL-INDEX",
+        "title": "Moon sign | ZodiacDaily",
+        "canonical_url": "https://zodiacdaily.in/tag/sign-pairs",
+        "robots": {
+          "index": true,
+          "follow": true
+        },
+        "structured_data": []
+      }
+    }
+  },
+  "preview": {
+    "context": {
+      "page_id": "PUB-SYS-PREVIEW-01",
+      "page_kind": "PREVIEW",
+      "render_mode": "PREVIEW",
+      "locale_code": "en-IN"
+    },
+    "site": {
+      "site_key": "SITE-04",
+      "display_name": "ZodiacDaily",
+      "canonical_domain": "ZodiacDaily.in",
+      "home_destination": {
+        "kind": "HOME",
+        "url": "https://zodiacdaily.in/",
+        "is_external": false,
+        "page_id": "PUB-HOME-01"
+      },
+      "default_language": "en",
+      "locale_code": "en-IN",
+      "timezone_id": "Asia/Kolkata"
+    },
+    "settings": {
+      "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+      "social_profiles": []
+    },
+    "navigation": {
+      "header": {
+        "menu_key": "HEADER",
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Zodiac perspectives",
+            "destination": {
+              "kind": "CATEGORY",
+              "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+              "is_external": false,
+              "page_id": "PUB-CATEGORY-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Sign pairs",
+            "destination": {
+              "kind": "TAG",
+              "url": "https://zodiacdaily.in/tag/sign-pairs",
+              "is_external": false,
+              "page_id": "PUB-TAG-01"
+            },
+            "children": []
+          },
+          {
+            "label": "About",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/about",
+              "is_external": false,
+              "page_id": "PUB-STATIC-ABOUT-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Search",
+            "destination": {
+              "kind": "SEARCH",
+              "url": "https://ZodiacDaily.in/search",
+              "is_external": false,
+              "page_id": "PUB-SEARCH-01"
+            },
+            "children": []
+          }
+        ]
+      },
+      "footer": {
+        "menu_key": "FOOTER",
+        "items": [
+          {
+            "label": "About",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/about",
+              "is_external": false,
+              "page_id": "PUB-STATIC-ABOUT-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Contact",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/contact",
+              "is_external": false,
+              "page_id": "PUB-STATIC-CONTACT-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Privacy Policy",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/privacy-policy",
+              "is_external": false,
+              "page_id": "PUB-STATIC-PRIVACY-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Terms of Use",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/terms-of-use",
+              "is_external": false,
+              "page_id": "PUB-STATIC-TERMS-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Disclaimer",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/disclaimer",
+              "is_external": false,
+              "page_id": "PUB-STATIC-DISCLAIMER-01"
+            },
+            "children": []
+          }
+        ]
+      }
+    },
+    "preview": {
+      "lifecycle_status": "DRAFT",
+      "source_kind": "WORKING_COPY",
+      "notice_text": "Private preview - not published",
+      "return_url": "https://admin.example.invalid/"
+    },
+    "article": {
+      "article_id": "site-04-article-shared",
+      "title": "Preview: ZodiacDaily: Understanding your Rashi step by step",
+      "excerpt": "A practical introduction to Rashi concepts, written for clear editorial reading.",
+      "body": {
+        "content_schema_version": "1.0",
+        "blocks": [
+          {
+            "block_id": "b1",
+            "type": "PARAGRAPH",
+            "payload": {
+              "content": {
+                "runs": [
+                  {
+                    "text": "Rashi is a structured editorial topic here; this paragraph is deterministic fixture content.",
+                    "marks": []
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "block_id": "b2",
+            "type": "HEADING",
+            "payload": {
+              "level": 2,
+              "content": {
+                "runs": [
+                  {
+                    "text": "A clear starting point",
+                    "marks": []
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "block_id": "b3",
+            "type": "LIST",
+            "payload": {
+              "style": "UNORDERED",
+              "items": [
+                {
+                  "runs": [
+                    {
+                      "text": "Read the supplied PageData in order.",
+                      "marks": []
+                    }
+                  ]
+                },
+                {
+                  "runs": [
+                    {
+                      "text": "Keep site context isolated.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "block_id": "b4",
+            "type": "QUOTE",
+            "payload": {
+              "quote": {
+                "runs": [
+                  {
+                    "text": "Clarity is more useful than decorative certainty.",
+                    "marks": []
+                  }
+                ]
+              },
+              "attribution": "Editorial Desk",
+              "source": "Fixture note"
+            }
+          },
+          {
+            "block_id": "b5",
+            "type": "SEPARATOR",
+            "payload": {}
+          },
+          {
+            "block_id": "b6",
+            "type": "MEDIA",
+            "payload": {
+              "resolution_state": "READY",
+              "media": {
+                "media_id": "site-04-media-hero",
+                "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+                "mime_type": "image/webp",
+                "width": 1200,
+                "height": 900,
+                "alt_text": "ZodiacDaily editorial zodiac illustration",
+                "variants": [
+                  {
+                    "variant_key": "card-480-webp",
+                    "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+                    "mime_type": "image/webp",
+                    "width": 480,
+                    "height": 360
+                  },
+                  {
+                    "variant_key": "card-800-webp",
+                    "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+                    "mime_type": "image/webp",
+                    "width": 800,
+                    "height": 600
+                  },
+                  {
+                    "variant_key": "card-1200-avif",
+                    "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+                    "mime_type": "image/avif",
+                    "width": 1200,
+                    "height": 900
+                  }
+                ],
+                "credit_text": "Fixture artwork"
+              },
+              "alt_override": "ZodiacDaily Rashi diagram",
+              "caption": "Fixture media using public CDN-style variants."
+            }
+          },
+          {
+            "block_id": "b7",
+            "type": "TABLE",
+            "payload": {
+              "header_row": true,
+              "rows": [
+                [
+                  {
+                    "runs": [
+                      {
+                        "text": "Reading cue",
+                        "marks": []
+                      }
+                    ]
+                  },
+                  {
+                    "runs": [
+                      {
+                        "text": "Meaning",
+                        "marks": []
+                      }
+                    ]
+                  }
+                ],
+                [
+                  {
+                    "runs": [
+                      {
+                        "text": "Order",
+                        "marks": []
+                      }
+                    ]
+                  },
+                  {
+                    "runs": [
+                      {
+                        "text": "Preserve server order",
+                        "marks": []
+                      }
+                    ]
+                  }
+                ],
+                [
+                  {
+                    "runs": [
+                      {
+                        "text": "Scope",
+                        "marks": []
+                      }
+                    ]
+                  },
+                  {
+                    "runs": [
+                      {
+                        "text": "One trusted site",
+                        "marks": []
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          },
+          {
+            "block_id": "b8",
+            "type": "EMBED",
+            "payload": {
+              "provider_key": "approved-video-provider",
+              "source_url_or_id": "https://example.invalid/editorial-reference",
+              "caption": "Safe textual fallback when provider playback is unavailable."
+            }
+          },
+          {
+            "block_id": "b9",
+            "type": "CALLOUT",
+            "payload": {
+              "label": "Remember",
+              "body": {
+                "runs": [
+                  {
+                    "text": "Presentation can differ by site; semantic contracts do not.",
+                    "marks": []
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "block_id": "b10",
+            "type": "CTA",
+            "payload": {
+              "label": "Browse Rashi basics",
+              "supporting_text": "Continue with the same-site category archive.",
+              "destination": {
+                "kind": "CATEGORY",
+                "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+                "is_external": false,
+                "page_id": "PUB-CATEGORY-01"
+              }
+            }
+          },
+          {
+            "block_id": "b11",
+            "type": "DISCLAIMER",
+            "payload": {
+              "label": "Editorial disclaimer",
+              "body": {
+                "runs": [
+                  {
+                    "text": "This fixture demonstrates layout behavior and is not personalized astrological advice.",
+                    "marks": []
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "block_id": "b12",
+            "type": "SOURCES_REFERENCES",
+            "payload": {
+              "entries": [
+                {
+                  "title": "Fixture source reference",
+                  "url": "https://example.invalid/reference",
+                  "publisher": "Documentation fixture",
+                  "note": "Used only for CHAT07 UI verification."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "author": {
+        "author_id": "site-04-author-1",
+        "display_name": "Editorial Desk",
+        "destination": {
+          "kind": "AUTHOR",
+          "url": "https://zodiacdaily.in/author/editorial-desk",
+          "is_external": false,
+          "page_id": "PUB-AUTHOR-01"
+        },
+        "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+      },
+      "categories": [
+        {
+          "kind": "CATEGORY",
+          "name": "Rashi basics",
+          "destination": {
+            "kind": "CATEGORY",
+            "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+            "is_external": false,
+            "page_id": "PUB-CATEGORY-01"
+          }
+        }
+      ],
+      "tags": [
+        {
+          "kind": "TAG",
+          "name": "Moon sign",
+          "destination": {
+            "kind": "TAG",
+            "url": "https://zodiacdaily.in/tag/sign-pairs",
+            "is_external": false,
+            "page_id": "PUB-TAG-01"
+          }
+        }
+      ],
+      "featured_media": {
+        "media_id": "site-04-media-hero",
+        "url": "https://cdn.example.invalid/site-04/hero-1200.webp",
+        "mime_type": "image/webp",
+        "width": 1200,
+        "height": 900,
+        "alt_text": "ZodiacDaily editorial zodiac illustration",
+        "variants": [
+          {
+            "variant_key": "card-480-webp",
+            "url": "https://cdn.example.invalid/site-04/hero-480.webp",
+            "mime_type": "image/webp",
+            "width": 480,
+            "height": 360
+          },
+          {
+            "variant_key": "card-800-webp",
+            "url": "https://cdn.example.invalid/site-04/hero-800.webp",
+            "mime_type": "image/webp",
+            "width": 800,
+            "height": 600
+          },
+          {
+            "variant_key": "card-1200-avif",
+            "url": "https://cdn.example.invalid/site-04/hero-1200.avif",
+            "mime_type": "image/avif",
+            "width": 1200,
+            "height": 900
+          }
+        ],
+        "credit_text": "Fixture artwork"
+      },
+      "updated_at": "2026-09-12T08:00:00Z"
+    },
+    "related_content": {
+      "articles": [
+        {
+          "article_id": "site-04-article-moon",
+          "destination": {
+            "kind": "ARTICLE",
+            "url": "https://zodiacdaily.in/article/moon-sign-guide",
+            "is_external": false,
+            "page_id": "PUB-ARTICLE-01"
+          },
+          "title": "ZodiacDaily: Moon sign reference guide",
+          "excerpt": "How to read Moon-sign context without turning editorial content into a calculator.",
+          "author": {
+            "author_id": "site-04-author-1",
+            "display_name": "Editorial Desk",
+            "destination": {
+              "kind": "AUTHOR",
+              "url": "https://zodiacdaily.in/author/editorial-desk",
+              "is_external": false,
+              "page_id": "PUB-AUTHOR-01"
+            },
+            "short_bio": "Astrology education editor focused on clear, source-aware explanations."
+          },
+          "published_at": "2026-09-11T05:00:00Z",
+          "taxonomy_label": "Moon sign"
+        }
+      ]
+    },
+    "seo": {
+      "baseline_indexability": "NOINDEX",
+      "title": "Private preview | ZodiacDaily",
+      "robots": {
+        "index": false,
+        "follow": false
+      },
+      "structured_data": []
+    }
+  },
+  "not_found": {
+    "context": {
+      "page_id": "PUB-SYS-404-01",
+      "page_kind": "SYSTEM",
+      "render_mode": "SYSTEM"
+    },
+    "site": {
+      "site_key": "SITE-04",
+      "display_name": "ZodiacDaily",
+      "canonical_domain": "ZodiacDaily.in",
+      "home_destination": {
+        "kind": "HOME",
+        "url": "https://zodiacdaily.in/",
+        "is_external": false,
+        "page_id": "PUB-HOME-01"
+      },
+      "default_language": "en",
+      "locale_code": "en-IN",
+      "timezone_id": "Asia/Kolkata"
+    },
+    "settings": {
+      "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+      "social_profiles": []
+    },
+    "navigation": {
+      "header": {
+        "menu_key": "HEADER",
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Zodiac perspectives",
+            "destination": {
+              "kind": "CATEGORY",
+              "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+              "is_external": false,
+              "page_id": "PUB-CATEGORY-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Sign pairs",
+            "destination": {
+              "kind": "TAG",
+              "url": "https://zodiacdaily.in/tag/sign-pairs",
+              "is_external": false,
+              "page_id": "PUB-TAG-01"
+            },
+            "children": []
+          },
+          {
+            "label": "About",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/about",
+              "is_external": false,
+              "page_id": "PUB-STATIC-ABOUT-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Search",
+            "destination": {
+              "kind": "SEARCH",
+              "url": "https://ZodiacDaily.in/search",
+              "is_external": false,
+              "page_id": "PUB-SEARCH-01"
+            },
+            "children": []
+          }
+        ]
+      },
+      "footer": {
+        "menu_key": "FOOTER",
+        "items": [
+          {
+            "label": "About",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/about",
+              "is_external": false,
+              "page_id": "PUB-STATIC-ABOUT-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Contact",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/contact",
+              "is_external": false,
+              "page_id": "PUB-STATIC-CONTACT-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Privacy Policy",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/privacy-policy",
+              "is_external": false,
+              "page_id": "PUB-STATIC-PRIVACY-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Terms of Use",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/terms-of-use",
+              "is_external": false,
+              "page_id": "PUB-STATIC-TERMS-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Disclaimer",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/disclaimer",
+              "is_external": false,
+              "page_id": "PUB-STATIC-DISCLAIMER-01"
+            },
+            "children": []
+          }
+        ]
+      }
+    },
+    "message": {
+      "code": 404,
+      "title": "Page not found",
+      "body": "The requested page is unavailable on this site."
+    },
+    "recovery": {
+      "home": {
+        "kind": "HOME",
+        "url": "https://zodiacdaily.in/",
+        "is_external": false,
+        "page_id": "PUB-HOME-01"
+      },
+      "search": {
+        "kind": "SEARCH",
+        "url": "https://zodiacdaily.in/search",
+        "is_external": false,
+        "page_id": "PUB-SEARCH-01"
+      }
+    },
+    "seo": {
+      "baseline_indexability": "NOINDEX",
+      "title": "Page not found | ZodiacDaily",
+      "robots": {
+        "index": false,
+        "follow": false
+      },
+      "structured_data": []
+    }
+  },
+  "gone": {
+    "context": {
+      "page_id": "PUB-SYS-410-01",
+      "page_kind": "SYSTEM",
+      "render_mode": "SYSTEM"
+    },
+    "site": {
+      "site_key": "SITE-04",
+      "display_name": "ZodiacDaily",
+      "canonical_domain": "ZodiacDaily.in",
+      "home_destination": {
+        "kind": "HOME",
+        "url": "https://zodiacdaily.in/",
+        "is_external": false,
+        "page_id": "PUB-HOME-01"
+      },
+      "default_language": "en",
+      "locale_code": "en-IN",
+      "timezone_id": "Asia/Kolkata"
+    },
+    "settings": {
+      "copyright_text": "2026 ZodiacDaily. Editorial information only.",
+      "social_profiles": []
+    },
+    "navigation": {
+      "header": {
+        "menu_key": "HEADER",
+        "items": [
+          {
+            "label": "Home",
+            "destination": {
+              "kind": "HOME",
+              "url": "https://zodiacdaily.in/",
+              "is_external": false,
+              "page_id": "PUB-HOME-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Zodiac perspectives",
+            "destination": {
+              "kind": "CATEGORY",
+              "url": "https://zodiacdaily.in/category/zodiac-perspectives",
+              "is_external": false,
+              "page_id": "PUB-CATEGORY-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Sign pairs",
+            "destination": {
+              "kind": "TAG",
+              "url": "https://zodiacdaily.in/tag/sign-pairs",
+              "is_external": false,
+              "page_id": "PUB-TAG-01"
+            },
+            "children": []
+          },
+          {
+            "label": "About",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/about",
+              "is_external": false,
+              "page_id": "PUB-STATIC-ABOUT-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Search",
+            "destination": {
+              "kind": "SEARCH",
+              "url": "https://ZodiacDaily.in/search",
+              "is_external": false,
+              "page_id": "PUB-SEARCH-01"
+            },
+            "children": []
+          }
+        ]
+      },
+      "footer": {
+        "menu_key": "FOOTER",
+        "items": [
+          {
+            "label": "About",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/about",
+              "is_external": false,
+              "page_id": "PUB-STATIC-ABOUT-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Contact",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/contact",
+              "is_external": false,
+              "page_id": "PUB-STATIC-CONTACT-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Privacy Policy",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/privacy-policy",
+              "is_external": false,
+              "page_id": "PUB-STATIC-PRIVACY-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Terms of Use",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/terms-of-use",
+              "is_external": false,
+              "page_id": "PUB-STATIC-TERMS-01"
+            },
+            "children": []
+          },
+          {
+            "label": "Disclaimer",
+            "destination": {
+              "kind": "STATIC",
+              "url": "https://zodiacdaily.in/disclaimer",
+              "is_external": false,
+              "page_id": "PUB-STATIC-DISCLAIMER-01"
+            },
+            "children": []
+          }
+        ]
+      }
+    },
+    "message": {
+      "code": 410,
+      "title": "This page is gone",
+      "body": "This former public locator is no longer available."
+    },
+    "recovery": {
+      "home": {
+        "kind": "HOME",
+        "url": "https://zodiacdaily.in/",
+        "is_external": false,
+        "page_id": "PUB-HOME-01"
+      },
+      "search": {
+        "kind": "SEARCH",
+        "url": "https://zodiacdaily.in/search",
+        "is_external": false,
+        "page_id": "PUB-SEARCH-01"
+      }
+    },
+    "seo": {
+      "baseline_indexability": "NOINDEX",
+      "title": "Page gone | ZodiacDaily",
+      "robots": {
+        "index": false,
+        "follow": false
+      },
+      "structured_data": []
+    }
+  },
+  "neutral_not_found": {
+    "context": {
+      "page_id": "PUB-SYS-404-01",
+      "page_kind": "SYSTEM",
+      "render_mode": "SYSTEM"
+    },
+    "message": {
+      "code": 404,
+      "title": "Page not found",
+      "body": "The requested page is unavailable."
+    },
+    "seo": {
+      "baseline_indexability": "NOINDEX",
+      "title": "Page not found",
+      "robots": {
+        "index": false,
+        "follow": false
+      },
+      "structured_data": []
+    }
+  },
+  "redirects": {
+    "/old-rashi-guide": "https://zodiacdaily.in/article/shared-slug"
+  }
+}

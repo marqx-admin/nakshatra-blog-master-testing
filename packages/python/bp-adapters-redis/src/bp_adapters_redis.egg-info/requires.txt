@@ -1,0 +1,4 @@
+bp-background-contracts
+bp-domain
+bp-ports
+redis<8.2,>=8.1

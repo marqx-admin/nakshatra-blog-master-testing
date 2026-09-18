@@ -1,0 +1,17 @@
+{
+  "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+  "qa21_status_counts": {
+    "NOT_EXECUTED": 180
+  },
+  "reasons": [
+    "QA21 rows not PASS: 180",
+    "release gates not PASS: G21-0, G21-1, G21-2, G21-3, G21-4, G21-5, G21-6, G21-7",
+    "doc25 visual acceptance is not complete PASS 89/89",
+    "doc26 visual acceptance is not complete PASS 112/112",
+    "doc27 visual acceptance is not complete PASS 2281/2281",
+    "C00 - FEATURE_COMPLETE_CANDIDATE_READY not recorded for this candidate"
+  ],
+  "release_signal": null,
+  "rule": "No percentage-based substitution. Signal is emitted only when every applicable required release row and visual gate is PASS with evidence.",
+  "status": "NOT_EXECUTED"
+}

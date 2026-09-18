@@ -1,0 +1,133 @@
+{
+  "authority": "DOC-20 RC1 section 33 and quick-reference SLOs; execution maps to QA21-PERF/DR under DOC-21.",
+  "availability_slo": {
+    "authentication_http_percent": 99.9,
+    "central_admin_api_percent": 99.9,
+    "public_page_data_api_percent": 99.9,
+    "public_search_percent": 99.5,
+    "queue_acceptance_percent": 99.9
+  },
+  "current_status": "NOT_EXECUTED",
+  "derived_convergence": {
+    "media_variants": {
+      "p95_seconds": 300,
+      "p99_seconds": 900
+    },
+    "public_cache_invalidation": {
+      "p95_seconds": 5,
+      "p99_seconds": 30
+    },
+    "scheduled_publish": {
+      "p95_lateness_seconds": 10,
+      "p99_lateness_seconds": 60
+    },
+    "search": {
+      "p95_seconds": 30,
+      "p99_seconds": 120
+    },
+    "sitemap": {
+      "p95_seconds": 300,
+      "p99_seconds": 900
+    }
+  },
+  "latency_slo_ms": {
+    "admin_non_media_write": {
+      "p95": 1000,
+      "p99": 2000
+    },
+    "admin_read": {
+      "p95": 700,
+      "p99": 1500
+    },
+    "async_accept": {
+      "p95": 500,
+      "p99": 1000
+    },
+    "auth_login_mfa": {
+      "p95": 1500,
+      "p99": 3000
+    },
+    "media_sync": {
+      "p95": 10000,
+      "p99": 20000
+    },
+    "public_search": {
+      "p95": 800,
+      "p99": 1500
+    },
+    "public_uncached": {
+      "p95": 600,
+      "p99": 1200
+    },
+    "public_warm_cache": {
+      "p95": 200,
+      "p99": 500
+    }
+  },
+  "reference_data": {
+    "minimum_posts": 100000,
+    "sites": 14
+  },
+  "scenarios": [
+    {
+      "id": "LT20-01",
+      "pass_gate": "All latency + availability SLOs; zero cross-site data leakage.",
+      "scenario": "Public steady 300 RPS / 30m"
+    },
+    {
+      "id": "LT20-02",
+      "pass_gate": "No correctness loss; autoscale without DB connection ceiling breach.",
+      "scenario": "Public burst 600 RPS / 5m"
+    },
+    {
+      "id": "LT20-03",
+      "pass_gate": "Other sites maintain >=90% of baseline throughput and stay within 1.5x normal p95 latency.",
+      "scenario": "Hot tenant 60% traffic"
+    },
+    {
+      "id": "LT20-04",
+      "pass_gate": "No lost updates; expected_version conflicts remain deterministic.",
+      "scenario": "Admin 25 RPS + mutations"
+    },
+    {
+      "id": "LT20-05",
+      "pass_gate": ">=99% within 60s; no early/duplicate publish.",
+      "scenario": "140 simultaneous due publishes"
+    },
+    {
+      "id": "LT20-06",
+      "pass_gate": "Priority queues meet convergence SLOs; one tenant does not monopolize >50% when others wait.",
+      "scenario": "10k worker backlog"
+    },
+    {
+      "id": "LT20-07",
+      "pass_gate": "No authorization/site leak; caches rebuild; duplicate jobs remain safe.",
+      "scenario": "Redis restart"
+    },
+    {
+      "id": "LT20-08",
+      "pass_gate": "Availability stays within SLO; no sticky-session dependency.",
+      "scenario": "API replica termination under load"
+    },
+    {
+      "id": "LT20-09",
+      "pass_gate": "Non-search public pages stay available; search degrades/rebuilds same-site.",
+      "scenario": "Search outage/recovery"
+    },
+    {
+      "id": "LT20-10",
+      "pass_gate": "Ambiguous writes do not double-commit; idempotency/version checks protect replay.",
+      "scenario": "DB failover/connection reset"
+    },
+    {
+      "id": "LT20-11",
+      "pass_gate": "Publish/cache queues unaffected; private original never public fallback.",
+      "scenario": "Media transform backlog"
+    },
+    {
+      "id": "LT20-12",
+      "pass_gate": "RPO/RTO + RLS/isolation/audit integrity pass.",
+      "scenario": "PITR restore drill"
+    }
+  ]
+}

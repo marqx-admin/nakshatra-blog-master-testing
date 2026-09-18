@@ -1,0 +1,2 @@
+bp-domain
+opensearch-py<4,>=3

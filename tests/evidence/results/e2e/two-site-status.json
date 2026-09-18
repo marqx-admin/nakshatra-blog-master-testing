@@ -1,0 +1,7 @@
+{
+  "status": "NOT_EXECUTED",
+  "candidate_id": "CHAT12-FOUNDATION-ON-CHAT01-d41bb2a3b83d",
+  "required_checks": [],
+  "evidence": [],
+  "note": "SITE-01/SITE-02 real-backend proof has not executed. Do not emit C12 - TWO_SITE_E2E_PASS."
+}

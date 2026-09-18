@@ -1,0 +1,32 @@
+{
+  "authority": "BLOG-DOC-15 v1.0-RC8",
+  "canonical_repository_path": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml",
+  "openapi_version": "3.1.0",
+  "api_version": "1.0-RC8",
+  "sha256": "bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00",
+  "historical_unavailable_original_sha256": "3376444e141fd16bbf0a440f2828de0e97d04b5f60a49e106b2d07013f8397b2",
+  "historical_digest_status": "SUPERSEDED_PROVENANCE_ONLY",
+  "operation_count": 113,
+  "path_count": 86,
+  "schema_helper_count": 221,
+  "resolved_internal_ref_count": 1311,
+  "auth_operation_count": 12,
+  "public_preview_operation_count": 2,
+  "site_operation_count": 63,
+  "global_operation_count": 36,
+  "success_status_distribution": {
+    "200": 86,
+    "201": 15,
+    "202": 3,
+    "204": 9
+  },
+  "status": "OWNER_APPROVED_WAVE2_RECONCILIATION_RC8_BOUND",
+  "forbidden_substitutes": [
+    "RC5 YAML",
+    "RC6 YAML",
+    "RC7 YAML after RC8 reconciliation",
+    "unapproved PDF reconstruction",
+    "FastAPI /openapi.json",
+    "implementation-inferred schemas"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "authority": [
+    "DOC-14 v1.0-RC1",
+    "DOC-23 v1.0-RC2"
+  ],
+  "rules": [
+    {
+      "id": "DEP-C01-001",
+      "rule": "No public site imports another public site."
+    },
+    {
+      "id": "DEP-C01-002",
+      "rule": "No public site imports Central Admin or Python/backend/infrastructure internals."
+    },
+    {
+      "id": "DEP-C01-003",
+      "rule": "No Central Admin imports public-site source."
+    },
+    {
+      "id": "DEP-C01-004",
+      "rule": "Shared TypeScript packages never import app source and never own public visual/theme/assets/current-site state."
+    },
+    {
+      "id": "DEP-C01-005",
+      "rule": "bp_domain is provider/framework independent."
+    },
+    {
+      "id": "DEP-C01-006",
+      "rule": "bp_ports depends inward on bp_domain only among first-party layers."
+    },
+    {
+      "id": "DEP-C01-007",
+      "rule": "bp_application may depend on bp_domain + bp_ports, never concrete adapters/entrypoints."
+    },
+    {
+      "id": "DEP-C01-008",
+      "rule": "API and Worker entrypoints never import each other."
+    },
+    {
+      "id": "DEP-C01-009",
+      "rule": "FastAPI-generated OpenAPI is derived diagnostic output only; canonical file remains DOC-15 RC8 YAML."
+    },
+    {
+      "id": "DEP-C01-010",
+      "rule": "SQLAlchemy metadata/create_all never becomes DOC-08 DDL authority."
+    },
+    {
+      "id": "DEP-C01-011",
+      "rule": "Celery/broker internals never redefine DOC-18 jobs/queues/retry/dedupe/lease/DLQ semantics."
+    }
+  ]
+}

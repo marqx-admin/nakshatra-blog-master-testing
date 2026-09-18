@@ -1,0 +1,39 @@
+{
+  "name": "@bp/site-05-daily-horoscope-360",
+  "version": "0.0.0-chat08",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:static": "node --test src/site/tests/static-source.test.mjs",
+    "test": "node --test src/site/tests/static-source.test.mjs",
+    "foundation:check": "cd ../../.. && node tooling/scripts/check-site-package.mjs site-05-daily-horoscope-360"
+  },
+  "dependencies": {
+    "@bp/api-client-public": "workspace:*",
+    "@bp/api-contract": "workspace:*",
+    "next": "^16.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.0.0"
+  },
+  "bp": {
+    "appId": "APP-05",
+    "siteId": "SITE-05",
+    "canonicalDomain": "DailyHoroscope360.com",
+    "role": "public-site",
+    "frameworkLine": "Next.js 16.3.x + React 19.x + TypeScript 5.x",
+    "tenantAuthority": "trusted Host -> SiteContext; package metadata is diagnostic only",
+    "owner": "CHAT08"
+  }
+}

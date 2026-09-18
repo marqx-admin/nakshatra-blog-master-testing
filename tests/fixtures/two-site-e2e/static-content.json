@@ -1,0 +1,16 @@
+{
+  "SITE-01": {
+    "ABOUT": {"title": "About WhatsYourRashi.in", "intro_text": "Two-site E2E approved fixture content.", "sections": [{"heading": "About", "paragraphs": ["SITE-01 approved informational fixture."], "list_items": []}]},
+    "CONTACT": {"title": "Contact WhatsYourRashi.in", "sections": [{"heading": "Contact", "paragraphs": ["Use the approved contact information in site settings."], "list_items": []}]},
+    "PRIVACY": {"title": "Privacy Policy", "sections": [{"heading": "Privacy", "paragraphs": ["SITE-01 E2E privacy fixture."], "list_items": []}]},
+    "TERMS": {"title": "Terms of Use", "sections": [{"heading": "Terms", "paragraphs": ["SITE-01 E2E terms fixture."], "list_items": []}]},
+    "DISCLAIMER": {"title": "Disclaimer", "sections": [{"heading": "Disclaimer", "paragraphs": ["SITE-01 E2E disclaimer fixture."], "list_items": []}]}
+  },
+  "SITE-02": {
+    "ABOUT": {"title": "About ApkiRashi.com", "intro_text": "Two-site E2E approved fixture content.", "sections": [{"heading": "About", "paragraphs": ["SITE-02 approved informational fixture."], "list_items": []}]},
+    "CONTACT": {"title": "Contact ApkiRashi.com", "sections": [{"heading": "Contact", "paragraphs": ["Use the approved contact information in site settings."], "list_items": []}]},
+    "PRIVACY": {"title": "Privacy Policy", "sections": [{"heading": "Privacy", "paragraphs": ["SITE-02 E2E privacy fixture."], "list_items": []}]},
+    "TERMS": {"title": "Terms of Use", "sections": [{"heading": "Terms", "paragraphs": ["SITE-02 E2E terms fixture."], "list_items": []}]},
+    "DISCLAIMER": {"title": "Disclaimer", "sections": [{"heading": "Disclaimer", "paragraphs": ["SITE-02 E2E disclaimer fixture."], "list_items": []}]}
+  }
+}

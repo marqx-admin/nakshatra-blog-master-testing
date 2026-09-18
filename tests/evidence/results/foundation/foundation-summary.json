@@ -1,0 +1,337 @@
+{
+  "check_count": 11,
+  "checks": [
+    {
+      "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+      "command": [
+        "python3",
+        "-m",
+        "bp_test_support",
+        "--repo-root",
+        ".",
+        "validate-registry"
+      ],
+      "completed_at": "2026-09-11T09:32:58.338003Z",
+      "description": "QA21 registry preserves exactly 180 IDs, family counts, evidence expressions and four-state status model",
+      "environment_class": "ENV21-UNIT",
+      "evidence": [
+        {
+          "bytes": 695,
+          "evidence_class": "EV22-TEST",
+          "path": "tests/evidence/results/foundation/C12-FND-001.log",
+          "sha256": "a6832c2d353b1f16f0c20416030fae92789ecc315e4216c5d4c3fa99f322785b"
+        }
+      ],
+      "executor": {
+        "executable": "/opt/pyvenv/bin/python3",
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5"
+      },
+      "kind": "FOUNDATION_CHECK",
+      "return_code": 0,
+      "started_at": "2026-09-11T09:32:57.778290Z",
+      "status": "PASS",
+      "test_id": "C12-FND-001"
+    },
+    {
+      "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+      "command": [
+        "python3",
+        "-m",
+        "bp_test_support",
+        "--repo-root",
+        ".",
+        "validate-fixtures"
+      ],
+      "completed_at": "2026-09-11T09:32:59.517668Z",
+      "description": "Fourteen-site collision fixture preserves stable site UUIDs, intentional collisions and all 182 directed pairs",
+      "environment_class": "ENV21-UNIT",
+      "evidence": [
+        {
+          "bytes": 551,
+          "evidence_class": "EV22-TEST",
+          "path": "tests/evidence/results/foundation/C12-FND-002.log",
+          "sha256": "e8f93c246f35f143f7c2a321478efdf706e42a2f2441bc3318b8db9663b79d7e"
+        }
+      ],
+      "executor": {
+        "executable": "/opt/pyvenv/bin/python3",
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5"
+      },
+      "kind": "FOUNDATION_CHECK",
+      "return_code": 0,
+      "started_at": "2026-09-11T09:32:58.923601Z",
+      "status": "PASS",
+      "test_id": "C12-FND-002"
+    },
+    {
+      "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "-v",
+        "tests/contract/test_qa_foundation.py"
+      ],
+      "completed_at": "2026-09-11T09:33:00.869155Z",
+      "description": "CHAT12 Python foundation unit tests validate registry, fixtures, visual acceptance counts, initial NOT_EXECUTED state and OpenAPI binding",
+      "environment_class": "ENV21-UNIT",
+      "evidence": [
+        {
+          "bytes": 1430,
+          "evidence_class": "EV22-TEST",
+          "path": "tests/evidence/results/foundation/C12-FND-003.log",
+          "sha256": "3c647e28f67eefeca435771cf1038cb40b89125d76b48da3a3f820c6765c1579"
+        }
+      ],
+      "executor": {
+        "executable": "/opt/pyvenv/bin/python3",
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5"
+      },
+      "kind": "FOUNDATION_CHECK",
+      "return_code": 0,
+      "started_at": "2026-09-11T09:33:00.189425Z",
+      "status": "PASS",
+      "test_id": "C12-FND-003"
+    },
+    {
+      "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+      "command": [
+        "python3",
+        "tooling/scripts/verify-openapi-contract.py"
+      ],
+      "completed_at": "2026-09-11T09:33:03.756710Z",
+      "description": "Owner-approved RC7 OpenAPI source count/reference/scope verifier executes cleanly",
+      "environment_class": "ENV21-UNIT",
+      "evidence": [
+        {
+          "bytes": 694,
+          "evidence_class": "EV22-TEST",
+          "path": "tests/evidence/results/foundation/C12-FND-004.log",
+          "sha256": "e36ee220da3607afd47c5175a303421d66e41983ef75e7030f29319434752f1c"
+        }
+      ],
+      "executor": {
+        "executable": "/opt/pyvenv/bin/python3",
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5"
+      },
+      "kind": "FOUNDATION_CHECK",
+      "return_code": 0,
+      "started_at": "2026-09-11T09:33:01.598804Z",
+      "status": "PASS",
+      "test_id": "C12-FND-004"
+    },
+    {
+      "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+      "command": [
+        "node",
+        "tooling/scripts/check-js-boundaries.mjs"
+      ],
+      "completed_at": "2026-09-11T09:33:04.552497Z",
+      "description": "Existing JS/TS dependency boundary scanner reports a clean candidate graph",
+      "environment_class": "ENV21-UNIT",
+      "evidence": [
+        {
+          "bytes": 398,
+          "evidence_class": "EV22-TEST",
+          "path": "tests/evidence/results/foundation/C12-FND-005.log",
+          "sha256": "42cc34533a15f9d8be601f78d4e9c34fe4b7dfd514bac600131df5d77a9dce3f"
+        }
+      ],
+      "executor": {
+        "executable": "/opt/pyvenv/bin/python3",
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5"
+      },
+      "kind": "FOUNDATION_CHECK",
+      "return_code": 0,
+      "started_at": "2026-09-11T09:33:04.500036Z",
+      "status": "PASS",
+      "test_id": "C12-FND-005"
+    },
+    {
+      "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+      "command": [
+        "python3",
+        "tooling/scripts/check-python-boundaries.py"
+      ],
+      "completed_at": "2026-09-11T09:33:05.885597Z",
+      "description": "Existing Python dependency boundary scanner reports a clean candidate graph",
+      "environment_class": "ENV21-UNIT",
+      "evidence": [
+        {
+          "bytes": 394,
+          "evidence_class": "EV22-TEST",
+          "path": "tests/evidence/results/foundation/C12-FND-006.log",
+          "sha256": "9106cfff74785d0b13042e91a02d43d51fe9cd6157575f12a29f451a38ab6818"
+        }
+      ],
+      "executor": {
+        "executable": "/opt/pyvenv/bin/python3",
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5"
+      },
+      "kind": "FOUNDATION_CHECK",
+      "return_code": 0,
+      "started_at": "2026-09-11T09:33:05.195657Z",
+      "status": "PASS",
+      "test_id": "C12-FND-006"
+    },
+    {
+      "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+      "command": [
+        "python3",
+        "tests/contract/no-ai-runtime-dependencies.py"
+      ],
+      "completed_at": "2026-09-11T09:33:07.118338Z",
+      "description": "No prohibited OpenAI/LLM/AI-provider runtime dependency is declared",
+      "environment_class": "ENV21-UNIT",
+      "evidence": [
+        {
+          "bytes": 445,
+          "evidence_class": "EV22-TEST",
+          "path": "tests/evidence/results/foundation/C12-FND-007.log",
+          "sha256": "6eeaa5d9d482f5226262f81a11d4401e2e386bae8d65af52a1fd8d85472382fd"
+        }
+      ],
+      "executor": {
+        "executable": "/opt/pyvenv/bin/python3",
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5"
+      },
+      "kind": "FOUNDATION_CHECK",
+      "return_code": 0,
+      "started_at": "2026-09-11T09:33:06.483721Z",
+      "status": "PASS",
+      "test_id": "C12-FND-007"
+    },
+    {
+      "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+      "command": [
+        "python3",
+        "tests/dependency/test-support-runtime-boundary.py"
+      ],
+      "completed_at": "2026-09-11T09:33:08.428649Z",
+      "description": "bp-test-support is not imported or declared by production runtime code",
+      "environment_class": "ENV21-UNIT",
+      "evidence": [
+        {
+          "bytes": 399,
+          "evidence_class": "EV22-TEST",
+          "path": "tests/evidence/results/foundation/C12-FND-008.log",
+          "sha256": "a880c9acac6e08d9f951da932b0fb95ed26a6f6a64b5dd4da428edef697504b9"
+        }
+      ],
+      "executor": {
+        "executable": "/opt/pyvenv/bin/python3",
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5"
+      },
+      "kind": "FOUNDATION_CHECK",
+      "return_code": 0,
+      "started_at": "2026-09-11T09:33:07.708312Z",
+      "status": "PASS",
+      "test_id": "C12-FND-008"
+    },
+    {
+      "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+      "command": [
+        "bash",
+        "-lc",
+        "python3 tests/contract/wave1-integration-guard.py && node --test tests/contract/openapi-contract.test.mjs"
+      ],
+      "completed_at": "2026-09-11T09:33:20.019704Z",
+      "description": "Integrated Wave-1 architecture/contract guard and RC7 contract test execute against this source candidate; the CHAT01-only empty-placeholder assertion is no longer applicable after CHAT02 population",
+      "environment_class": "ENV21-UNIT",
+      "evidence": [
+        {
+          "bytes": 2824,
+          "evidence_class": "EV22-TEST",
+          "path": "tests/evidence/results/foundation/C12-FND-009.log",
+          "sha256": "18e216a80c759b3ba7a83a0b1a7ab39eba580645279e5d4b79de0bd9bab18c1e"
+        }
+      ],
+      "executor": {
+        "executable": "/opt/pyvenv/bin/python3",
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5"
+      },
+      "kind": "FOUNDATION_CHECK",
+      "return_code": 0,
+      "started_at": "2026-09-11T09:33:09.015836Z",
+      "status": "PASS",
+      "test_id": "C12-FND-009"
+    },
+    {
+      "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+      "command": [
+        "python3",
+        "-m",
+        "compileall",
+        "-q",
+        "packages/python/bp-test-support/src",
+        "tests/contract",
+        "tests/dependency",
+        "tests/isolation"
+      ],
+      "completed_at": "2026-09-11T09:33:21.256765Z",
+      "description": "CHAT12 Python source compiles without syntax errors",
+      "environment_class": "ENV21-UNIT",
+      "evidence": [
+        {
+          "bytes": 371,
+          "evidence_class": "EV22-TEST",
+          "path": "tests/evidence/results/foundation/C12-FND-010.log",
+          "sha256": "d7c830bd993fb685faded97b4521401a53eb8bc4ccf2f0efbbffff8f87fbe6aa"
+        }
+      ],
+      "executor": {
+        "executable": "/opt/pyvenv/bin/python3",
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5"
+      },
+      "kind": "FOUNDATION_CHECK",
+      "return_code": 0,
+      "started_at": "2026-09-11T09:33:20.627130Z",
+      "status": "PASS",
+      "test_id": "C12-FND-010"
+    },
+    {
+      "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+      "command": [
+        "python3",
+        "tests/contract/source-baseline-guard.py"
+      ],
+      "completed_at": "2026-09-11T09:33:22.470706Z",
+      "description": "DOC-00-pinned source baseline and owner-approved RC7 provenance remain intact",
+      "environment_class": "ENV21-UNIT",
+      "evidence": [
+        {
+          "bytes": 432,
+          "evidence_class": "EV22-TEST",
+          "path": "tests/evidence/results/foundation/C12-FND-011.log",
+          "sha256": "99bcd89ff0c80b6c27ac7714dbd0db5e65bc80b798ee5b3a2d226a9b4a17cddb"
+        }
+      ],
+      "executor": {
+        "executable": "/opt/pyvenv/bin/python3",
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5"
+      },
+      "kind": "FOUNDATION_CHECK",
+      "return_code": 0,
+      "started_at": "2026-09-11T09:33:21.874917Z",
+      "status": "PASS",
+      "test_id": "C12-FND-011"
+    }
+  ],
+  "kind": "CHAT12_FOUNDATION_SELF_CHECKS",
+  "release_qa21_effect": "NONE - these checks do not mark QA21 release rows PASS",
+  "status": "PASS",
+  "status_counts": {
+    "PASS": 11
+  }
+}

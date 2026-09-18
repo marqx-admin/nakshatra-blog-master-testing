@@ -1,0 +1,4 @@
+bp-domain
+bp-ports
+SQLAlchemy<2.1,>=2.0
+psycopg<3.4,>=3.3

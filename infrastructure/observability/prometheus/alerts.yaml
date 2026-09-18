@@ -1,0 +1,44 @@
+groups:
+- name: doc20-release-critical
+  rules:
+  - alert: ALT20_01_Unexpected5xxCritical
+    expr: sum(rate(api_request_total{status_class="5xx"}[5m])) / clamp_min(sum(rate(api_request_total[5m])), 1) > 0.05
+    for: 5m
+    labels: {severity: critical, authority_id: ALT20-01}
+    annotations: {summary: "Unexpected 5xx exceeds 5%"}
+  - alert: ALT20_02_Unexpected5xxWarning
+    expr: sum(rate(api_request_total{status_class="5xx"}[5m])) / clamp_min(sum(rate(api_request_total[5m])), 1) > 0.02
+    for: 5m
+    labels: {severity: warning, authority_id: ALT20-02}
+    annotations: {summary: "Unexpected 5xx exceeds 2%"}
+  - alert: ALT20_05_DbPoolWarning
+    expr: db_pool_in_use_ratio > 0.80
+    for: 10m
+    labels: {severity: warning, authority_id: ALT20-05}
+    annotations: {summary: "DB pool utilization exceeds 80%"}
+  - alert: ALT20_06_DbPoolCritical
+    expr: db_pool_in_use_ratio > 0.95
+    for: 5m
+    labels: {severity: critical, authority_id: ALT20-06}
+    annotations: {summary: "DB pool utilization exceeds 95%"}
+  - alert: ALT20_07_PitrLagOrBackupFailure
+    expr: pitr_archive_lag_seconds > 300 or increase(backup_result_total{outcome="fail"}[5m]) > 0
+    labels: {severity: critical, authority_id: ALT20-07}
+    annotations: {summary: "PITR lag or backup failure"}
+  - alert: ALT20_08_BaseBackupTooOld
+    expr: backup_last_success_age_seconds{asset_class="postgresql"} > 93600
+    labels: {severity: critical, authority_id: ALT20-08}
+    annotations: {summary: "No successful base backup in 26 hours"}
+  - alert: ALT20_11_PublishQueueLate
+    expr: worker_queue_oldest_job_age_seconds{queue="q18.publish"} > 60
+    labels: {severity: critical, authority_id: ALT20-11}
+    annotations: {summary: "Publish queue oldest eligible due job exceeds 60 seconds"}
+  - alert: ALT20_16_AuditWriteFailure
+    expr: increase(audit_write_failure_total[5m]) > 0
+    labels: {severity: critical, authority_id: ALT20-16}
+    annotations: {summary: "Audit write failure detected"}
+  - alert: ALT20_20_ReadyCapacityCritical
+    expr: bp_ready_replica_ratio < 0.50
+    for: 5m
+    labels: {severity: critical, authority_id: ALT20-20}
+    annotations: {summary: "Ready capacity below 50% of required replicas"}

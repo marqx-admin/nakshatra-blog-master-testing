@@ -1,0 +1,23 @@
+version: 0.2
+env:
+  variables: {DOCKER_BUILDKIT: "1"}
+phases:
+  install:
+    runtime-versions: {nodejs: 24, python: 3.13}
+    commands: ["corepack enable", "pnpm install --frozen-lockfile"]
+  pre_build:
+    commands:
+      - python3 infrastructure/scripts/validate_all.py
+      - pnpm contract:check-source
+      - pnpm contract:generate
+      - pnpm contract:drift
+      - pnpm foundation:boundaries
+      - pnpm foundation:test
+  build:
+    commands:
+      - echo "Build affected immutable application images; IMAGE_DIGESTS_JSON is produced by provider build orchestration."
+      - test -n "$BP_RELEASE_SHA"
+      - test -n "$CODEBUILD_BUILD_ID"
+      - python3 infrastructure/scripts/release_manifest.py --root . --output release-manifest.json --release-sha "$BP_RELEASE_SHA" --build-id "$CODEBUILD_BUILD_ID" ${IMAGE_DIGESTS_JSON:+--images-json "$IMAGE_DIGESTS_JSON"}
+artifacts:
+  files: [release-manifest.json, "evidence/**/*"]

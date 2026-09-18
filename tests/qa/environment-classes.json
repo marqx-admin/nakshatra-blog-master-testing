@@ -1,0 +1,10 @@
+{
+  "authority": "DOC-21 section 5",
+  "environments": {
+    "ENV21-DR": "Disposable real backup/restore environment.",
+    "ENV21-E2E": "All 14 public frontends + Admin + API with TLS/Host routing; no mocked tenant authority.",
+    "ENV21-INT": "Real PostgreSQL with FORCE RLS, Redis, durable broker, search adapter, S3-compatible store, production-equivalent auth.",
+    "ENV21-LOAD": "Production-shaped load environment with telemetry and DOC-20 data profile.",
+    "ENV21-UNIT": "No network; pure helpers/schema/algorithm/static contract checks."
+  }
+}

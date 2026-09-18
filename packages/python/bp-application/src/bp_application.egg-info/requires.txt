@@ -1,0 +1,3 @@
+bp-domain
+bp-ports
+argon2-cffi<26,>=25

@@ -1,0 +1,150 @@
+{
+  "families": {
+    "A11Y": {
+      "doc21_definition": "DOC-21 section 21",
+      "specialist_expected_behavior_authority": [
+        "DOC-12",
+        "DOC-21",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ]
+    },
+    "ADM": {
+      "doc21_definition": "DOC-21 section 13",
+      "specialist_expected_behavior_authority": [
+        "DOC-06",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-25 RC3"
+      ]
+    },
+    "API": {
+      "doc21_definition": "DOC-21 section 11",
+      "specialist_expected_behavior_authority": [
+        "DOC-15 RC8",
+        "approved RC8 OpenAPI YAML"
+      ]
+    },
+    "CONC": {
+      "doc21_definition": "DOC-21 section 15",
+      "specialist_expected_behavior_authority": [
+        "DOC-07",
+        "DOC-08",
+        "DOC-10",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-20 RC2"
+      ]
+    },
+    "DB": {
+      "doc21_definition": "DOC-21 section 10",
+      "specialist_expected_behavior_authority": [
+        "DOC-08"
+      ]
+    },
+    "DR": {
+      "doc21_definition": "DOC-21 section 23",
+      "specialist_expected_behavior_authority": [
+        "DOC-20 RC2",
+        "DOC-24 RC4"
+      ]
+    },
+    "ISO": {
+      "doc21_definition": "DOC-21 section 9",
+      "specialist_expected_behavior_authority": [
+        "DOC-04",
+        "DOC-08",
+        "DOC-09",
+        "DOC-13",
+        "DOC-15 RC8",
+        "DOC-16 RC5",
+        "DOC-17 RC3",
+        "DOC-18 RC3"
+      ]
+    },
+    "LIFE": {
+      "doc21_definition": "DOC-21 section 16",
+      "specialist_expected_behavior_authority": [
+        "DOC-07",
+        "DOC-15 RC8",
+        "DOC-18 RC3",
+        "DOC-19 RC3"
+      ]
+    },
+    "MED": {
+      "doc21_definition": "DOC-21 section 17",
+      "specialist_expected_behavior_authority": [
+        "DOC-17 RC3"
+      ]
+    },
+    "PERF": {
+      "doc21_definition": "DOC-21 section 22",
+      "specialist_expected_behavior_authority": [
+        "DOC-20 RC2"
+      ]
+    },
+    "PERM": {
+      "doc21_definition": "DOC-21 section 12",
+      "specialist_expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ]
+    },
+    "PUB": {
+      "doc21_definition": "DOC-21 section 14",
+      "specialist_expected_behavior_authority": [
+        "DOC-05",
+        "DOC-09",
+        "DOC-11",
+        "DOC-12",
+        "DOC-13",
+        "DOC-14",
+        "DOC-15 RC8",
+        "DOC-26 RC2",
+        "DOC-27 RC2"
+      ]
+    },
+    "REG": {
+      "doc21_definition": "DOC-21 section 24",
+      "specialist_expected_behavior_authority": [
+        "DOC-01 through DOC-20",
+        "DOC-23 RC3",
+        "DOC-25 RC3",
+        "DOC-26 RC2",
+        "DOC-27 RC2 as applicable"
+      ]
+    },
+    "SEC": {
+      "doc21_definition": "DOC-21 section 20",
+      "specialist_expected_behavior_authority": [
+        "DOC-02",
+        "DOC-04",
+        "DOC-15 RC8",
+        "DOC-19 RC3"
+      ]
+    },
+    "SEO": {
+      "doc21_definition": "DOC-21 section 18",
+      "specialist_expected_behavior_authority": [
+        "DOC-09",
+        "DOC-16 RC5"
+      ]
+    },
+    "WRK": {
+      "doc21_definition": "DOC-21 section 19",
+      "specialist_expected_behavior_authority": [
+        "DOC-18 RC3"
+      ]
+    }
+  },
+  "rule": "DOC-21 owns test procedure/evidence. Expected results come from the specialist owning document; this map routes the test family and does not redefine expected behavior.",
+  "visual_overlays": {
+    "admin": "DOC-25 RC3 acceptance AC25-001..089 mapped into existing QA21 ADM/A11Y/PERM/REG families",
+    "public_identity": "DOC-26 RC2 acceptance: 42 global + 70 site-specific = 112 assertions",
+    "public_mockups": "DOC-27 RC2 acceptance: 2,281 visual assertions; attaches to existing QA21/MX22 chains"
+  },
+  "source_sync_note": "Version labels synchronized by CHAT00 source-sync only; QA IDs/expected semantics unchanged. DOC-21 RC2 is the selected QA authority."
+}

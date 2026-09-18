@@ -1,0 +1,31 @@
+{
+  "c00_feature_complete_signal_received": false,
+  "candidate_id": "TWO-SITE-E2E-CANDIDATE-2c5388c91ad5",
+  "candidate_kind": "Exact C00 TWO_SITE_E2E_CANDIDATE_READY repository under CHAT12 source-gate verification; provider-backed runtime acceptance deferred where required tooling/services are unavailable.",
+  "canonical_openapi": {
+    "path": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml",
+    "sha256": "bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00",
+    "status": "owner-authorized Wave-2 reconciliation RC8"
+  },
+  "chat07_two_site_real_backend_ready_signal_received": true,
+  "documentation_entrypoint": "DOC-00 v1.0-RC2 / source-synchronized selected baseline",
+  "feature_authority_note": "DOC-07 RC2, DOC-08 RC2, DOC-15 RC8, DOC-16 RC5; QA/trace/visual references consume DOC-21 RC2, DOC-22 RC2, DOC-25 RC3, DOC-26 RC2, DOC-27 RC2. No product-scope expansion.",
+  "notes": [
+    "No QA21 final release result is inferred from Wave-2 source completion.",
+    "Live PostgreSQL/Redis/OpenSearch/object-storage/browser/cloud release verification is NOT_EXECUTED where services are unavailable in this environment.",
+    "CHAT03/04/05/06 tests are preserved under tests/ or specialist evidence; CHAT12 remains continuing owner of shared release QA."
+  ],
+  "release_qualification": "NOT_EXECUTED",
+  "source_bundle": {
+    "kind": "wave1-composite-input-set",
+    "composite_sha256": "4f08467ef9010deb8c78d2a9a8807041e78be53ece441c308ab8815d569469cf",
+    "inputs": {
+      "CHAT01": "d41bb2a3b83dde4b8af53cbb58bda7ad0655f360a40565bbc093b853078bd5ba",
+      "CHAT02": "198bcc7151dbb3bc63324f692e71cbe9eefc943985989194576611ce416c5724",
+      "CHAT03": "933524e915cfe26a6960e7276e779c783305324a35eeecce97bd66b419ae02bf",
+      "CHAT11": "c69c29289c06ad428e0814f5ed941cde0528e77af274b0ca38acf07c6df89566",
+      "CHAT12": "3ffb249e0c35568e832c7a1fc387d23ad8527aa950d2f69d80de237ea70ae405"
+    }
+  },
+  "exact_candidate_zip_sha256": "2c5388c91ad5280c85a88bf13a11de59835ad0335547f7f7656ae5bf28dc1a00"
+}

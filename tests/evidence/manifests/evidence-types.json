@@ -1,0 +1,73 @@
+{
+  "authority": "DOC-21 Appendix C",
+  "evidence_types": [
+    {
+      "artifact": "Sanitized request/response transcript with operation ID, status, request ID",
+      "evidence_id": "EV21-HTTP"
+    },
+    {
+      "artifact": "Scoped SQL assertion/report showing role, transaction SiteContext and result",
+      "evidence_id": "EV21-DB"
+    },
+    {
+      "artifact": "Screenshot + URL/Host + DOM/accessibility state where visual runtime matters",
+      "evidence_id": "EV21-UI"
+    },
+    {
+      "artifact": "Automated scan output + keyboard/focus checklist",
+      "evidence_id": "EV21-A11Y"
+    },
+    {
+      "artifact": "Broker delivery/attempt/DLQ/replay trace keyed by job ID",
+      "evidence_id": "EV21-QUEUE"
+    },
+    {
+      "artifact": "Sanitized key/state/TTL observation showing tenant namespace",
+      "evidence_id": "EV21-REDIS"
+    },
+    {
+      "artifact": "Index generation/query result snapshot with site identity",
+      "evidence_id": "EV21-SEARCH"
+    },
+    {
+      "artifact": "Fetched sitemap index/shards + generated manifest",
+      "evidence_id": "EV21-SITEMAP"
+    },
+    {
+      "artifact": "Object/variant manifest, MIME/dimensions/metadata-sanitization evidence",
+      "evidence_id": "EV21-MEDIA"
+    },
+    {
+      "artifact": "Authorized audit-event correlation proof",
+      "evidence_id": "EV21-AUDIT"
+    },
+    {
+      "artifact": "Time-bounded metrics export + percentile calculation",
+      "evidence_id": "EV21-METRIC"
+    },
+    {
+      "artifact": "Distributed trace/correlation record with secrets removed",
+      "evidence_id": "EV21-TRACE"
+    },
+    {
+      "artifact": "Backup identifier/checksum/verification log",
+      "evidence_id": "EV21-BACKUP"
+    },
+    {
+      "artifact": "Restore timeline, RPO/RTO calculation and post-restore integrity report",
+      "evidence_id": "EV21-RESTORE"
+    },
+    {
+      "artifact": "Defect record with root cause/fix/build/rerun evidence",
+      "evidence_id": "EV21-DEFECT"
+    }
+  ],
+  "privacy_rule": "Evidence must obey DOC-19. Do not persist passwords, MFA seeds, raw reset/invitation/Preview grants, bearer/session/CSRF secrets, private object credentials, ArticleBody content when not required, or unnecessary PII.",
+  "trace_evidence_types": [
+    "EV22-CODE",
+    "EV22-CONTRACT",
+    "EV22-RUNTIME",
+    "EV22-TEST",
+    "EV22-DEPLOY"
+  ]
+}

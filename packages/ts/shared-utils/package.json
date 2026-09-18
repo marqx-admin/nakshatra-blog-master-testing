@@ -1,0 +1,17 @@
+{
+  "name": "@bp/shared-utils",
+  "version": "0.0.0-chat01",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "echo \"ESLint execution requires controlled toolchain materialization\""
+  },
+  "bpBoundary": "Site-neutral deterministic pure utility boundary. No tenant state, I/O, visual identity or site constants.",
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}

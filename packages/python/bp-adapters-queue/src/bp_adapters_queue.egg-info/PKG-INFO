@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: bp-adapters-queue
+Version: 0.0.0
+Requires-Python: <3.14,>=3.13
+Requires-Dist: bp-background-contracts
+Requires-Dist: bp-domain
+Requires-Dist: bp-ports
+Requires-Dist: celery<5.7,>=5.6
+Requires-Dist: redis<8.2,>=8.1

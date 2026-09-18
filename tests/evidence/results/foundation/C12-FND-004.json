@@ -1,0 +1,28 @@
+{
+  "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+  "command": [
+    "python3",
+    "tooling/scripts/verify-openapi-contract.py"
+  ],
+  "completed_at": "2026-09-11T09:33:03.756710Z",
+  "description": "Owner-approved RC7 OpenAPI source count/reference/scope verifier executes cleanly",
+  "environment_class": "ENV21-UNIT",
+  "evidence": [
+    {
+      "bytes": 694,
+      "evidence_class": "EV22-TEST",
+      "path": "tests/evidence/results/foundation/C12-FND-004.log",
+      "sha256": "e36ee220da3607afd47c5175a303421d66e41983ef75e7030f29319434752f1c"
+    }
+  ],
+  "executor": {
+    "executable": "/opt/pyvenv/bin/python3",
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "python": "3.13.5"
+  },
+  "kind": "FOUNDATION_CHECK",
+  "return_code": 0,
+  "started_at": "2026-09-11T09:33:01.598804Z",
+  "status": "PASS",
+  "test_id": "C12-FND-004"
+}

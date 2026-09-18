@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: api, labels: {app: api, component: api}}
+spec:
+  replicas: 3
+  strategy: {type: RollingUpdate, rollingUpdate: {maxUnavailable: 0, maxSurge: 1}}
+  selector: {matchLabels: {app: api}}
+  template:
+    metadata: {labels: {app: api, component: api}}
+    spec:
+      serviceAccountName: bp-api
+      containers:
+      - name: api
+        image: bp/api@sha256:REPLACE_DIGEST
+        ports: [{containerPort: 8080}]
+        envFrom: [{configMapRef: {name: bp-api-config}}]
+        readinessProbe: {httpGet: {path: /health/ready, port: 8080}, periodSeconds: 5, failureThreshold: 3, successThreshold: 2}
+        livenessProbe: {httpGet: {path: /health/live, port: 8080}, periodSeconds: 10, failureThreshold: 3}
+        resources: {requests: {cpu: 250m, memory: 256Mi}, limits: {cpu: "2", memory: 1Gi}}
+        securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, runAsNonRoot: true, runAsUser: 10001}
+        volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: api}
+spec: {selector: {app: api}, ports: [{port: 8080, targetPort: 8080}]}

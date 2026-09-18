@@ -1,0 +1,24 @@
+{
+  "authority": "BLOG-DOC-23 v1.0-RC2",
+  "version_policy": "Major/minor technology lines are pinned here. Exact patch/transitive resolutions belong to approved lockfiles; no arbitrary patch is asserted by this scaffold.",
+  "lines": {
+    "public_runtime": "Node.js 24.x",
+    "public_framework": "Next.js 16.3.x + React 19.x + TypeScript 5.x",
+    "admin": "React 19.x + TypeScript 5.x + Vite 7.x + React Router 7.x + TanStack Query 5.x",
+    "js_workspace": "pnpm 10.x + Turborepo 2.x",
+    "openapi_ts": "openapi-typescript 7.x",
+    "backend_runtime": "Python 3.13.x",
+    "api": "FastAPI 0.141.x + Pydantic 2.13.x",
+    "db_access": "SQLAlchemy 2.0.x + Psycopg 3.3.x; raw SQL remains DOC-08 authority",
+    "python_deps": "uv + PEP 621; uv.lock is Python dependency authority",
+    "control_cache": "Redis 8.x + redis-py 8.1.x",
+    "worker": "Celery 5.6.x + dedicated Redis 8.x broker plane",
+    "search": "OpenSearch 3.x + opensearch-py 3.x",
+    "object_storage": "S3-compatible + boto3/botocore",
+    "image_processing": "libvips/pyvips fixed DOC-17 transforms only",
+    "security": "argon2-cffi + PyOTP + stdlib/cryptography; security state separate from DOC-18 Redis",
+    "observability": "OpenTelemetry Python + structured JSON logging + prometheus-client",
+    "quality": "ESLint/Prettier/dependency-cruiser + Ruff/mypy/Import Linter; pytest/Playwright/axe/k6 as later suites require"
+  },
+  "not_materialized_in_this_scaffold": "External JS/Python runtime dependencies are not guessed into lockfiles because registry access is unavailable in this execution environment. The exact resolved graph must be added by CHAT01/root ownership in an online controlled run."
+}

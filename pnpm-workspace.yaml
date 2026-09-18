@@ -1,0 +1,6 @@
+packages:
+  - 'apps/sites/*'
+  - 'apps/admin'
+  - 'apps/api'
+  - 'apps/worker'
+  - 'packages/ts/*'

@@ -1,0 +1,11 @@
+{
+  "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+  "defects": [],
+  "note": "Empty means no CHAT12 release defect has been recorded yet; it is not evidence that the candidate passed QA.",
+  "status_model": [
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "NOT_EXECUTED"
+  ]
+}

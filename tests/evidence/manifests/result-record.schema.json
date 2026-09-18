@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CHAT12 QA Result Record",
+  "type": "object",
+  "required": ["test_id", "candidate_id", "environment_class", "status", "evidence"],
+  "properties": {
+    "test_id": {"type": "string", "minLength": 1},
+    "instance": {"type": ["string", "null"]},
+    "candidate_id": {"type": "string", "minLength": 1},
+    "environment_class": {"enum": ["ENV21-UNIT", "ENV21-INT", "ENV21-E2E", "ENV21-LOAD", "ENV21-DR"]},
+    "status": {"enum": ["PASS", "FAIL", "BLOCKED", "NOT_EXECUTED"]},
+    "source_trace": {"type": "array", "items": {"type": "string"}},
+    "evidence": {"type": "array", "items": {"type": "object"}},
+    "defect_id": {"type": ["string", "null"]},
+    "blocked_reason": {"type": ["string", "null"]},
+    "started_at": {"type": ["string", "null"]},
+    "completed_at": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "PASS"}}}, "then": {"properties": {"evidence": {"minItems": 1}}}},
+    {"if": {"properties": {"status": {"const": "FAIL"}}}, "then": {"required": ["defect_id"]}},
+    {"if": {"properties": {"status": {"const": "BLOCKED"}}}, "then": {"required": ["blocked_reason"]}},
+    {"if": {"properties": {"status": {"const": "NOT_EXECUTED"}}}, "then": {"properties": {"evidence": {"maxItems": 0}}}}
+  ],
+  "additionalProperties": true
+}

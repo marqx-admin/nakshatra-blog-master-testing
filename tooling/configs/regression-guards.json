@@ -1,0 +1,150 @@
+{
+  "authority_note": "Expected counts are trace guards sourced from current specialist authorities. This file is not implementation evidence by itself.",
+  "guards": {
+    "public_site_apps": {
+      "expected": 14,
+      "source": "DOC-01/DOC-14/DOC-23",
+      "chat01_check": "DERIVED_FROM_REPOSITORY"
+    },
+    "central_admin_apps": {
+      "expected": 1,
+      "source": "DOC-01/DOC-23",
+      "chat01_check": "DERIVED_FROM_REPOSITORY"
+    },
+    "api_apps": {
+      "expected": 1,
+      "source": "DOC-23",
+      "chat01_check": "DERIVED_FROM_REPOSITORY"
+    },
+    "worker_apps": {
+      "expected": 1,
+      "source": "DOC-23",
+      "chat01_check": "DERIVED_FROM_REPOSITORY"
+    },
+    "admin_modules": {
+      "expected": 19,
+      "source": "DOC-03 RC2/DOC-06",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "admin_page_ids": {
+      "expected": 36,
+      "source": "DOC-06/DOC-10",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "capabilities": {
+      "expected": 161,
+      "source": "DOC-03 RC2",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "permission_keys": {
+      "expected": 69,
+      "source": "DOC-02",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "postgres_tables": {
+      "expected": 33,
+      "source": "DOC-08",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "site_owned_rls_tables": {
+      "expected": 20,
+      "source": "DOC-08",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "public_page_ids": {
+      "expected": 14,
+      "source": "DOC-05",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "public_component_contracts": {
+      "expected": 50,
+      "source": "DOC-12",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "public_data_objects": {
+      "expected": 48,
+      "source": "DOC-13",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "article_body_block_types": {
+      "expected": 12,
+      "source": "DOC-07/DOC-13",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "post_states": {
+      "expected": 5,
+      "source": "DOC-07",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "http_operations": {
+      "expected": 113,
+      "source": "DOC-15 RC8 canonical YAML",
+      "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
+    },
+    "api_paths": {
+      "expected": 86,
+      "source": "DOC-15 RC8 canonical YAML",
+      "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
+    },
+    "openapi_schemas_helpers": {
+      "expected": 221,
+      "source": "DOC-15 RC8 canonical YAML",
+      "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
+    },
+    "openapi_internal_refs": {
+      "expected": 1311,
+      "source": "DOC-15 RC8 canonical YAML",
+      "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
+    },
+    "auth_operations": {
+      "expected": 12,
+      "source": "DOC-15 RC8 canonical YAML",
+      "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
+    },
+    "worker_queues": {
+      "expected": 6,
+      "source": "DOC-18",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "worker_jobs": {
+      "expected": 11,
+      "source": "DOC-18",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "worker_retry_profiles": {
+      "expected": 7,
+      "source": "DOC-18",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "qa21_ids": {
+      "expected": 180,
+      "source": "DOC-21",
+      "chat01_check": "HOOK_ONLY"
+    },
+    "public_preview_operations": {
+      "expected": 2,
+      "source": "DOC-15 RC8 canonical YAML",
+      "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
+    },
+    "site_operations": {
+      "expected": 63,
+      "source": "DOC-15 RC8 canonical YAML",
+      "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
+    },
+    "global_operations": {
+      "expected": 36,
+      "source": "DOC-15 RC8 canonical YAML",
+      "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
+    },
+    "http_success_status_distribution": {
+      "expected": {
+        "200": 86,
+        "201": 15,
+        "202": 3,
+        "204": 9
+      },
+      "source": "DOC-15 RC8 canonical YAML",
+      "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
+    }
+  }
+}

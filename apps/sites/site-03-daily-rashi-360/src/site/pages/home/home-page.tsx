@@ -1,0 +1,8 @@
+import type { components } from "@bp/api-contract";
+import { SeoHead } from "../../components/seo-head";
+import { HomeFeaturedCategoriesSection, HomeFeaturedPostsSection, HomeLeadRegion, HomePrimaryArticleCollection, HomeSectionContainer, PageIntro } from "../../components/semantic-components";
+import { SiteShell } from "../../shell/navigation/site-shell";
+
+export function HomePage({ data, requestPath }: { data: components["schemas"]["HomePageData"]; requestPath: string }) {
+  return <><SeoHead seo={data.seo} /><SiteShell site={data.site} navigation={data.navigation} settings={data.settings} requestPath={requestPath}><div className="container page-stack home-page journal-home"><PageIntro h1={data.intro.h1} introText={data.intro.intro_text} />{data.lead_article ? <HomeLeadRegion article={data.lead_article} /> : null}{data.sections.map((section) => { if (section.section_kind === "POST_SELECTION" && section.posts?.length) return <HomeSectionContainer key={section.section_key} label={section.label}><HomeFeaturedPostsSection articles={section.posts} /></HomeSectionContainer>; if (section.section_kind === "CATEGORY_SELECTION" && section.categories?.length) return <HomeSectionContainer key={section.section_key} label={section.label}><HomeFeaturedCategoriesSection categories={section.categories} /></HomeSectionContainer>; if (section.section_kind === "TOGGLE_ONLY" && section.label) return <HomeSectionContainer key={section.section_key} label={section.label}><span className="section-presence" aria-hidden="true" /></HomeSectionContainer>; return null; })}<HomeSectionContainer label="Latest articles"><HomePrimaryArticleCollection articles={data.latest_articles} /></HomeSectionContainer></div></SiteShell></>;
+}

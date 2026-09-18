@@ -1,0 +1,12 @@
+{
+  "name": "@bp/api-runtime",
+  "version": "0.0.0-chat01",
+  "private": true,
+  "scripts": {
+    "lint": "uv run --frozen ruff check src",
+    "typecheck": "uv run --frozen mypy src",
+    "test": "cd ../.. && uv run --frozen python -m pytest -q",
+    "foundation:imports": "python3 ../../tooling/scripts/check-python-boundaries.py"
+  },
+  "bpBridge": "Turborepo-to-uv task bridge only; Node is not API runtime."
+}

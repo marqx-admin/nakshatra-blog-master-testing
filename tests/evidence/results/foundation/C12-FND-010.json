@@ -1,0 +1,34 @@
+{
+  "candidate_id": "WAVE1-INTEGRATED-4f08467ef901",
+  "command": [
+    "python3",
+    "-m",
+    "compileall",
+    "-q",
+    "packages/python/bp-test-support/src",
+    "tests/contract",
+    "tests/dependency",
+    "tests/isolation"
+  ],
+  "completed_at": "2026-09-11T09:33:21.256765Z",
+  "description": "CHAT12 Python source compiles without syntax errors",
+  "environment_class": "ENV21-UNIT",
+  "evidence": [
+    {
+      "bytes": 371,
+      "evidence_class": "EV22-TEST",
+      "path": "tests/evidence/results/foundation/C12-FND-010.log",
+      "sha256": "d7c830bd993fb685faded97b4521401a53eb8bc4ccf2f0efbbffff8f87fbe6aa"
+    }
+  ],
+  "executor": {
+    "executable": "/opt/pyvenv/bin/python3",
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "python": "3.13.5"
+  },
+  "kind": "FOUNDATION_CHECK",
+  "return_code": 0,
+  "started_at": "2026-09-11T09:33:20.627130Z",
+  "status": "PASS",
+  "test_id": "C12-FND-010"
+}
