@@ -2,6 +2,8 @@
 FROM node:24-bookworm-slim AS build
 ARG SITE_PACKAGE
 ARG SITE_DIR
+# Next.js TypeScript checking needs more heap during image build than the runtime server.
+ENV NODE_OPTIONS=--max-old-space-size=512
 WORKDIR /workspace
 RUN corepack enable
 RUN corepack prepare pnpm@10.34.5 --activate
@@ -15,6 +17,7 @@ RUN pnpm --filter "$SITE_PACKAGE" build
 FROM node:24-bookworm-slim AS runtime
 ARG SITE_DIR
 ENV NODE_ENV=production
+ENV NODE_OPTIONS=--max-old-space-size=96
 RUN groupadd -g 10001 bp && useradd -r -u 10001 -g bp bp
 WORKDIR /app
 COPY --from=build --chown=10001:10001 /workspace/${SITE_DIR}/.next/standalone ./
