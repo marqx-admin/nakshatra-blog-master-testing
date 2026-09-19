@@ -29,8 +29,10 @@ COPY --from=build --chown=10001:10001 /workspace/contracts/http /workspace/contr
 COPY --from=build --chown=10001:10001 /workspace/config/content /workspace/config/content
 COPY --chown=10001:10001 infrastructure/scripts/runtime_secrets.py /workspace/bin/runtime_secrets.py
 COPY --chown=10001:10001 infrastructure/scripts/bootstrap_security_state.py /workspace/bin/bootstrap_security_state.py
+COPY --chown=10001:10001 infrastructure/scripts/bootstrap_super_admin.py /workspace/bin/bootstrap_super_admin.py
+COPY --chown=10001:10001 infrastructure/scripts/api_start.py /workspace/bin/api_start.py
 ENV PATH=/workspace/.venv/bin:$PATH PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 USER 10001:10001
 EXPOSE 8080
 ENTRYPOINT ["python", "/workspace/bin/runtime_secrets.py", "--"]
-CMD ["python", "-m", "bp_api"]
+CMD ["python", "/workspace/bin/api_start.py"]
