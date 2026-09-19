@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import os
 from datetime import UTC, datetime
@@ -15,7 +16,8 @@ from sqlalchemy import create_engine, text
 
 from bp_application.security import PasswordCodec, PasswordPolicy, SetWeakPasswordChecker
 from bp_adapters.security_store import DynamoSecurityStateStore
-from bp_domain.security import CredentialRecord
+from bp_adapters.secrets import LocalEnvelopeSecretProvider
+from bp_domain.security import CredentialRecord, MfaRecord
 
 
 def _optional(name: str) -> str | None:
@@ -61,14 +63,16 @@ async def _run() -> int:
     email = _optional("BP_BOOTSTRAP_SUPER_ADMIN_EMAIL")
     display_name = _optional("BP_BOOTSTRAP_SUPER_ADMIN_DISPLAY_NAME")
     password_file = _optional("BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD_FILE")
+    mfa_secret_file = _optional("BP_BOOTSTRAP_SUPER_ADMIN_MFA_SECRET_FILE")
 
-    if not email and not display_name and not password_file:
+    if not email and not display_name and not password_file and not mfa_secret_file:
         print("SUPER_ADMIN_BOOTSTRAP_DISABLED")
         return 0
-    if not email or not display_name or not password_file:
+    if not email or not display_name or not password_file or not mfa_secret_file:
         raise RuntimeError(
             "Super Admin bootstrap requires BP_BOOTSTRAP_SUPER_ADMIN_EMAIL, "
-            "BP_BOOTSTRAP_SUPER_ADMIN_DISPLAY_NAME and BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD"
+            "BP_BOOTSTRAP_SUPER_ADMIN_DISPLAY_NAME, BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD "
+            "and BP_BOOTSTRAP_SUPER_ADMIN_MFA_SECRET"
         )
 
     normalized_email = email.strip().lower()
@@ -79,6 +83,14 @@ async def _run() -> int:
 
     password = Path(password_file).read_text(encoding="utf-8").rstrip("\n")
     PasswordPolicy(SetWeakPasswordChecker(set())).validate(password, email=normalized_email)
+    mfa_secret_text = Path(mfa_secret_file).read_text(encoding="utf-8").strip().upper()
+    try:
+        padded = mfa_secret_text + "=" * (-len(mfa_secret_text) % 8)
+        mfa_secret = base64.b32decode(padded, casefold=True)
+    except Exception as exc:
+        raise RuntimeError("BP_BOOTSTRAP_SUPER_ADMIN_MFA_SECRET must be valid base32") from exc
+    if len(mfa_secret) < 20:
+        raise RuntimeError("BP_BOOTSTRAP_SUPER_ADMIN_MFA_SECRET must decode to at least 20 bytes")
 
     username, db_password = _read_platform_credential()
     engine = create_engine(_postgres_url(username, db_password), pool_pre_ping=True)
@@ -147,6 +159,7 @@ async def _run() -> int:
         table=dynamo.Table(os.environ["BP_SECURITY_STATE_TABLE"])
     )
     credential = await store.get_credential(admin_id)
+    credential_state = "CREDENTIAL_EXISTING"
     if credential is None:
         codec = PasswordCodec()
         await store.put_credential(
@@ -164,17 +177,32 @@ async def _run() -> int:
                 changed_at=datetime.now(UTC),
             )
         )
-        print(
-            "SUPER_ADMIN_BOOTSTRAP_READY "
-            + ("ACCOUNT_CREATED " if created_account else "ACCOUNT_EXISTING ")
-            + "CREDENTIAL_CREATED"
+        credential_state = "CREDENTIAL_CREATED"
+
+    mfa = await store.get_mfa(admin_id)
+    mfa_state = "MFA_EXISTING"
+    if mfa is None or not mfa.enabled:
+        secrets_provider = LocalEnvelopeSecretProvider(
+            key=os.environ["BP_LOCAL_ENVELOPE_KEY"].encode("ascii"),
+            hmac_key=bytes.fromhex(os.environ["BP_LOCAL_ENVELOPE_HMAC_KEY"]),
         )
-    else:
-        print(
-            "SUPER_ADMIN_BOOTSTRAP_READY "
-            + ("ACCOUNT_CREATED " if created_account else "ACCOUNT_EXISTING ")
-            + "CREDENTIAL_EXISTING"
+        await store.put_mfa(
+            MfaRecord(
+                admin_id=admin_id,
+                encrypted_secret=await secrets_provider.encrypt(mfa_secret, "MFA_TOTP"),
+                enabled=True,
+                enabled_at=datetime.now(UTC),
+            )
         )
+        mfa_state = "MFA_CREATED"
+
+    print(
+        "SUPER_ADMIN_BOOTSTRAP_READY "
+        + ("ACCOUNT_CREATED " if created_account else "ACCOUNT_EXISTING ")
+        + credential_state
+        + " "
+        + mfa_state
+    )
     return 0
 
 
