@@ -72,5 +72,4 @@ variables:
   BP_BOOTSTRAP_SUPER_ADMIN_EMAIL: {consumers: [api], required: false, exposure: server_nonsecret, type: string, note: required_with_other_bootstrap_super_admin_inputs}
   BP_BOOTSTRAP_SUPER_ADMIN_DISPLAY_NAME: {consumers: [api], required: false, exposure: server_nonsecret, type: string, note: required_with_other_bootstrap_super_admin_inputs}
   BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD_FILE: {consumers: [api], required: false, exposure: secret_reference, type: path, note: materialized_from_BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD}
-  BP_BOOTSTRAP_SUPER_ADMIN_MFA_SECRET_FILE: {consumers: [api], required: false, exposure: secret_reference, type: path, note: materialized_from_BP_BOOTSTRAP_SUPER_ADMIN_MFA_SECRET}
   BP_WORKER_PROFILE: {consumers: [worker], required: true, exposure: nonsecret, enum: [publish, media, search, sitemap, cache, maintenance, scheduler]}
