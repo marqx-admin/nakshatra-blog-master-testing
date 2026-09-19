@@ -69,4 +69,4 @@ variables:
   BP_SMTP_HOST: {consumers: [api], required: true, exposure: server_nonsecret, type: string}
   BP_SMTP_PORT: {consumers: [api], required: true, exposure: server_nonsecret, type: integer, minimum: 1, maximum: 65535}
   BP_SMTP_CREDENTIAL_FILE: {consumers: [api], required: true, exposure: secret_reference, type: path}
-  BP_WORKER_PROFILE: {consumers: [worker], required: true, exposure: nonsecret, enum: [publish, media, search, sitemap, cache, maintenance, scheduler]}
+  BP_BOOTSTRAP_SUPER_ADMIN_EMAIL: {consumers: [api], required: false, exposure: server_nonsecret, type: string, note: required_with_other_bootstrap_super_admin_inputs}\n  BP_BOOTSTRAP_SUPER_ADMIN_DISPLAY_NAME: {consumers: [api], required: false, exposure: server_nonsecret, type: string, note: required_with_other_bootstrap_super_admin_inputs}\n  BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD_FILE: {consumers: [api], required: false, exposure: secret_reference, type: path, note: materialized_from_BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD}\n  BP_WORKER_PROFILE: {consumers: [worker], required: true, exposure: nonsecret, enum: [publish, media, search, sitemap, cache, maintenance, scheduler]}
