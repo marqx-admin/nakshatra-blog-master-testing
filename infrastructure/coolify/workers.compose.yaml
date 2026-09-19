@@ -1,0 +1,84 @@
+name: nakshatra-workers-staging
+
+x-worker-environment: &worker-environment
+  BP_ENV: ${BP_ENV:-staging}
+  BP_RUNTIME_COMPOSITION: self-hosted
+  BP_POSTGRES_HOST: ${BP_POSTGRES_HOST}
+  BP_POSTGRES_PORT: "5432"
+  BP_POSTGRES_DATABASE: nakshatra_blog
+  BP_POSTGRES_SSL_MODE: require
+  BP_POSTGRES_POOL_MAX: "2"
+  BP_WORKER_CONCURRENCY: "1"
+  BP_WORKER_POOL: solo
+  BP_POSTGRES_SITE_CREDENTIAL: ${BP_POSTGRES_SITE_CREDENTIAL}
+  BP_POSTGRES_PLATFORM_CREDENTIAL: ${BP_POSTGRES_PLATFORM_CREDENTIAL}
+  BP_REDIS_CONTROL_ENDPOINT: ${BP_REDIS_CONTROL_ENDPOINT}
+  BP_REDIS_BROKER_ENDPOINT: ${BP_REDIS_BROKER_ENDPOINT}
+  BP_OPENSEARCH_ENDPOINT: http://opensearch:9200
+  BP_MEDIA_ENDPOINT_URL: http://minio:9000
+  BP_MEDIA_BUCKET: nakshatra-media
+  BP_MEDIA_CDN_ORIGIN: ${BP_MEDIA_CDN_ORIGIN}
+  BP_MEDIA_ACCESS_KEY_ID: ${BP_MEDIA_ACCESS_KEY_ID}
+  BP_MEDIA_SECRET_ACCESS_KEY: ${BP_MEDIA_SECRET_ACCESS_KEY}
+  BP_SELF_HOSTED_REGION: us-east-1
+
+x-worker: &worker
+  build:
+    context: ../..
+    dockerfile: infrastructure/images/worker.Dockerfile
+  image: nakshatra-worker-staging:latest
+  restart: unless-stopped
+  mem_limit: 224m
+  environment: *worker-environment
+  networks:
+    - coolify
+
+services:
+  worker-publish:
+    <<: *worker
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: publish
+
+  worker-media:
+    <<: *worker
+    mem_limit: 320m
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: media
+
+  worker-search:
+    <<: *worker
+    mem_limit: 256m
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: search
+
+  worker-sitemap:
+    <<: *worker
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: sitemap
+
+  worker-cache:
+    <<: *worker
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: cache
+
+  worker-maintenance:
+    <<: *worker
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: maintenance
+
+  worker-scheduler:
+    <<: *worker
+    mem_limit: 192m
+    environment:
+      <<: *worker-environment
+      BP_WORKER_PROFILE: scheduler
+
+networks:
+  coolify:
+    external: true
