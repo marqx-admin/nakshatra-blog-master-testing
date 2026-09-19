@@ -3,7 +3,7 @@ FROM node:24-bookworm-slim AS build
 WORKDIR /workspace
 RUN corepack enable
 RUN corepack prepare pnpm@10.34.5 --activate
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 COPY packages/ts ./packages/ts
 COPY apps/admin ./apps/admin
 RUN pnpm install --frozen-lockfile
