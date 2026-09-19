@@ -329,7 +329,8 @@ class AuthService:
         if self.password_codec.needs_rehash(verifier):
             await self._set_credential_verifier(principal.admin_id, self.password_codec.hash(password))
         principal = await self._fresh_principal(principal.admin_id)
-        if principal.is_super_admin or principal.mfa_enabled:
+        # Launch mode: MFA is optional. Accounts that explicitly enroll MFA still require it.
+        if principal.mfa_enabled:
             now = now_utc()
             raw = new_secret_token(32)
             await self.state.invalidate_tokens(principal.admin_id, "MFA_CHALLENGE_LOGIN")
