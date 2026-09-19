@@ -14,7 +14,7 @@ RUN uv sync --frozen --no-dev --no-editable --package bp-worker \
     && .venv/bin/python -c "import importlib; [importlib.import_module(name) for name in ('bp_worker','bp_background_contracts','bp_domain','bp_ports','bp_adapters.postgres','bp_adapters.queue','bp_adapters.redis','bp_adapters.search','bp_adapters.object_storage','bp_adapters.media')]"
 
 FROM python:3.13-slim-bookworm AS runtime
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates libvips42 \
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates libvips42 libpq5 \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd -g 10001 bp && useradd -r -u 10001 -g bp bp \
     && install -d -o 10001 -g 10001 -m 0700 /run/secrets/bp
