@@ -24,7 +24,7 @@ x-worker-environment: &worker-environment
 
 x-worker: &worker
   build:
-    context: ../..
+    context: .
     dockerfile: infrastructure/images/worker.Dockerfile
   image: nakshatra-worker-staging:latest
   restart: unless-stopped
