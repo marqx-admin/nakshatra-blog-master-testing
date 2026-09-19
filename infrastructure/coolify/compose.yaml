@@ -40,7 +40,6 @@ x-api-environment: &api-environment
   BP_BOOTSTRAP_SUPER_ADMIN_EMAIL: ${BP_BOOTSTRAP_SUPER_ADMIN_EMAIL:?Set initial Super Admin email}
   BP_BOOTSTRAP_SUPER_ADMIN_DISPLAY_NAME: ${BP_BOOTSTRAP_SUPER_ADMIN_DISPLAY_NAME:-Nakshatra Super Admin}
   BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD: ${BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD:?Set initial Super Admin password}
-  BP_BOOTSTRAP_SUPER_ADMIN_MFA_SECRET: ${BP_BOOTSTRAP_SUPER_ADMIN_MFA_SECRET:?Set initial Super Admin TOTP secret}
 
 x-worker-environment: &worker-environment
   BP_ENV: production
