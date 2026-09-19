@@ -37,7 +37,11 @@ x-api-environment: &api-environment
   BP_SMTP_HOST: ${BP_SMTP_HOST:?Set the production SMTP host}
   BP_SMTP_PORT: ${BP_SMTP_PORT:-587}
   BP_SMTP_CREDENTIAL: '{"username":"${BP_SMTP_USERNAME:?Set SMTP username}","password":"${BP_SMTP_PASSWORD:?Set SMTP password}"}'
-  BP_BOOTSTRAP_SUPER_ADMIN_EMAIL: ${BP_BOOTSTRAP_SUPER_ADMIN_EMAIL:?Set initial Super Admin email}\n  BP_BOOTSTRAP_SUPER_ADMIN_DISPLAY_NAME: ${BP_BOOTSTRAP_SUPER_ADMIN_DISPLAY_NAME:-Nakshatra Super Admin}\n  BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD: ${BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD:?Set initial Super Admin password}\n
+  BP_BOOTSTRAP_SUPER_ADMIN_EMAIL: ${BP_BOOTSTRAP_SUPER_ADMIN_EMAIL:?Set initial Super Admin email}
+  BP_BOOTSTRAP_SUPER_ADMIN_DISPLAY_NAME: ${BP_BOOTSTRAP_SUPER_ADMIN_DISPLAY_NAME:-Nakshatra Super Admin}
+  BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD: ${BP_BOOTSTRAP_SUPER_ADMIN_PASSWORD:?Set initial Super Admin password}
+  BP_BOOTSTRAP_SUPER_ADMIN_MFA_SECRET: ${BP_BOOTSTRAP_SUPER_ADMIN_MFA_SECRET:?Set initial Super Admin TOTP secret}
+
 x-worker-environment: &worker-environment
   BP_ENV: production
   BP_RUNTIME_COMPOSITION: self-hosted
