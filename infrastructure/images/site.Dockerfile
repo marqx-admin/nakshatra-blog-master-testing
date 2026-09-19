@@ -5,7 +5,7 @@ ARG SITE_DIR
 WORKDIR /workspace
 RUN corepack enable
 RUN corepack prepare pnpm@10.34.5 --activate
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 COPY packages/ts ./packages/ts
 COPY apps/sites ./apps/sites
 RUN pnpm install --frozen-lockfile
