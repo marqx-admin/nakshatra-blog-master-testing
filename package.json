@@ -19,7 +19,7 @@
     "foundation:boundaries": "node tooling/scripts/check-js-boundaries.mjs && python3 tooling/scripts/check-python-boundaries.py",
     "foundation:test": "node --test --test-concurrency=1 tests/dependency/foundation.test.mjs tests/contract/openapi-contract.test.mjs",
     "foundation:format": "node tooling/scripts/check-format.mjs",
-    "foundation:typecheck": "tsc --noEmit -p tsconfig.foundation.json",
+    "foundation:typecheck": "corepack pnpm --filter @bp/admin exec tsc --noEmit -p ../../tsconfig.foundation.json",
     "contract:check-source": "node tooling/scripts/check-openapi-source.mjs",
     "contract:generate": "node tooling/generators/generate-api-contract.mjs",
     "contract:drift": "node tooling/scripts/check-generated-drift.mjs",

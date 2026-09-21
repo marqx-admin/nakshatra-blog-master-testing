@@ -28,8 +28,8 @@ function readCookie(name: string): string | undefined {
 }
 
 function browserBaseUrl(): string {
-  const configured = import.meta.env.VITE_ADMIN_API_BASE_URL as string | undefined;
-  if (configured) return configured;
+  const configured = (import.meta.env as unknown as Record<string, unknown>)["VITE_ADMIN_API_BASE_URL"];
+  if (typeof configured === "string" && configured) return configured;
   if (typeof window !== "undefined") return window.location.origin;
   return "https://example.invalid";
 }

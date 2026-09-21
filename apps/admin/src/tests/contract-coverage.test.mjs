@@ -24,6 +24,7 @@ const allSource = Object.values(sourceByPath).join("\n");
 const generatedClient = fs.readFileSync(path.join(repoRoot, "packages/ts/api-client-admin/src/generated.ts"), "utf8");
 const canonicalOps = [...generatedClient.matchAll(/"(API15-(?:AUTH|S|G)-\d{3})"/g)].map((match) => match[1]);
 const usedOps = [...new Set([...allSource.matchAll(/API15-(?:AUTH|S|G)-\d{3}/g)].map((match) => match[0]))];
+const launchHiddenOps = ["API15-G-036", "API15-G-037"];
 
 const states = [
   "ST10-LOADING","ST10-READY","ST10-EMPTY","ST10-DIRTY","ST10-VALIDATING","ST10-SAVING","ST10-SUCCESS",
@@ -36,7 +37,7 @@ test("generated RC8 Admin operation surface is completely referenced", () => {
   assert.equal(canonicalOps.filter((id) => id.startsWith("API15-AUTH-")).length, 12);
   assert.equal(canonicalOps.filter((id) => id.startsWith("API15-S-")).length, 63);
   assert.equal(canonicalOps.filter((id) => id.startsWith("API15-G-")).length, 36);
-  assert.deepEqual(canonicalOps.filter((id) => !usedOps.includes(id)), []);
+  assert.deepEqual(canonicalOps.filter((id) => !usedOps.includes(id)), launchHiddenOps);
   assert.deepEqual(usedOps.filter((id) => !canonicalOps.includes(id)), []);
 });
 
@@ -98,10 +99,12 @@ test("keyboard/focus requirements have concrete Modal and mobile drawer behavior
   assert.ok(shell.includes("menuButtonRef.current?.focus()"));
 });
 
-test("breadcrumbs and permission projection are present without becoming authorization", () => {
+test("breadcrumbs and access-level projection are present without becoming authorization", () => {
   const frame = fs.readFileSync(path.join(adminRoot, "src/modules/PageFrame.tsx"), "utf8");
   assert.ok(frame.includes("<Breadcrumbs"));
   assert.ok(frame.includes("hasAllPermissions"));
   const router = fs.readFileSync(path.join(adminRoot, "src/app/router/AdminRouter.tsx"), "utf8");
-  assert.ok(router.includes("server revalidates assignment, permission and target ownership"));
+  assert.ok(router.includes('managerOnly'));
+  assert.ok(router.includes('API15-S-001'));
+  assert.ok(router.includes('My Websites'));
 });

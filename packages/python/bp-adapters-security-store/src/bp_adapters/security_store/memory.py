@@ -30,6 +30,10 @@ class InMemorySecurityStateStore:
         record = self.credentials.get(admin_id)
         return replace(record, params=dict(record.params)) if record is not None else None
 
+    async def delete_credential(self, admin_id: str) -> None:
+        async with self._lock:
+            self.credentials.pop(admin_id, None)
+
     async def put_session(self, record: SessionRecord) -> None:
         async with self._lock:
             self.sessions[record.session_id_hash] = replace(record)

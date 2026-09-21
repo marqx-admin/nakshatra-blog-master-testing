@@ -68,7 +68,7 @@ rls_list = ROOT / "database/rls/site_owned_tables.txt"
 rls_tables = [x.strip() for x in rls_list.read_text(encoding="utf-8").splitlines() if x.strip() and not x.lstrip().startswith("#")] if rls_list.is_file() else []
 check("RLS registry covers the exact 20 SITE tables", sorted(rls_tables) == site_tables, f"found={len(rls_tables)}")
 migrations = sorted((ROOT / "database/migrations").glob("[0-9][0-9][0-9][0-9]_DB-MIG-*.sql"))
-check("exactly 18 ordered migration source files", len(migrations) == 18 and [p.name[:4] for p in migrations] == [f"{i:04d}" for i in range(1, 19)], f"found={len(migrations)}")
+check("exactly 19 ordered migration source files", len(migrations) == 19 and [p.name[:4] for p in migrations] == [f"{i:04d}" for i in range(1, 20)], f"found={len(migrations)}")
 perms = contract.get("permission_registry", [])
 check("DOC-08 contract has 69 fixed permissions", len(perms) == 69, f"found={len(perms)}")
 site_seeds = (ROOT / "database/seeds/initial-sites.sql").read_text(encoding="utf-8") if (ROOT / "database/seeds/initial-sites.sql").is_file() else ""

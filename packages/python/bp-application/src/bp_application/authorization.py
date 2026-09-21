@@ -20,12 +20,12 @@ class AuthorizationService:
     def require_global(principal: AdminPrincipal, permissions: set[str]) -> None:
         if principal.state is not AccountState.ACTIVE:
             raise Unauthenticated("authentication required")
+        # Launch authority has exactly one GLOBAL principal: the designated
+        # Super Admin.  Legacy GLOBAL role rows must never elevate an ordinary
+        # account, even if they pre-date the protected access-level model.
         if principal.is_super_admin:
             return
-        if not principal.global_permissions:
-            raise Denied("permission denied")
-        if permissions and not permissions.issubset(principal.global_permissions):
-            raise Denied("permission denied")
+        raise Denied("permission denied")
 
     @staticmethod
     def require_site(principal: AdminPrincipal, site_key: str, permissions: set[str]) -> None:
@@ -35,4 +35,25 @@ class AuthorizationService:
             return
         effective = principal.site_permissions.get(site_key)
         if effective is None or not permissions.issubset(effective):
+            raise Denied("permission denied")
+
+    @staticmethod
+    def site_access_level(principal: AdminPrincipal, site_key: str) -> str | None:
+        if principal.is_super_admin:
+            return "SUPER_ADMIN"
+        projected = principal.site_access_levels.get(site_key)
+        if projected in {"CONTENT_EDITOR", "FULL_WEBSITE_MANAGER"}:
+            return projected
+        effective = principal.site_permissions.get(site_key)
+        if effective is None:
+            return None
+        # Compatibility for principals produced by older/fake adapters.  Both
+        # marker permissions are exclusive to the protected Manager bundle.
+        if {"posts.delete", "site_settings.edit"}.issubset(effective):
+            return "FULL_WEBSITE_MANAGER"
+        return "CONTENT_EDITOR"
+
+    @classmethod
+    def require_site_manager(cls, principal: AdminPrincipal, site_key: str) -> None:
+        if cls.site_access_level(principal, site_key) not in {"SUPER_ADMIN", "FULL_WEBSITE_MANAGER"}:
             raise Denied("permission denied")

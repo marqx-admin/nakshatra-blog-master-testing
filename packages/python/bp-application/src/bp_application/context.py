@@ -166,7 +166,7 @@ class TrustedContextService:
     def global_context(self, *, principal: AdminPrincipal, request_id: str) -> GlobalContext:
         if principal.state is not AccountState.ACTIVE:
             raise Unauthenticated("authentication required")
-        if not principal.is_super_admin and not principal.global_permissions:
+        if not principal.is_super_admin:
             raise Denied("global authority required")
         return GlobalContext(
             kind=ContextKind.GLOBAL,

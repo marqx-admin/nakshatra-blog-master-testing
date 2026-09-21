@@ -39,18 +39,32 @@ class GlobalPlatformService:
         if principal.state is not AccountState.ACTIVE:
             raise Unauthenticated("authentication required")
 
+        backend_body = body
+        create_password: str | None = None
+        if operation_id == "API15-G-031":
+            if not isinstance(body, dict):
+                raise ValidationFault("request validation failed")
+            email = body.get("email")
+            password = body.get("password")
+            if not isinstance(email, str) or not isinstance(password, str):
+                raise ValidationFault("request validation failed")
+            self.auth.validate_new_admin_password(email, password)
+            create_password = password
+            backend_body = {key: value for key, value in body.items() if key != "password"}
+
         status, payload, response_headers = await self.backend.execute(
             operation_id,
             principal=principal,
             context=context,
             path_params=path_params,
             query=query,
-            body=body,
+            body=backend_body,
             headers=headers,
         )
 
-        # API15-G-031 creates the INVITED identity/assignments in canonical
-        # persistence. DOC-19 then owns the one-time setup authority/delivery.
+        # API15-G-031 persists a non-super-admin identity and its SITE access in
+        # one PostgreSQL transaction. Security state receives only an Argon2id
+        # verifier, then the identity becomes immediately login-ready.
         if operation_id == "API15-G-031" and status == 201:
             resource = (payload or {}).get("admin_user") if isinstance(payload, dict) else None
             if not isinstance(resource, dict):
@@ -61,12 +75,21 @@ class GlobalPlatformService:
             email = resource.get("email")
             if not isinstance(admin_id, str) or not isinstance(email, str):
                 raise RuntimeError("API15-G-031 response lacks invited identity")
-            await self.auth.issue_invitation(
-                admin_id,
-                email,
-                setup_base_url=self.invitation_setup_base_url,
-                actor_admin_id=principal.admin_id,
+            try:
+                await self.auth.provision_created_admin(admin_id, email, create_password or "")
+            except Exception:
+                await self.backend.compensate_created_admin(admin_id)
+                raise
+            _, payload, response_headers = await self.backend.execute(
+                "API15-G-032",
+                principal=principal,
+                context=context,
+                path_params={"admin_user_id": admin_id},
+                query={},
+                body=None,
+                headers=headers,
             )
+            status = 201
 
         # Disabled accounts must not regain authority later through an old
         # session if the account is subsequently re-enabled.

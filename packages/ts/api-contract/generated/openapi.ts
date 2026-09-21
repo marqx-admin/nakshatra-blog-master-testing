@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
 // Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml
-// Source SHA-256: bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00
+// Source SHA-256: 690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca
 // Wire keys intentionally preserve the canonical OpenAPI spelling/casing.
 
 export interface components {
@@ -1141,15 +1141,18 @@ export interface components {
           "created_at": string;
           "updated_at": string;
         };
-    "AdminInvitationInput": {
+    "AdminUserCreateInput": {
           "email": string;
-          "display_name"?: string;
-          "site_assignments"?: Array<string>;
-          "role_assignments"?: Array<components["schemas"]["RoleAssignment"]>;
+          "display_name": string;
+          "password": string;
+          "site_assignments": Array<string>;
+          "role_assignments": Array<components["schemas"]["RoleAssignment"]>;
         };
     "AdminUserUpdateInput": {
           "display_name"?: string;
           "email"?: string;
+          "site_assignments"?: Array<string>;
+          "role_assignments"?: Array<components["schemas"]["RoleAssignment"]>;
         };
     "SiteAssignmentInput": {
           "site_keys": Array<string>;
@@ -1256,6 +1259,7 @@ export interface components {
         };
     "LoginResponse": {
           "state": "AUTHENTICATED" | "MFA_REQUIRED";
+          "display_name"?: string;
           "session_expires_at"?: string;
           "mfa_challenge_id"?: string;
           "challenge_expires_at"?: string;
@@ -4411,7 +4415,7 @@ export interface operations {
         };
       requestBody: {
         content: {
-          "application/json": components["schemas"]["AdminInvitationInput"];
+          "application/json": components["schemas"]["AdminUserCreateInput"];
         };
       };
       responses: {
@@ -14495,7 +14499,7 @@ export interface paths {
   "/api/v1/admin/admin-users": {
     get: operations["API15-G-030"];
   };
-  "/api/v1/admin/admin-users/invitations": {
+  "/api/v1/admin/admin-users/create": {
     post: operations["API15-G-031"];
   };
   "/api/v1/admin/admin-users/{admin_user_id}": {
@@ -14772,7 +14776,7 @@ export interface OperationRequestMap {
         "X-Request-ID"?: string;
         "Idempotency-Key": string;
       };
-      body: components["schemas"]["AdminInvitationInput"];
+      body: components["schemas"]["AdminUserCreateInput"];
     };
   "API15-G-032": {
       path: {

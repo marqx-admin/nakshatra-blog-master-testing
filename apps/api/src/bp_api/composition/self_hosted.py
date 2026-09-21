@@ -367,6 +367,7 @@ def build_self_hosted_services(settings: Settings, spec: dict[str, Any]) -> Serv
         mail,
         PasswordPolicy(SetWeakPasswordChecker(set())),
         PasswordCodec(),
+        require_mfa_on_login=settings.environment not in {"development", "test"},
     )
 
     editorial_repository = PostgresEditorialRepository(site_transactions)

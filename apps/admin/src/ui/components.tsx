@@ -115,16 +115,16 @@ export function Breadcrumbs({ items }: { items: Array<{ label: string; href?: st
 }
 
 export function LoadingState({ label = "Loading" }: { label?: string }) {
-  return <main className="bp-centered-state"><Spinner /><h1>{label}</h1><p>Please wait while the current server-authoritative context is loaded.</p></main>;
+  return <main className="bp-centered-state"><Spinner /><h1>{label}</h1><p>Please wait while this page loads.</p></main>;
 }
-export function EmptyState({ title = "Nothing here yet", description = "The authorized query returned no records.", action }: { title?: string; description?: string; action?: ReactNode }) {
+export function EmptyState({ title = "Nothing here yet", description = "There is nothing to show yet.", action }: { title?: string; description?: string; action?: ReactNode }) {
   return <div className="bp-empty-state"><div aria-hidden="true" className="bp-empty-mark">○</div><h2>{title}</h2><p>{description}</p>{action}</div>;
 }
-export function ErrorState({ title = "Unable to load this view", description = "The request could not be completed. Retry keeps the same page and execution context.", onRetry }: { title?: string; description?: string; onRetry?: () => void }) {
+export function ErrorState({ title = "Unable to load this page", description = "The request could not be completed. Please try again.", onRetry }: { title?: string; description?: string; onRetry?: () => void }) {
   return <main className="bp-centered-state bp-centered-state--error"><div aria-hidden="true">!</div><h1>{title}</h1><p>{description}</p>{onRetry ? <Button variant="primary" onClick={onRetry}>Retry</Button> : null}</main>;
 }
 export function DeniedState({ title = "Access denied" }: { title?: string }) {
-  return <main className="bp-centered-state"><div aria-hidden="true">⊘</div><h1>{title}</h1><p>Your authenticated account does not currently have authority for this page or action. Protected object details are not shown.</p></main>;
+  return <main className="bp-centered-state"><div aria-hidden="true">⊘</div><h1>{title}</h1><p>Your account does not have permission to use this page or action.</p></main>;
 }
 export function NotFoundState({ title = "Not found" }: { title?: string }) {
   return <main className="bp-centered-state"><div aria-hidden="true">?</div><h1>{title}</h1><p>The target is unavailable in the authorized context, or its existence is intentionally not disclosed.</p></main>;

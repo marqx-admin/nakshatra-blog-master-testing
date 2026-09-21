@@ -27,6 +27,7 @@ L2_OPS = frozenset(
         "API15-G-021",  # domain delete
         "API15-G-022",  # domain canonical change
         "API15-G-035",  # admin disable
+        "API15-G-033",  # admin profile and website access update
         "API15-G-036",  # site assignment
         "API15-G-037",  # role assignment
         "API15-G-041",  # role create

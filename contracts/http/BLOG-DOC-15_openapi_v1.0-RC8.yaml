@@ -24443,10 +24443,10 @@ paths:
       - BLOG-DOC-13
       - BLOG-DOC-14
       x-success-status: 200
-  /api/v1/admin/admin-users/invitations:
+  /api/v1/admin/admin-users/create:
     post:
       operationId: API15-G-031
-      summary: Invite Admin account
+      summary: Create login-ready Admin account
       tags:
       - Admin
       - Users
@@ -24469,7 +24469,7 @@ paths:
           for 24 hours; same key + different fingerprint returns 409.
       responses:
         '201':
-          description: Invite Admin account
+          description: Create login-ready Admin account
           headers:
             X-Request-ID:
               description: Server request/correlation identifier.
@@ -24707,7 +24707,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminInvitationInput'
+              $ref: '#/components/schemas/AdminUserCreateInput'
       x-success-status: 201
   /api/v1/admin/admin-users/{admin_user_id}:
     get:
@@ -25214,7 +25214,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       x-site-context: GLOBAL
       x-auth-context: ADMIN_SESSION
-      x-permissions: admin_users.view + admin_users.edit
+      x-permissions: admin_users.view + admin_users.edit + admin_users.manage_site_assignments + roles.assign
       x-rate-limit-class: ADMIN_SENSITIVE
       x-idempotency: REQUIRED
       x-concurrency: NONE
@@ -33876,7 +33876,7 @@ components:
       - role_assignments
       - created_at
       - updated_at
-    AdminInvitationInput:
+    AdminUserCreateInput:
       type: object
       additionalProperties: false
       properties:
@@ -33885,6 +33885,41 @@ components:
           format: email
         display_name:
           type: string
+        password:
+          type: string
+          minLength: 12
+          maxLength: 128
+          writeOnly: true
+          x-sensitive: true
+          description: Initial password. It is validated by the server and stored only as an Argon2id verifier in security state.
+        site_assignments:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            pattern: ^SITE-[0-9]{2,}$
+          uniqueItems: true
+        role_assignments:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/RoleAssignment'
+          uniqueItems: true
+      required:
+      - email
+      - display_name
+      - password
+      - site_assignments
+      - role_assignments
+    AdminUserUpdateInput:
+      type: object
+      additionalProperties: false
+      properties:
+        display_name:
+          type: string
+        email:
+          type: string
+          format: email
         site_assignments:
           type: array
           items:
@@ -33896,17 +33931,6 @@ components:
           items:
             $ref: '#/components/schemas/RoleAssignment'
           uniqueItems: true
-      required:
-      - email
-    AdminUserUpdateInput:
-      type: object
-      additionalProperties: false
-      properties:
-        display_name:
-          type: string
-        email:
-          type: string
-          format: email
       minProperties: 1
     SiteAssignmentInput:
       type: object
@@ -34631,6 +34655,9 @@ components:
           enum:
           - AUTHENTICATED
           - MFA_REQUIRED
+        display_name:
+          type: string
+          description: Saved Admin display name used for the signed-in welcome experience.
         session_expires_at:
           type: string
           format: date-time

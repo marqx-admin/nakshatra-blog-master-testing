@@ -898,7 +898,7 @@ class EditorialApplication:
         menu_key = str(path["menu_key"])
         items = validate_navigation_items(body["items"])
         self._validate_static_navigation_urls(context, items)
-        result = await self.repository.replace_navigation_menu(
+        await self.repository.replace_navigation_menu(
             context,
             menu_key=menu_key,
             actor_admin_id=principal.admin_id,
@@ -906,7 +906,7 @@ class EditorialApplication:
         )
         await self._audit(context, principal, event_code="NAVIGATION.UPDATE", target_type="NAVIGATION_MENU", target_id=menu_key, operation_id=operation_id)
         await self._emit_site_effect(context, effect_type="EDITORIAL.NAVIGATION.CHANGED", entity_type="SITE", entity_id=context.site_id)
-        return 200, result, {}
+        return 200, await self.repository.get_navigation(context), {}
 
     @staticmethod
     def _validate_static_navigation_urls(context: SiteContext, items: list[dict[str, Any]]) -> None:

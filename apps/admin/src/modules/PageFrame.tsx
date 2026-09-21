@@ -26,7 +26,6 @@ export function PageFrame({ pageId, context, actions, back, required, children }
     <Breadcrumbs items={breadcrumbItems} />
     <PageHeader
       title={page.label}
-      pageId={page.pageId}
       scope={page.scope}
       {...(context !== undefined ? { context } : {})}
       actions={actions}

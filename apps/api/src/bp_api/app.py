@@ -86,6 +86,7 @@ def default_services(settings: Settings, spec: dict) -> Services:
         RecordingMailAdapter(),
         PasswordPolicy(SetWeakPasswordChecker(set())),
         PasswordCodec(),
+        require_mfa_on_login=settings.environment not in {"development", "test"},
     )
     transport = InMemorySecurityThrottle(_transport_policies(spec))
     abuse = InMemorySecurityThrottle(SECURITY_ABUSE_POLICIES)

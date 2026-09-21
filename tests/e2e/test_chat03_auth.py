@@ -16,12 +16,12 @@ from datetime import UTC, datetime
 
 PASSWORD='correct horse battery staple'
 
-def build(super_admin=False,mfa=False):
+def build(super_admin=False,mfa=False,require_mfa_on_login=True):
     codec=PasswordCodec(); p=AdminPrincipal('admin-1','admin@example.test',AccountState.ACTIVE,super_admin,mfa,frozenset({'sites.view'}),{'SITE-01':frozenset({'posts.view'})})
     ids=FakeIdentities(p,codec.hash(PASSWORD)); state=InMemorySecurityStateStore(); audit=FakeAudit(); mail=RecordingMailAdapter(); secrets=LocalEnvelopeSecretProvider()
     import asyncio
     asyncio.run(state.put_credential(CredentialRecord('admin-1',ids.verifier,'argon2id',{'memory_kib':65536,'iterations':3,'parallelism':1,'salt_bytes':16,'hash_bytes':32},datetime.now(UTC))))
-    auth=AuthService(ids,state,secrets,audit,mail,PasswordPolicy(SetWeakPasswordChecker({'password12345'})),codec)
+    auth=AuthService(ids,state,secrets,audit,mail,PasswordPolicy(SetWeakPasswordChecker({'password12345'})),codec,require_mfa_on_login=require_mfa_on_login)
     services=Services(TrustedContextService(FakeSites()),AuthorizationService(ids),SessionAuthority(state,ids),auth,FakePublic(),FakeGlobals(),audit,site_context_payload=SiteContextPayload())
     app=create_app(settings=Settings('test','contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml',('https://admin.test',),'https://admin.test/reset',False),services=services)
     return app,services,ids,state,audit,mail,secrets
@@ -44,12 +44,27 @@ def test_csrf_and_origin_required_for_unsafe_session_action():
     ok=c.post('/api/v1/auth/logout',headers={'Origin':'https://admin.test','X-CSRF-Token':csrf})
     assert ok.status_code==204
 
-def test_global_requires_explicit_global_permission():
+def test_ordinary_account_cannot_use_legacy_global_permission():
     app,services,*_=build(); c=TestClient(app,base_url='https://admin.test')
     c.post('/api/v1/auth/login',json={'email':'admin@example.test','password':PASSWORD})
     r=c.get('/api/v1/admin/context')
+    assert r.status_code==403
+    assert services.global_operations.calls == []
+
+def test_development_policy_allows_super_admin_password_login_and_global_context():
+    app,services,*_=build(super_admin=True,require_mfa_on_login=False); c=TestClient(app,base_url='https://admin.test')
+    login=c.post('/api/v1/auth/login',json={'email':'admin@example.test','password':PASSWORD})
+    assert login.status_code==200 and login.json()['state']=='AUTHENTICATED'
+    r=c.get('/api/v1/admin/context')
     assert r.status_code==200
     assert services.global_operations.calls[-1][0]=='API15-G-001'
+
+def test_super_admin_password_login_remains_available_when_mfa_not_enrolled():
+    app,services,*_=build(super_admin=True,require_mfa_on_login=True); c=TestClient(app,base_url='https://admin.test')
+    login=c.post('/api/v1/auth/login',json={'email':'admin@example.test','password':PASSWORD})
+    assert login.status_code==200 and login.json()['state']=='AUTHENTICATED'
+    r=c.get('/api/v1/admin/context')
+    assert r.status_code==200
 
 def test_site_context_wrong_assignment_is_404_not_disclosure():
     app,services,ids,*_=build(); c=TestClient(app,base_url='https://admin.test')

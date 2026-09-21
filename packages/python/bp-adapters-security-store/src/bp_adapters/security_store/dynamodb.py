@@ -54,6 +54,9 @@ class DynamoSecurityStateStore:
         raw = out.get("Item")
         return _credential(raw) if raw else None
 
+    async def delete_credential(self, admin_id: str) -> None:
+        await asyncio.to_thread(self.table.delete_item, Key=self._key("CREDENTIAL", admin_id))
+
     async def put_session(self, record: SessionRecord) -> None:
         item = self._item("SESSION", record.session_id_hash, record, ttl=record.absolute_expires_at)
         await asyncio.to_thread(self.table.put_item, Item=item)

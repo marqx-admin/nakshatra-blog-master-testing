@@ -46,6 +46,9 @@ class UnavailableGlobalOperations:
     async def execute(self, *args, **kwargs):
         raise Unavailable("global persistence unavailable")
 
+    async def compensate_created_admin(self, admin_id):
+        raise Unavailable("global persistence unavailable")
+
 
 class NullAudit:
     async def append(self, *args, **kwargs):

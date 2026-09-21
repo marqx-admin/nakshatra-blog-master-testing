@@ -35,9 +35,14 @@ class Backend:
         if operation_id == "API15-G-031":
             now = datetime.now(UTC).isoformat()
             return 201, {"admin_user": {"admin_user_id": self.target.admin_id, "email": self.target.email, "state": "INVITED", "site_assignments": [], "role_assignments": [], "created_at": now, "updated_at": now}}, {}
+        if operation_id == "API15-G-032":
+            now = datetime.now(UTC).isoformat()
+            return 200, {"admin_user": {"admin_user_id": self.target.admin_id, "email": self.target.email, "state": "ACTIVE", "site_assignments": [], "role_assignments": [], "created_at": now, "updated_at": now}}, {}
         if operation_id == "API15-G-035":
             return 200, {"ok": True}, {}
         return 200, {}, {}
+    async def compensate_created_admin(self, admin_id):
+        self.calls.append(("COMPENSATE_CREATED_ADMIN", {"admin_id": admin_id}))
 
 
 async def build_auth(actor, target):
@@ -57,17 +62,17 @@ def global_context():
 
 
 @pytest.mark.asyncio
-async def test_global_invitation_orchestration_issues_doc19_setup_token_only_after_backend_success():
+async def test_global_direct_create_provisions_hashed_login_without_invitation():
     actor = AdminPrincipal("actor", "actor@test", AccountState.ACTIVE, global_permissions=frozenset({"admin_users.view", "admin_users.invite"}))
     target = AdminPrincipal("target", "target@test", AccountState.INVITED)
     auth, state, _, mail = await build_auth(actor, target)
     backend = Backend(target)
     service = GlobalPlatformService(backend, auth, "https://admin.test/setup")
 
-    status, _, _ = await service.execute("API15-G-031", principal=actor, context=global_context(), path_params={}, query={}, body={"email": target.email}, headers={})
-    assert status == 201 and len(mail.messages) == 1
-    assert "token=" in mail.messages[0][2]
-    assert any(record.admin_id == "target" and record.purpose == "INVITE_SETUP" and record.consumed_at is None for record in state.tokens.values())
+    status, payload, _ = await service.execute("API15-G-031", principal=actor, context=global_context(), path_params={}, query={}, body={"email": target.email, "password": PASSWORD}, headers={})
+    assert status == 201 and payload["admin_user"]["state"] == "ACTIVE"
+    assert len(mail.messages) == 0
+    assert (await state.get_credential("target")) is not None
 
 
 @pytest.mark.asyncio

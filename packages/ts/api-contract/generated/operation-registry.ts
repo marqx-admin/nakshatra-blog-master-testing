@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
 // Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml
-// Source SHA-256: bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00
+// Source SHA-256: 690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca
 
 export const operationRegistry = {
   "API15-AUTH-001": {
@@ -546,7 +546,7 @@ export const operationRegistry = {
     ],
     "idempotency": "REQUIRED",
     "method": "POST",
-    "path": "/api/v1/admin/admin-users/invitations",
+    "path": "/api/v1/admin/admin-users/create",
     "pathParameters": [],
     "permissions": "admin_users.view + admin_users.invite",
     "queryParameters": [],
@@ -587,7 +587,7 @@ export const operationRegistry = {
     "pathParameters": [
       "admin_user_id"
     ],
-    "permissions": "admin_users.view + admin_users.edit",
+    "permissions": "admin_users.view + admin_users.edit + admin_users.manage_site_assignments + roles.assign",
     "queryParameters": [],
     "rateLimitClass": "ADMIN_SENSITIVE",
     "requestContentType": "application/json",

@@ -27,6 +27,15 @@ CHAT05_OPERATION_IDS = (
     "API15-S-090", "API15-S-091", "API15-S-092", "API15-S-093", "API15-S-094",
 )
 
+MANAGER_OPERATION_IDS = frozenset(
+    {
+        "API15-S-064", "API15-S-065",
+        "API15-S-080", "API15-S-081",
+        "API15-S-082", "API15-S-083", "API15-S-084", "API15-S-085", "API15-S-086",
+        "API15-S-093", "API15-S-094",
+    }
+)
+
 
 def _contract(request: Request, operation_id: str):
     full = getattr(request.app.state, "chat05_operation_index", None)
@@ -106,6 +115,8 @@ def _endpoint(operation_id: str):
 
         required = set(_PERMISSION_RE.findall(contract.permissions))
         request.app.state.services.authorization.require_site(principal, site_key, required)
+        if operation_id in MANAGER_OPERATION_IDS:
+            request.app.state.services.authorization.require_site_manager(principal, site_key)
         body = await _body(request, contract)
 
         # DOC-17/RC7 field-sensitive replace permission is atomic.

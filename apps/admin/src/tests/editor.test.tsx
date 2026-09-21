@@ -12,7 +12,7 @@ const permissions=["posts.view","posts.edit","posts.preview","posts.publish","po
 test("editor renders the exact block palette and Preview/publish controls",async()=>{
   const router=createMemoryRouter([{
     path:"/site/:siteKey/posts/:postId",
-    element:<DirtyStateProvider><SiteContextValue value={{site_key:"SITE-01",display_name:"Fixture Site",lifecycle_state:"ACTIVE",effective_permissions:permissions}}><PostEditorPage mode="edit"/></SiteContextValue></DirtyStateProvider>,
+    element:<DirtyStateProvider><SiteContextValue value={{site_key:"SITE-01",display_name:"Fixture Site",lifecycle_state:"ACTIVE",effective_permissions:permissions,access_level:"FULL_WEBSITE_MANAGER"}}><PostEditorPage mode="edit"/></SiteContextValue></DirtyStateProvider>,
   }],{initialEntries:["/site/SITE-01/posts/00000000-0000-4000-8000-000000000001"]});
   render(<AdminApiProvider transport={fixtureTransport()}><RouterProvider router={router}/></AdminApiProvider>);
   expect(await screen.findByRole("heading",{name:"Edit Post"})).toBeInTheDocument();

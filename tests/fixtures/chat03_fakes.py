@@ -108,6 +108,9 @@ class FakeGlobals:
             }, {}
         raise Unavailable("fake operation not bound")
 
+    async def compensate_created_admin(self, admin_id):
+        self.calls.append(("COMPENSATE_CREATED_ADMIN", {"admin_id": admin_id}))
+
 
 class SiteContextPayload:
     async def build(self, principal, context):

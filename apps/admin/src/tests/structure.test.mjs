@@ -63,11 +63,15 @@ test('Admin source respects architecture boundaries',()=>{
   assert.ok(all.includes('API15-G-001'));
 });
 
-test('dedicated website selector validates before switch and the workspace shell stays focused',()=>{
+test('My Websites validates each card before opening and the workspace shell stays focused',()=>{
   const shell=fs.readFileSync(path.join(root,'src/ui/AdminShell.tsx'),'utf8');
   assert.equal(shell.includes('API15-S-001'),false);
   assert.equal(shell.includes('Active Website'),false);
   assert.ok(router.includes('API15-S-001'));
-  assert.ok(router.includes('server revalidates assignment, permission and target ownership'));
-  assert.equal(router.includes('SITE-14'),false);
+  assert.ok(router.includes('<h1>My Websites</h1>'));
+  assert.ok(router.includes('Open Dashboard'));
+  assert.ok(router.includes('Full Website Manager'));
+  assert.equal(router.includes('Validate and open'),false);
+  assert.ok(router.includes('"SITE-01":"WhatsYourRashi.in"'));
+  assert.ok(router.includes('"SITE-14":"VastuShastra360.in"'));
 });

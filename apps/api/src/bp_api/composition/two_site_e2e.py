@@ -313,6 +313,7 @@ def build_two_site_e2e_services(settings: Settings, spec: dict[str, Any]) -> Ser
         mail,
         PasswordPolicy(SetWeakPasswordChecker(set())),
         PasswordCodec(),
+        require_mfa_on_login=False,
     )
 
     editorial_repository = PostgresEditorialRepository(site_transactions)

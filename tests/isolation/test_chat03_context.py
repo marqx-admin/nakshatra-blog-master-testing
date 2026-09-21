@@ -56,7 +56,9 @@ def test_global_is_explicit_and_typed_separately():
     svc = TrustedContextService(FakeSites())
     with pytest.raises(Denied):
         svc.global_context(principal=principal(global_perm=False), request_id="req-8")
-    global_ctx = svc.global_context(principal=principal(), request_id="req-9")
+    with pytest.raises(Denied):
+        svc.global_context(principal=principal(), request_id="req-9")
+    global_ctx = svc.global_context(principal=principal(super_admin=True), request_id="req-10")
     assert isinstance(global_ctx, GlobalContext)
     assert not isinstance(global_ctx, SiteContext)
     assert global_ctx.kind is ContextKind.GLOBAL
@@ -68,3 +70,21 @@ def test_authorization_super_admin_does_not_need_role_permissions_but_scope_is_s
     AuthorizationService.require_global(super_p, {"sites.view"})
     with pytest.raises(Denied):
         AuthorizationService.require_site(principal(site=False), "SITE-01", {"posts.view"})
+
+
+def test_website_management_requires_that_sites_manager_access_level():
+    editor = AdminPrincipal(
+        "editor", "editor@example.test", AccountState.ACTIVE,
+        site_permissions={"SITE-01": frozenset({"posts.view", "seo.view", "seo.edit"})},
+        site_access_levels={"SITE-01": "CONTENT_EDITOR"},
+    )
+    manager = AdminPrincipal(
+        "manager", "manager@example.test", AccountState.ACTIVE,
+        site_permissions={"SITE-01": frozenset({"posts.view", "posts.delete", "site_settings.edit"})},
+        site_access_levels={"SITE-01": "FULL_WEBSITE_MANAGER"},
+    )
+    with pytest.raises(Denied):
+        AuthorizationService.require_site_manager(editor, "SITE-01")
+    AuthorizationService.require_site_manager(manager, "SITE-01")
+    with pytest.raises(Denied):
+        AuthorizationService.require_site_manager(manager, "SITE-02")

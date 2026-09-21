@@ -15,3 +15,8 @@ BEGIN
   VALUES (e, n, 'ACTIVE', true);
 END $$;
 COMMIT;
+
+-- DB-MIG-019 owns the protected, idempotent role/permission projection.
+SET ROLE db_migrator;
+SELECT app.ensure_system_access_levels();
+RESET ROLE;

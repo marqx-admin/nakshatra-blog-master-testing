@@ -1,12 +1,13 @@
-import { useEffect, useState, type FormEvent, type PropsWithChildren, type ReactNode } from "react";
+import { useEffect, useState, type PropsWithChildren, type ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { AuthFlowProvider } from "../auth/AuthFlowContext";
 import { DirtyStateProvider } from "../site-context/DirtyStateContext";
 import { GlobalContextBoundary, SiteContextBoundary } from "../site-context/ContextBoundary";
+import { useAdminContext } from "../site-context/AdminContext";
 import { AdminShell } from "../../ui/AdminShell";
 import { useAdminTransport } from "../query-client/AdminApiProvider";
 import { classifyResponse } from "../query-client/apiState";
-import { Alert, Button, ErrorState, SelectField } from "../../ui/components";
+import { Alert, Button, DeniedState, EmptyState, ErrorState, StatusBadge } from "../../ui/components";
 import {
   AccessDeniedPage, InvitationSetupPage, LoginPage, LogoutPage, MfaEnrollmentPage, MfaPage, PasswordChangePage,
   PasswordResetCompletePage, PasswordResetRequestPage, SecurityPage, SessionExpiredPage, StepUpPage,
@@ -19,7 +20,7 @@ import {
 import { PostEditorPage } from "../../modules/site/PostEditor";
 import {
   NetworkDashboardPage, GlobalPostsPage, SitesRegistryPage, CreateSitePage, SiteDetailPage, DomainManagementPage,
-  AdminUsersListPage, InviteAdminPage, AdminUserDetailPage, RolesListPage, CreateRolePage, RoleDetailPage,
+  AdminUsersListPage, CreateAdminUserPage, AdminUserDetailPage, RolesListPage, CreateRolePage, RoleDetailPage,
   PermissionRegistryPage, AuditLogPage, AuditDetailPage, PlatformSettingsPage,
 } from "../../modules/global/GlobalPages";
 
@@ -28,36 +29,62 @@ function OperationalShell({ scope, children }: PropsWithChildren<{ scope:"SITE"|
   return <DirtyStateProvider>{boundary}</DirtyStateProvider>;
 }
 
-function SiteRoute({ children }: { children:ReactNode }) { return <OperationalShell scope="SITE">{children}</OperationalShell>; }
+function SiteAccessGate({ children, managerOnly=false }: { children:ReactNode; managerOnly?:boolean }) {
+  const context=useAdminContext();
+  if(managerOnly && context.site?.access_level === "CONTENT_EDITOR") return <DeniedState/>;
+  return children;
+}
+function SiteRoute({ children, managerOnly=false }: { children:ReactNode; managerOnly?:boolean }) { return <OperationalShell scope="SITE"><SiteAccessGate managerOnly={managerOnly}>{children}</SiteAccessGate></OperationalShell>; }
 function GlobalRoute({ children }: { children:ReactNode }) { return <OperationalShell scope="GLOBAL">{children}</OperationalShell>; }
+
+type SelectableWebsite={site_key:string;display_name:string;lifecycle_state:string};
+type AssignedWebsite=SelectableWebsite&{access_level:"CONTENT_EDITOR"|"FULL_WEBSITE_MANAGER"|"SUPER_ADMIN"};
+const canonicalDomains:Record<string,string>={"SITE-01":"WhatsYourRashi.in","SITE-02":"ApkiRashi.com","SITE-03":"DailyRashi360.com","SITE-04":"ZodiacDaily.in","SITE-05":"DailyHoroscope360.com","SITE-06":"MyHoroscope360.com","SITE-07":"AstroToday360.com","SITE-08":"ApkiKundli.com","SITE-09":"MatchYourKundli.com","SITE-10":"ApkaNakshatra.com","SITE-11":"JaniyePanchang.com","SITE-12":"RashiRemedies.com","SITE-13":"ApkaPandit.in","SITE-14":"VastuShastra360.in"};
+function publicWebsiteUrl(site:AssignedWebsite):string {
+  const number=Number(site.site_key.replace("SITE-",""));
+  if(import.meta.env.DEV && Number.isInteger(number) && number>=1 && number<=14)return `http://localhost:${3000+number}`;
+  return `https://${canonicalDomains[site.site_key]}`;
+}
+function friendlyAccountName(identifier:string):string {const local=identifier.split("@",1)[0]||"Admin";return local.split(/[._-]+/).filter(Boolean).map(part=>part.charAt(0).toUpperCase()+part.slice(1)).join(" ")||"Admin"}
+function accessLabel(value:AssignedWebsite["access_level"]):string {
+  if(value==="FULL_WEBSITE_MANAGER")return "Full Website Manager";
+  if(value==="SUPER_ADMIN")return "Super Admin";
+  return "Content Editor";
+}
 
 function LandingPage() {
   const transport=useAdminTransport(); const navigate=useNavigate();
-  const [state,setState]=useState<"loading"|"choose"|"error">("loading");
-  const [siteKey,setSiteKey]=useState("");
-  const [sites,setSites]=useState<Array<{site_key:string;display_name:string;lifecycle_state:string}>>([]);
-  const [message,setMessage]=useState<string>(); const [busy,setBusy]=useState(false);
+  const [state,setState]=useState<"loading"|"ready"|"error">("loading");
+  const [sites,setSites]=useState<AssignedWebsite[]>([]);
+  const [accountName,setAccountName]=useState("");
+  const [message,setMessage]=useState<string>(); const [busySite,setBusySite]=useState<string>();
   useEffect(()=>{let active=true; void (async()=>{try{
     const global=await transport.request<{effective_permissions:string[]}>("API15-G-001",{});
     if(!active)return;
     const globalFailure=classifyResponse(global);
     if(!globalFailure&&global.data.effective_permissions.includes("network_dashboard.view")){navigate("/global/network",{replace:true});return;}
     if(globalFailure?.uiState==="UNAUTHENTICATED"){navigate("/login",{replace:true});return;}
-    const selectable=await transport.request<{items:Array<{site_key:string;display_name:string;lifecycle_state:string}>}>("API15-AUTH-012",{});
+    const selectable=await transport.request<{items:SelectableWebsite[]}>("API15-AUTH-012",{});
     if(!active)return;
     const failure=classifyResponse(selectable);
     if(failure?.uiState==="UNAUTHENTICATED"){navigate("/login",{replace:true});return;}
     if(failure){setState("error");return;}
-    setSites(selectable.data.items);
-    const remembered=sessionStorage.getItem("bp.lastValidatedSite");
-    const initial=selectable.data.items.find(item=>item.site_key===remembered)?.site_key ?? (selectable.data.items.length===1?selectable.data.items[0]!.site_key:"");
-    setSiteKey(initial);
-    setState("choose");
+    const resolved=await Promise.all(selectable.data.items.map(async site=>{
+      const response=await transport.request<{effective_permissions:string[]}>("API15-S-001",{path:{site_key:site.site_key}});
+      const contextFailure=classifyResponse(response);
+      if(contextFailure)throw new Error("site context unavailable");
+      const effective=new Set(response.data.effective_permissions);
+      const access_level:AssignedWebsite["access_level"]=effective.has("tags.view")?"SUPER_ADMIN":effective.has("posts.delete")&&effective.has("site_settings.edit")?"FULL_WEBSITE_MANAGER":"CONTENT_EDITOR";
+      return {...site,access_level};
+    }));
+    setSites(resolved);
+    try{setAccountName(friendlyAccountName(sessionStorage.getItem("bp.accountDisplayName")||"Admin"))}catch{setAccountName("Admin")}
+    setState("ready");
   }catch{if(active)setState("error")}})();return()=>{active=false}},[navigate,transport]);
-  async function choose(e:FormEvent){e.preventDefault();setBusy(true);setMessage(undefined);try{const target=siteKey.trim().toUpperCase();if(!sites.some(item=>item.site_key===target)){setMessage("Choose a website returned for this authenticated account.");return;}const response=await transport.request<{site_key:string}>("API15-S-001",{path:{site_key:target}});const failure=classifyResponse(response);if(failure){if(failure.uiState==="UNAUTHENTICATED"){navigate("/login",{replace:true});return;}setMessage("That site context is not available to this account.");return;}navigate(`/site/${encodeURIComponent(response.data.site_key)}/dashboard`,{replace:true})}finally{setBusy(false)}}
+  async function openDashboard(target:string){setBusySite(target);setMessage(undefined);try{const response=await transport.request<{site_key:string}>("API15-S-001",{path:{site_key:target}});const failure=classifyResponse(response);if(failure){if(failure.uiState==="UNAUTHENTICATED"){navigate("/login",{replace:true});return;}setMessage("That website is no longer available to this account.");return;}navigate(`/site/${encodeURIComponent(response.data.site_key)}/dashboard`)}finally{setBusySite(undefined)}}
   if(state==="loading") return <main className="bp-centered-state"><div aria-hidden="true">✦</div><h1>Opening Central Admin</h1><p>Validating the current server-authoritative workspace.</p></main>;
   if(state==="error") return <ErrorState onRetry={()=>window.location.reload()}/>;
-  return <main className="bp-access-layout"><section className="bp-auth-card"><div className="bp-auth-brand"><span className="bp-brand-mark" aria-hidden="true">✦</span><strong>Nakshatra Central Admin</strong></div><h1>Open a site workspace</h1><p>Only ACTIVE sites this authenticated account may attempt to enter are listed. The selection is working context only and never grants authority.</p><Alert tone="info">The server revalidates assignment, permission and target ownership with API15-S-001 before the site workspace opens.</Alert><form className="bp-form-stack" onSubmit={choose}>{message?<Alert tone="danger">{message}</Alert>:null}<SelectField label="Website" value={siteKey} onChange={e=>setSiteKey(e.target.value)} required><option value="">Choose a website</option>{sites.map(site=><option key={site.site_key} value={site.site_key}>{site.display_name} · {site.site_key}</option>)}</SelectField><Button variant="primary" type="submit" loading={busy} disabled={sites.length===0}>Validate and open</Button></form></section></main>;
+  return <main className="bp-access-layout"><section className="bp-auth-card bp-my-websites"><div className="bp-auth-brand"><span className="bp-brand-mark" aria-hidden="true">✦</span><strong>Nakshatra Central Admin</strong></div><h1>My Websites</h1><p className="bp-page-lead">Welcome, {accountName}. You have access to {sites.length} {sites.length===1?"website":"websites"}.</p>{message?<Alert tone="danger">{message}</Alert>:null}{sites.length===0?<EmptyState title="No websites assigned" description="Ask the Super Admin to assign website access."/>:<div className="bp-grid bp-grid--2">{sites.map(site=><article className="bp-card" key={site.site_key}><div className="bp-card-header"><div><span className="bp-table-secondary">{site.site_key}</span><h2>{site.display_name}</h2></div><StatusBadge value={site.lifecycle_state}/></div><p><strong>Access:</strong> {accessLabel(site.access_level)}</p><div className="bp-form-actions"><Button variant="primary" loading={busySite===site.site_key} onClick={()=>void openDashboard(site.site_key)}>Open Dashboard</Button><a className="bp-button bp-button--tertiary" href={publicWebsiteUrl(site)} target="_blank" rel="noreferrer">Open Website</a></div></article>)}</div>}</section></main>;
 }
 
 export function AdminRouter() {
@@ -73,17 +100,17 @@ export function AdminRouter() {
     <Route path="/site/:siteKey/posts/new" element={<SiteRoute><PostEditorPage mode="create"/></SiteRoute>}/>
     <Route path="/site/:siteKey/posts/:postId/revisions" element={<SiteRoute><RevisionHistoryPage/></SiteRoute>}/>
     <Route path="/site/:siteKey/posts/:postId" element={<SiteRoute><PostEditorPage mode="edit"/></SiteRoute>}/>
-    <Route path="/site/:siteKey/categories" element={<SiteRoute><EntityListPage kind="category"/></SiteRoute>}/><Route path="/site/:siteKey/categories/:categoryId" element={<SiteRoute><EntityEditorPage kind="category"/></SiteRoute>}/>
-    <Route path="/site/:siteKey/tags" element={<SiteRoute><EntityListPage kind="tag"/></SiteRoute>}/><Route path="/site/:siteKey/tags/:tagId" element={<SiteRoute><EntityEditorPage kind="tag"/></SiteRoute>}/>
-    <Route path="/site/:siteKey/authors" element={<SiteRoute><EntityListPage kind="author"/></SiteRoute>}/><Route path="/site/:siteKey/authors/:authorId" element={<SiteRoute><EntityEditorPage kind="author"/></SiteRoute>}/>
+    <Route path="/site/:siteKey/categories" element={<SiteRoute managerOnly><EntityListPage kind="category"/></SiteRoute>}/><Route path="/site/:siteKey/categories/:categoryId" element={<SiteRoute managerOnly><EntityEditorPage kind="category"/></SiteRoute>}/>
+    <Route path="/site/:siteKey/tags" element={<SiteRoute managerOnly><EntityListPage kind="tag"/></SiteRoute>}/><Route path="/site/:siteKey/tags/:tagId" element={<SiteRoute managerOnly><EntityEditorPage kind="tag"/></SiteRoute>}/>
+    <Route path="/site/:siteKey/authors" element={<SiteRoute managerOnly><EntityListPage kind="author"/></SiteRoute>}/><Route path="/site/:siteKey/authors/:authorId" element={<SiteRoute managerOnly><EntityEditorPage kind="author"/></SiteRoute>}/>
     <Route path="/site/:siteKey/media" element={<SiteRoute><MediaLibraryPage/></SiteRoute>}/><Route path="/site/:siteKey/media/:mediaId" element={<SiteRoute><MediaDetailPage/></SiteRoute>}/>
-    <Route path="/site/:siteKey/navigation" element={<SiteRoute><NavigationPage/></SiteRoute>}/><Route path="/site/:siteKey/seo" element={<SiteRoute><SeoPage/></SiteRoute>}/>
-    <Route path="/site/:siteKey/redirects" element={<SiteRoute><RedirectsListPage/></SiteRoute>}/><Route path="/site/:siteKey/redirects/:redirectId" element={<SiteRoute><RedirectEditorPage/></SiteRoute>}/>
-    <Route path="/site/:siteKey/search" element={<SiteRoute><SearchIndexingPage/></SiteRoute>}/><Route path="/site/:siteKey/calendar" element={<SiteRoute><EditorialCalendarPage/></SiteRoute>}/><Route path="/site/:siteKey/settings" element={<SiteRoute><SiteSettingsPage/></SiteRoute>}/>
+    <Route path="/site/:siteKey/navigation" element={<SiteRoute managerOnly><NavigationPage/></SiteRoute>}/><Route path="/site/:siteKey/seo" element={<SiteRoute managerOnly><SeoPage/></SiteRoute>}/>
+    <Route path="/site/:siteKey/redirects" element={<SiteRoute managerOnly><RedirectsListPage/></SiteRoute>}/><Route path="/site/:siteKey/redirects/:redirectId" element={<SiteRoute managerOnly><RedirectEditorPage/></SiteRoute>}/>
+    <Route path="/site/:siteKey/search" element={<SiteRoute managerOnly><SearchIndexingPage/></SiteRoute>}/><Route path="/site/:siteKey/calendar" element={<SiteRoute><EditorialCalendarPage/></SiteRoute>}/><Route path="/site/:siteKey/settings" element={<SiteRoute managerOnly><SiteSettingsPage/></SiteRoute>}/>
 
     <Route path="/global/network" element={<GlobalRoute><NetworkDashboardPage/></GlobalRoute>}/><Route path="/global/network/posts" element={<GlobalRoute><GlobalPostsPage/></GlobalRoute>}/>
     <Route path="/global/sites" element={<GlobalRoute><SitesRegistryPage/></GlobalRoute>}/><Route path="/global/sites/new" element={<GlobalRoute><CreateSitePage/></GlobalRoute>}/><Route path="/global/sites/:targetSiteKey/domains" element={<GlobalRoute><DomainManagementPage/></GlobalRoute>}/><Route path="/global/sites/:targetSiteKey" element={<GlobalRoute><SiteDetailPage/></GlobalRoute>}/>
-    <Route path="/global/users" element={<GlobalRoute><AdminUsersListPage/></GlobalRoute>}/><Route path="/global/users/invite" element={<GlobalRoute><InviteAdminPage/></GlobalRoute>}/><Route path="/global/users/:adminUserId" element={<GlobalRoute><AdminUserDetailPage/></GlobalRoute>}/>
+    <Route path="/global/users" element={<GlobalRoute><AdminUsersListPage/></GlobalRoute>}/><Route path="/global/users/new" element={<GlobalRoute><CreateAdminUserPage/></GlobalRoute>}/><Route path="/global/users/invite" element={<Navigate to="/global/users/new" replace/>}/><Route path="/global/users/:adminUserId" element={<GlobalRoute><AdminUserDetailPage/></GlobalRoute>}/>
     <Route path="/global/roles" element={<GlobalRoute><RolesListPage/></GlobalRoute>}/><Route path="/global/roles/new" element={<GlobalRoute><CreateRolePage/></GlobalRoute>}/><Route path="/global/roles/:roleId" element={<GlobalRoute><RoleDetailPage/></GlobalRoute>}/>
     <Route path="/global/permissions" element={<GlobalRoute><PermissionRegistryPage/></GlobalRoute>}/><Route path="/global/audit" element={<GlobalRoute><AuditLogPage/></GlobalRoute>}/><Route path="/global/audit/:auditId" element={<GlobalRoute><AuditDetailPage/></GlobalRoute>}/><Route path="/global/platform-settings" element={<GlobalRoute><PlatformSettingsPage/></GlobalRoute>}/>
     <Route path="*" element={<Navigate to="/" replace/>}/>

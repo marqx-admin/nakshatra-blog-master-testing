@@ -36,6 +36,19 @@ CHAT04_OPERATION_IDS = frozenset(
 # Category/Tag DELETE transports are DOC-08 soft retirement, not permanent purge.
 L1_OPERATION_IDS = frozenset({"API15-S-023"})
 
+# These operations expose launch-time website management rather than content
+# production.  Several reuse coarse read/edit keys needed by the Post Editor,
+# so the protected per-site access level is an additional server boundary.
+MANAGER_OPERATION_IDS = frozenset(
+    {
+        "API15-S-023",
+        "API15-S-031", "API15-S-032", "API15-S-033", "API15-S-034",
+        "API15-S-051", "API15-S-052", "API15-S-053", "API15-S-054",
+        "API15-S-070", "API15-S-071", "API15-S-072", "API15-S-073",
+        "API15-S-096", "API15-S-097",
+    }
+)
+
 
 @dataclass(slots=True)
 class EditorialTransportServices:
@@ -196,6 +209,8 @@ def _endpoint_for(contract: OperationContract, spec: dict[str, Any], state_attr:
 
         required = _required_permissions(contract.permissions)
         request.app.state.services.authorization.require_site(principal, site_key, required)
+        if contract.operation_id in MANAGER_OPERATION_IDS:
+            request.app.state.services.authorization.require_site_manager(principal, site_key)
 
         if contract.operation_id in L1_OPERATION_IDS:
             await _require_l1(request, raw_session, principal, contract.operation_id)

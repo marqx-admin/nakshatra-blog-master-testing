@@ -114,6 +114,32 @@ class PostgresGlobalOperations:
             },
         )
 
+    @staticmethod
+    def _validate_launch_access(site_keys: list[str], assignments: list[dict[str, Any]], *, require_one: bool) -> None:
+        requested_sites = [str(value) for value in site_keys]
+        assignment_sites = [str(item.get("site_key") or "") for item in assignments]
+        if (require_one and not requested_sites) or len(requested_sites) != len(set(requested_sites)):
+            raise ValidationFault("website assignments must be unique")
+        if (
+            len(assignments) != len(requested_sites)
+            or any(str(item.get("scope")) != "SITE" for item in assignments)
+            or set(assignment_sites) != set(requested_sites)
+            or len(assignment_sites) != len(set(assignment_sites))
+        ):
+            raise ValidationFault("each website requires exactly one supported access level")
+
+    async def compensate_created_admin(self, admin_id: str) -> None:
+        """Remove a not-yet-active launch account after security-state failure."""
+
+        with self.engine.begin() as connection:
+            connection.execute(
+                text(
+                    "DELETE FROM admin_accounts "
+                    "WHERE admin_id=:admin_id AND status='INVITED' AND is_super_admin=false"
+                ),
+                {"admin_id": admin_id},
+            )
+
     async def execute(self, operation_id: str, *, principal: Any, context: Any, path_params: dict[str,Any], query: dict[str,Any], body: Any, headers: dict[str,str]) -> tuple[int,Any,dict[str,str]]:
         if operation_id == "API15-G-001":
             if principal.is_super_admin:
@@ -243,8 +269,13 @@ class PostgresGlobalOperations:
             if operation_id == "API15-G-030":
                 page,size,off=_page(query); rows=c.execute(text("SELECT * FROM admin_accounts ORDER BY created_at DESC LIMIT :l OFFSET :o"),{"l":size+1,"o":off}).fetchall(); return 200,{"items":[self._admin(c,r) for r in rows[:size]],"page":{"page":page,"page_size":size,"has_more":len(rows)>size}},{}
             if operation_id == "API15-G-031":
-                b=body or {}; row=c.execute(text("INSERT INTO admin_accounts(email,display_name,status) VALUES (:e,:n,'INVITED') RETURNING *"),{"e":b["email"],"n":b.get("display_name") or b["email"]}).fetchone(); aid=_m(row)["admin_id"]
+                b=body or {}
+                self._validate_launch_access(b.get("site_assignments", []), b.get("role_assignments", []), require_one=True)
+                if c.execute(text("SELECT 1 FROM admin_accounts WHERE email_normalized=lower(btrim(:email))"), {"email": b["email"]}).fetchone():
+                    raise Conflict("an Admin account with this email already exists")
+                row=c.execute(text("INSERT INTO admin_accounts(email,display_name,status,is_super_admin) VALUES (:e,:n,'INVITED',false) RETURNING *"),{"e":b["email"],"n":b["display_name"]}).fetchone(); aid=_m(row)["admin_id"]
                 self._replace_site_assignments(c,aid,b.get("site_assignments",[]),principal.admin_id,principal=principal,headers=headers,operation_id=operation_id); self._replace_role_assignments(c,aid,b.get("role_assignments",[]),principal.admin_id,principal=principal,headers=headers,operation_id=operation_id)
+                self._write_audit(c,event_code="ACCOUNT.CREATED",principal=principal,headers=headers,target_type="ADMIN_ACCOUNT",target_id=aid,details={"operation_id":operation_id,"changed_field_names":["email","display_name","site_assignments","role_assignments"]})
                 row=c.execute(text("SELECT * FROM admin_accounts WHERE admin_id=:id"),{"id":aid}).fetchone(); return 201,{"admin_user":self._admin(c,row)},{}
             if operation_id in {"API15-G-032","API15-G-033","API15-G-034","API15-G-035","API15-G-036","API15-G-037"}:
                 aid=path_params["admin_user_id"]; row=c.execute(text("SELECT * FROM admin_accounts WHERE admin_id=:id"),{"id":aid}).fetchone();
@@ -254,6 +285,12 @@ class PostgresGlobalOperations:
                     for k in ("display_name","email"):
                         if k in b: sets.append(f"{k}=:{k}");params[k]=b[k]
                     if sets: c.execute(text("UPDATE admin_accounts SET "+",".join(sets)+",updated_at=now() WHERE admin_id=:id"),params)
+                    if "site_assignments" in b or "role_assignments" in b:
+                        if "site_assignments" not in b or "role_assignments" not in b:
+                            raise ValidationFault("website assignments and access levels must be saved together")
+                        self._validate_launch_access(b["site_assignments"], b["role_assignments"], require_one=False)
+                        self._replace_site_assignments(c,aid,b["site_assignments"],principal.admin_id,principal=principal,headers=headers,operation_id=operation_id)
+                        self._replace_role_assignments(c,aid,b["role_assignments"],principal.admin_id,principal=principal,headers=headers,operation_id=operation_id)
                 elif operation_id=="API15-G-034": c.execute(text("UPDATE admin_accounts SET status='ACTIVE',disabled_at=NULL,updated_at=now() WHERE admin_id=:id"),{"id":aid})
                 elif operation_id=="API15-G-035":
                     if bool(_m(row).get("is_super_admin")): raise Conflict("designated Super Admin cannot be disabled")
@@ -271,6 +308,8 @@ class PostgresGlobalOperations:
                     b=body or {}; row=c.execute(text("INSERT INTO roles(scope,name,description,created_by_admin_id) VALUES (:s,:n,:d,:a) RETURNING *"),{"s":b["scope"],"n":b["name"],"d":b.get("description"),"a":principal.admin_id}).fetchone(); self._replace_role_permissions(c,_m(row)["role_id"],b["scope"],b["permission_keys"]); self._write_audit(c,event_code="ROLE.CREATED",principal=principal,headers=headers,target_type="ROLE",target_id=_m(row)["role_id"],details={"operation_id":operation_id,"changed_field_names":["scope","name","description","permission_keys"]}); return 201,{"role":self._role(c,row)},{}
                 rid=path_params["role_id"]; row=c.execute(text("SELECT * FROM roles WHERE role_id=:id"),{"id":rid}).fetchone();
                 if not row: raise NotFound("resource not found")
+                if _m(row).get("name_normalized") in {"content editor", "full website manager"} and operation_id in {"API15-G-043", "API15-G-044"}:
+                    raise Conflict("system-managed access levels cannot be edited or retired")
                 if operation_id=="API15-G-043":
                     b=body or {}; sets=[]; params={"id":rid,"actor":principal.admin_id}
                     for k in ("name","description"):
@@ -323,14 +362,21 @@ class PostgresGlobalOperations:
             self._write_audit(c,event_code="AUTHZ.SITE_UNASSIGNED",principal=principal,headers=headers,target_type="ADMIN_ACCOUNT",target_id=admin_id,details={"operation_id":operation_id,"site_key":key})
 
     def _replace_role_assignments(self,c,admin_id:Any,assignments:list[dict[str,Any]],actor_id:str,*,principal:Any,headers:dict[str,str],operation_id:str)->None:
+        target=c.execute(text("SELECT is_super_admin FROM admin_accounts WHERE admin_id=:a"),{"a":admin_id}).fetchone()
+        if not target: raise ValidationFault("unknown Admin account")
+        target_is_super=bool(_m(target)["is_super_admin"])
+        if not target_is_super and any(str(item.get("scope"))=="GLOBAL" for item in assignments):
+            raise ValidationFault("ordinary Admin accounts cannot hold GLOBAL authority")
         before_global={("GLOBAL",str(_m(r)["role_id"]),None) for r in c.execute(text("SELECT role_id FROM account_global_role_assignments WHERE admin_id=:a"),{"a":admin_id}).fetchall()}
         before_site={("SITE",str(_m(r)["role_id"]),str(_m(r)["site_key"])) for r in c.execute(text("SELECT a.role_id,s.site_key FROM account_site_role_assignments a JOIN sites s ON s.site_id=a.site_id WHERE a.admin_id=:a"),{"a":admin_id}).fetchall()}
         before=before_global|before_site
         requested={(str(item["scope"]),str(item["role_id"]),str(item.get("site_key")) if item.get("site_key") is not None else None) for item in assignments}
         c.execute(text("DELETE FROM account_global_role_assignments WHERE admin_id=:a"),{"a":admin_id}); c.execute(text("DELETE FROM account_site_role_assignments WHERE admin_id=:a"),{"a":admin_id})
         for item in assignments:
-            role=c.execute(text("SELECT scope FROM roles WHERE role_id=:r AND status='ACTIVE'"),{"r":item["role_id"]}).fetchone()
+            role=c.execute(text("SELECT scope,name_normalized FROM roles WHERE role_id=:r AND status='ACTIVE'"),{"r":item["role_id"]}).fetchone()
             if not role or _m(role)["scope"]!=item["scope"]: raise ValidationFault("invalid role assignment")
+            if not target_is_super and item["scope"]=="SITE" and _m(role)["name_normalized"] not in {"content editor", "full website manager"}:
+                raise ValidationFault("ordinary Admin website access must use a system-managed access level")
             if item["scope"]=="GLOBAL": c.execute(text("INSERT INTO account_global_role_assignments(admin_id,role_id,assigned_by_admin_id) VALUES (:a,:r,:by)"),{"a":admin_id,"r":item["role_id"],"by":actor_id})
             else:
                 site=c.execute(text("SELECT site_id FROM sites WHERE site_key=:k"),{"k":item["site_key"]}).fetchone()

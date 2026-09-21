@@ -207,7 +207,7 @@ class PostgresIdentityAuthorization:
         with self.engine.connect() as connection:
             row = connection.execute(
                 text(
-                    "SELECT admin_id,email,status,is_super_admin FROM admin_accounts WHERE " + where + " LIMIT 1"
+                    "SELECT admin_id,email,display_name,status,is_super_admin FROM admin_accounts WHERE " + where + " LIMIT 1"
                 ),
                 dict(params),
             ).fetchone()
@@ -232,6 +232,7 @@ class PostgresIdentityAuthorization:
                 site_permissions.setdefault(str(item_data["site_key"]), set())
                 if item_data.get("permission_key"):
                     site_permissions[str(item_data["site_key"])].add(str(item_data["permission_key"]))
+            is_super_admin = bool(data["is_super_admin"])
             global_rows = connection.execute(
                 text(
                     "SELECT rp.permission_key FROM account_global_role_assignments agra "
@@ -241,13 +242,28 @@ class PostgresIdentityAuthorization:
                 ),
                 {"admin_id": admin_id},
             ).fetchall()
+            projected_permissions = {key: frozenset(values) for key, values in site_permissions.items()}
+            access_levels = {
+                key: (
+                    "FULL_WEBSITE_MANAGER"
+                    if {"posts.delete", "site_settings.edit"}.issubset(values)
+                    else "CONTENT_EDITOR"
+                )
+                for key, values in projected_permissions.items()
+            }
             return AdminPrincipal(
                 admin_id=admin_id,
                 email=str(data["email"]),
                 state=AccountState(str(data["status"])),
-                is_super_admin=bool(data["is_super_admin"]),
-                global_permissions=frozenset(str(_m(item)["permission_key"]) for item in global_rows),
-                site_permissions={key: frozenset(values) for key, values in site_permissions.items()},
+                is_super_admin=is_super_admin,
+                global_permissions=(
+                    frozenset(str(_m(item)["permission_key"]) for item in global_rows)
+                    if is_super_admin
+                    else frozenset()
+                ),
+                site_permissions=projected_permissions,
+                display_name=str(data["display_name"]),
+                site_access_levels=access_levels,
             )
 
     async def get_principal(self, admin_id: str) -> AdminPrincipal | None:

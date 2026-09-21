@@ -246,6 +246,7 @@ def build_production_services(settings: Settings, spec: dict[str, Any]) -> Servi
         mail,
         PasswordPolicy(SetWeakPasswordChecker(set())),
         PasswordCodec(),
+        require_mfa_on_login=settings.environment not in {"development", "test"},
     )
 
     editorial_repository = PostgresEditorialRepository(site_transactions)

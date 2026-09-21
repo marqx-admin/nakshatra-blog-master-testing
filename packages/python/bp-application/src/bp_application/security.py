@@ -184,6 +184,7 @@ class AuthService:
     mail: MailPort
     password_policy: PasswordPolicy
     password_codec: PasswordCodec
+    require_mfa_on_login: bool = True
 
     async def _fresh_principal(self, admin_id: str) -> AdminPrincipal:
         principal = await self.identities.get_principal(admin_id)
@@ -211,6 +212,41 @@ class AuthService:
                 },
                 changed_at=now_utc(),
             )
+        )
+
+    def validate_new_admin_password(self, email: str, password: str) -> None:
+        """Validate a launch-created user's password before persistence begins."""
+
+        self.password_policy.validate(password, email=email.strip().lower())
+
+    async def provision_created_admin(self, admin_id: str, email: str, password: str) -> None:
+        """Create hashed login state and activate a newly persisted INVITED identity.
+
+        The caller owns PostgreSQL compensation. This method removes security-state
+        credential material if activation cannot complete, so no orphaned verifier
+        survives a failed cross-store create.
+        """
+
+        principal = await self.identities.get_principal(admin_id)
+        if (
+            principal is None
+            or principal.state is not AccountState.INVITED
+            or principal.email.strip().lower() != email.strip().lower()
+            or principal.is_super_admin
+        ):
+            raise ValidationFault("new Admin account is not eligible")
+        self.validate_new_admin_password(principal.email, password)
+        await self._set_credential_verifier(admin_id, self.password_codec.hash(password))
+        try:
+            await self.identities.activate_invited_admin(admin_id)
+        except Exception:
+            await self.state.delete_credential(admin_id)
+            raise
+        await self.audit.append(
+            "AUTH.PASSWORD.SET",
+            actor_admin_id=admin_id,
+            site_id=None,
+            details={"source": "DIRECT_CREATE"},
         )
 
     async def _issue_session(self, principal: AdminPrincipal, *, mfa_verified: bool) -> tuple[str, str, SessionRecord]:
@@ -330,7 +366,7 @@ class AuthService:
             await self._set_credential_verifier(principal.admin_id, self.password_codec.hash(password))
         principal = await self._fresh_principal(principal.admin_id)
         # Launch mode: MFA is optional. Accounts that explicitly enroll MFA still require it.
-        if principal.mfa_enabled:
+        if self.require_mfa_on_login and principal.mfa_enabled:
             now = now_utc()
             raw = new_secret_token(32)
             await self.state.invalidate_tokens(principal.admin_id, "MFA_CHALLENGE_LOGIN")
@@ -345,6 +381,7 @@ class AuthService:
             )
             return {
                 "state": "MFA_REQUIRED",
+                "display_name": principal.display_name or principal.email,
                 "mfa_challenge_id": raw,
                 "challenge_expires_at": (now + PREAUTH_TTL).isoformat(),
             }
@@ -352,6 +389,7 @@ class AuthService:
         await self.audit.append("AUTH.LOGIN.SUCCESS", actor_admin_id=principal.admin_id, site_id=None, details={})
         return {
             "state": "AUTHENTICATED",
+            "display_name": principal.display_name or principal.email,
             "session_expires_at": record.absolute_expires_at.isoformat(),
             "_session": raw_session,
             "_csrf": raw_csrf,

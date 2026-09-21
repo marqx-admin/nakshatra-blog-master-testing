@@ -38,6 +38,7 @@ EXPECTED_MIGRATIONS = [
     "0016_DB-MIG-016__validation-gate.sql",
     "0017_DB-MIG-017__wave2-contract-reconciliation.sql",
     "0018_DB-MIG-018__site-identity-settings-write.sql",
+    "0019_DB-MIG-019__launch-access-boundaries.sql",
 ]
 SITE_TABLES = {t for t, v in CONTRACT["tables"].items() if v["scope"] == "SITE"}
 GLOBAL_TABLES = set(CONTRACT["tables"]) - SITE_TABLES
@@ -276,6 +277,13 @@ for key, domain in EXPECTED_DOMAINS.items():
 bootstrap = (SEEDS / "bootstrap_owner.sql").read_text()
 check("bootstrap_owner_external_identity", "app.bootstrap_owner_email" in bootstrap and "app.bootstrap_owner_display_name" in bootstrap)
 check("bootstrap_owner_no_default_secret", not re.search(r"(?i)password|secret|api[_-]?key", re.sub(r"--[^\n]*", "", bootstrap)))
+check("bootstrap_owner_initializes_access_levels", "app.ensure_system_access_levels()" in bootstrap)
+
+launch_access = (MIG / EXPECTED_MIGRATIONS[18]).read_text()
+check("ordinary_global_assignment_database_guard", "trg_account_global_role_assignments__super_admin_only" in launch_access)
+check("system_access_levels_database_protected", "trg_roles__protect_system_access_levels" in launch_access)
+check("system_access_levels_idempotent_initializer", "app.ensure_system_access_levels()" in launch_access)
+check("content_editor_no_destructive_media", "'media.replace','media.delete'" not in launch_access.split("INSERT INTO public.role_permissions", 2)[1])
 
 dev = (SEEDS / "development-only.sql").read_text()
 check("development_fixture_guard", "app.environment" in dev and "development" in dev)

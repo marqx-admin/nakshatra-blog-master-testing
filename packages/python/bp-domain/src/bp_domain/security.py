@@ -29,6 +29,8 @@ class AdminPrincipal:
     mfa_enabled: bool = False
     global_permissions: frozenset[str] = field(default_factory=frozenset)
     site_permissions: dict[str, frozenset[str]] = field(default_factory=dict)
+    display_name: str | None = None
+    site_access_levels: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(slots=True)

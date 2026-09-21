@@ -5,6 +5,7 @@ export interface SiteContextData {
   display_name: string;
   lifecycle_state: string;
   effective_permissions: string[];
+  access_level: "SUPER_ADMIN" | "CONTENT_EDITOR" | "FULL_WEBSITE_MANAGER";
 }
 export interface GlobalContextData { effective_permissions: string[] }
 
