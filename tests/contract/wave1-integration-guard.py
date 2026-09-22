@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-EXPECTED_OPENAPI_SHA = "bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00"
+EXPECTED_OPENAPI_SHA = "690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca"
 EXPECTED_SITES = [
     "site-01-whats-your-rashi",
     "site-02-apki-rashi",

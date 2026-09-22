@@ -175,12 +175,13 @@ def provision_local_admin(config: LocalBootstrapConfig, password: str) -> str:
                 "dashboard.view", "posts.view", "posts.create", "posts.edit", "posts.duplicate",
                 "posts.revisions.view", "posts.preview", "posts.revisions.restore", "posts.publish",
                 "posts.schedule", "posts.archive", "posts.restore", "posts.trash", "media.view",
-                "media.upload", "media.edit", "media.replace", "media.delete", "authors.view",
+                "media.upload", "media.edit", "authors.view",
                 "categories.view", "seo.view", "seo.edit", "calendar.view", "search.view",
             }
             full_manager_permissions = content_editor_permissions | {
                 "posts.delete", "categories.create", "categories.edit", "categories.delete",
                 "authors.create", "authors.edit", "authors.retire", "navigation.view",
+                "media.replace", "media.delete",
                 "navigation.manage", "redirects.view", "redirects.create", "redirects.edit",
                 "redirects.delete", "search.reindex", "site_settings.view", "site_settings.edit",
             }

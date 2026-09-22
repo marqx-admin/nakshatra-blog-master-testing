@@ -37,7 +37,7 @@ from bp_domain.errors import NotFound, ValidationFault, VersionConflict
 from bp_domain.security import AccountState, AdminPrincipal
 
 CANON = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml"
-CANON_SHA = "bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00"
+CANON_SHA = "690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca"
 
 
 def test_rc8_canonical_contract_is_self_consistent_and_complete():

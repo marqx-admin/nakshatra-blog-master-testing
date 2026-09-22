@@ -6,7 +6,7 @@
 
 Canonical SHA-256:
 
-`bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00`
+`690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca`
 
 RC8 is the project-owner-authorized minimum Wave-2 reconciliation revision and supersedes the accepted RC7 executable companion only for the recorded reconciliation decisions. The superseded RC7 artifact remains historical provenance under `evidence/historical/superseded/contracts/`.
 
@@ -17,7 +17,7 @@ RC8 is the project-owner-authorized minimum Wave-2 reconciliation revision and s
 - OpenAPI 3.1.0 and API version 1.0-RC8;
 - the canonical RC8 SHA-256;
 - 113 operations / 86 paths / 221 schemas-helpers;
-- 1,311 resolved internal `$ref` occurrences with zero unresolved references;
+- 1,312 resolved internal `$ref` occurrences with zero unresolved references;
 - 12 AUTH / 2 PUBLIC-PREVIEW / 63 SITE / 36 GLOBAL operations;
 - success distribution 200x86 / 201x15 / 202x3 / 204x9;
 - exact operation-prefix to `x-site-context` classification.

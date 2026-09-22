@@ -70,7 +70,7 @@ test('approved RC8 source verifies and deterministic contract/client generation 
   assert.equal(drift.status,0,`${drift.stdout}\n${drift.stderr}`);
 
   const manifest = JSON.parse(fs.readFileSync(path.join(root,'packages/ts/api-contract/generated/contract-manifest.json'),'utf8'));
-  assert.equal(manifest.source_sha256,'bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00');
+  assert.equal(manifest.source_sha256,'690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca');
   assert.equal(manifest.operations,113);
   assert.equal(manifest.paths,86);
   assert.equal(manifest.schemas_helpers,221);

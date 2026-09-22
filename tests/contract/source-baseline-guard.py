@@ -11,7 +11,7 @@ EXPECTED={
 "DOC-16":"v1.0-RC5","DOC-17":"v1.0-RC3","DOC-18":"v1.0-RC3","DOC-19":"v1.0-RC3",
 "DOC-20":"v1.0-RC2","DOC-21":"v1.0-RC2","DOC-22":"v1.0-RC2","DOC-23":"v1.0-RC3",
 "DOC-24":"v1.0-RC4","DOC-25":"v1.0-RC3","DOC-26":"v1.0-RC2","DOC-27":"v1.0-RC2"}
-OPENAPI_SHA="bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00"
+OPENAPI_SHA="690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca"
 RC7_SHA="b338acb443500f06ed2141db66b416f7f0378d26fc96a57b93bfef50d19eff15"
 def main():
  d=json.loads((ROOT/'docs/source-baseline.json').read_text()); errors=[]

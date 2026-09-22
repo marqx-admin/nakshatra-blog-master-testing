@@ -92,7 +92,7 @@
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "openapi_internal_refs": {
-      "expected": 1311,
+      "expected": 1312,
       "source": "DOC-15 RC8 canonical YAML",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },

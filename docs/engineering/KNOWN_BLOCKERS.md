@@ -13,7 +13,7 @@ The seven CHAT00 reconciliation blockers `CB-W2-01` through `CB-W2-07` are resol
 - canonical OpenAPI `contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml`
 - forward-only `DB-MIG-017`
 
-The canonical RC8 OpenAPI SHA-256 is `bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00`. See `MASTER_WAVE2_CONTRACT_RESOLUTION.md` and `MASTER_WAVE2_TRACEABILITY.md` for exact decisions and evidence.
+The active synchronized RC8 OpenAPI SHA-256 is `690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca`. See the contract provenance record and `MASTER_WAVE2_CONTRACT_RESOLUTION.md` for lineage and reconciliation evidence.
 
 ## Execution-environment evidence limitations
 

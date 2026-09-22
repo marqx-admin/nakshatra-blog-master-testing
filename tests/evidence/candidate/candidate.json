@@ -4,8 +4,8 @@
   "candidate_kind": "Exact C00 TWO_SITE_E2E_CANDIDATE_READY repository under CHAT12 source-gate verification; provider-backed runtime acceptance deferred where required tooling/services are unavailable.",
   "canonical_openapi": {
     "path": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml",
-    "sha256": "bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00",
-    "status": "owner-authorized Wave-2 reconciliation RC8"
+    "sha256": "690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca",
+    "status": "owner-authorized synchronized RC8 reconciliation"
   },
   "chat07_two_site_real_backend_ready_signal_received": true,
   "documentation_entrypoint": "DOC-00 v1.0-RC2 / source-synchronized selected baseline",

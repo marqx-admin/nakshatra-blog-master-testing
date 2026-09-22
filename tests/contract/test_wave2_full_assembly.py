@@ -46,7 +46,7 @@ def test_wave2_full_assembly_static_guards():
 
     # Canonical RC8 source is the owner-authorized Wave-2 reconciliation authority.
     canon = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml"
-    assert _sha256(canon) == "bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00"
+    assert _sha256(canon) == "690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca"
 
     # CHAT04 frozen content guards.
     from bp_domain.editorial import ARTICLE_BLOCK_TYPES, PERSISTED_POST_STATES

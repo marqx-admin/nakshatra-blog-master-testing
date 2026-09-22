@@ -6,7 +6,8 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 
 const root = process.cwd();
-const approvedSha = 'bf577a463b4c5d8fdceddc2087f53216426ef88d67d8e1a0d22ccf819751cd00';
+const python = process.env.BP_PYTHON || (fs.existsSync(path.join(root,'.venv/bin/python')) ? path.join(root,'.venv/bin/python') : 'python3');
+const approvedSha = '690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca';
 const supersededRc7Sha = 'b338acb443500f06ed2141db66b416f7f0378d26fc96a57b93bfef50d19eff15';
 const source = path.join(root,'contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml');
 function run(cmd,args) { return spawnSync(cmd,args,{cwd:root,encoding:'utf8'}); }
@@ -20,10 +21,10 @@ test('owner-approved RC8 reconciliation bytes and provenance are bound exactly',
 });
 
 test('RC8 registry/count/reference/scope/success verification passes', () => {
-  const r = run('python3',['tooling/scripts/verify-openapi-contract.py']);
+  const r = run(python,['tooling/scripts/verify-openapi-contract.py']);
   assert.equal(r.status,0,`${r.stdout}\n${r.stderr}`);
   assert.match(r.stdout,/operations=113 paths=86 schemas\/helpers=221/);
-  assert.match(r.stdout,/resolved internal references=1311 unresolved=0/);
+  assert.match(r.stdout,/resolved internal references=1312 unresolved=0/);
   assert.match(r.stdout,/AUTH:12 PUBLIC\/PREVIEW:2 SITE:63 GLOBAL:36/);
   assert.match(r.stdout,/200x86 201x15 202x3 204x9/);
 });
