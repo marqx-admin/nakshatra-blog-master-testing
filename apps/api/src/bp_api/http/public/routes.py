@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from ipaddress import ip_address
 from uuid import UUID
 
 from fastapi import APIRouter, Request
@@ -16,19 +17,46 @@ from ..rate_limits import enforce_transport_quota, safe_subject_hash, source_net
 router = APIRouter()
 
 
-def _effective_public_host(request: Request) -> str:
-    """Allow local SSR processes to preserve the browser tenant host.
+def _private_or_loopback_client(host: str) -> bool:
+    try:
+        address = ip_address(host)
+    except ValueError:
+        return False
+    return address.is_private or address.is_loopback
 
-    Node's fetch implementation does not permit overriding ``Host``.  The
-    explicit header is accepted only from loopback in development/test, so it
-    cannot weaken production tenant resolution.
+
+def _effective_public_host(request: Request) -> str:
+    """Preserve the browser tenant host across the trusted internal SSR hop.
+
+    Public site SSR calls the API over the private Docker service origin
+    (http://api:8080). Node fetch does not preserve a caller-supplied Host
+    header, so site SSR forwards the original browser host in
+    X-BP-Public-Host.
+
+    In development/test the override remains loopback-only. In staging and
+    production it is accepted only for a direct private-network request whose
+    transport Host is the internal API service name. Requests arriving through
+    public ingress keep their actual Host and cannot use this override.
     """
+    direct_host = request.headers.get("host", "").strip()
+    override = request.headers.get("x-bp-public-host", "").strip()
+    if not override:
+        return direct_host
+
     client_host = request.client.host if request.client else ""
-    if os.getenv("BP_ENV") in {"development", "test"} and client_host in {"127.0.0.1", "::1"}:
-        override = request.headers.get("x-bp-public-host", "").strip()
-        if override:
-            return override
-    return request.headers.get("host", "")
+    environment = os.getenv("BP_ENV")
+
+    if environment in {"development", "test"} and client_host in {"127.0.0.1", "::1"}:
+        return override
+
+    if (
+        environment in {"staging", "production"}
+        and direct_host.lower() in {"api", "api:8080"}
+        and _private_or_loopback_client(client_host)
+    ):
+        return override
+
+    return direct_host
 
 
 def _contract(request: Request, operation_id: str):
