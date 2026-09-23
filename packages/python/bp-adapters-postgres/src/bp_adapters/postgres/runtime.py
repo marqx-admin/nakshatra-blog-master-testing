@@ -123,6 +123,38 @@ def _body_text(body: Any) -> str:
     return " ".join(pieces)
 
 
+_TEMP_PUBLIC_SUFFIXES = ("sslip.io", "nip.io")
+
+
+def _request_hostname(value: str) -> str:
+    parsed = urlsplit(f"//{value}", allow_fragments=False)
+    return (parsed.hostname or "").strip().lower().rstrip(".")
+
+
+def _preferred_public_url(request_host: str, domains: list[tuple[str, bool]]) -> str | None:
+    """Resolve presentation URL from current site domain registry state.
+
+    Temporary sslip.io/nip.io Admin hosts select the matching active non-canonical
+    alias for the same environment. All other Admin hosts use the site's current
+    active canonical domain. Nothing here is user-specific authorization state.
+    """
+    normalized = [(str(host).strip(), bool(is_canonical)) for host, is_canonical in domains if str(host).strip()]
+    canonical = next((host for host, is_canonical in normalized if is_canonical), None)
+    request_hostname = _request_hostname(request_host)
+
+    for suffix in _TEMP_PUBLIC_SUFFIXES:
+        if request_hostname == suffix or request_hostname.endswith(f".{suffix}"):
+            if "." in request_hostname:
+                environment_suffix = request_hostname.split(".", 1)[1]
+                for host, is_canonical in normalized:
+                    host_normalized = host.lower().rstrip(".")
+                    if not is_canonical and host_normalized.endswith(f".{environment_suffix}"):
+                        return f"http://{host}"
+            break
+
+    return f"https://{canonical}" if canonical else None
+
+
 def _page_context(page_id: str, *, render_mode: str = "PUBLIC", locale: str | None = None) -> dict[str, Any]:
     semantic = PAGE_KIND[page_id]
     kind = "CONTENT" if semantic in {"HOME", "ARTICLE", "CATEGORY", "TAG", "AUTHOR", "SEARCH"} else semantic
@@ -195,6 +227,17 @@ class PostgresSiteRegistry:
         )
         with self.engine.connect() as connection:
             return [record for row in connection.execute(sql).fetchall() if (record := self._record(row)) is not None]
+
+    async def public_url_for_site(self, site_id: str, request_host: str) -> str | None:
+        sql = text(
+            "SELECT hostname,is_canonical FROM domains "
+            "WHERE site_id=:site_id AND is_active=true "
+            "ORDER BY is_canonical DESC,hostname_normalized"
+        )
+        with self.engine.connect() as connection:
+            rows = connection.execute(sql, {"site_id": site_id}).fetchall()
+        domains = [(str(_m(row)["hostname"]), bool(_m(row)["is_canonical"])) for row in rows]
+        return _preferred_public_url(request_host, domains)
 
 
 class PostgresIdentityAuthorization:
