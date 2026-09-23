@@ -38,7 +38,7 @@ function SiteRoute({ children, managerOnly=false }: { children:ReactNode; manage
 function GlobalRoute({ children }: { children:ReactNode }) { return <OperationalShell scope="GLOBAL">{children}</OperationalShell>; }
 
 type SelectableWebsite={site_key:string;display_name:string;lifecycle_state:string};
-type AssignedWebsite=SelectableWebsite&{access_level:"CONTENT_EDITOR"|"FULL_WEBSITE_MANAGER"|"SUPER_ADMIN";public_url?:string};
+type AssignedWebsite=SelectableWebsite&{access_level:"CONTENT_EDITOR"|"FULL_WEBSITE_MANAGER"|"SUPER_ADMIN";public_url:string|undefined};
 type WebsiteSummary={blogs:number;drafts:number;scheduled:number};
 const canonicalDomains:Record<string,string>={"SITE-01":"WhatsYourRashi.in","SITE-02":"ApkiRashi.com","SITE-03":"DailyRashi360.com","SITE-04":"ZodiacDaily.in","SITE-05":"DailyHoroscope360.com","SITE-06":"MyHoroscope360.com","SITE-07":"AstroToday360.com","SITE-08":"ApkiKundli.com","SITE-09":"MatchYourKundli.com","SITE-10":"ApkaNakshatra.com","SITE-11":"JaniyePanchang.com","SITE-12":"RashiRemedies.com","SITE-13":"ApkaPandit.in","SITE-14":"VastuShastra360.in"};
 function publicWebsiteUrl(site:AssignedWebsite):string {
