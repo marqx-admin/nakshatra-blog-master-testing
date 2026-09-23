@@ -41,9 +41,15 @@ type SelectableWebsite={site_key:string;display_name:string;lifecycle_state:stri
 type AssignedWebsite=SelectableWebsite&{access_level:"CONTENT_EDITOR"|"FULL_WEBSITE_MANAGER"|"SUPER_ADMIN"};
 type WebsiteSummary={blogs:number;drafts:number;scheduled:number};
 const canonicalDomains:Record<string,string>={"SITE-01":"WhatsYourRashi.in","SITE-02":"ApkiRashi.com","SITE-03":"DailyRashi360.com","SITE-04":"ZodiacDaily.in","SITE-05":"DailyHoroscope360.com","SITE-06":"MyHoroscope360.com","SITE-07":"AstroToday360.com","SITE-08":"ApkiKundli.com","SITE-09":"MatchYourKundli.com","SITE-10":"ApkaNakshatra.com","SITE-11":"JaniyePanchang.com","SITE-12":"RashiRemedies.com","SITE-13":"ApkaPandit.in","SITE-14":"VastuShastra360.in"};
+const stagingSiteHosts:Record<string,string>={"SITE-01":"jwohxcdtucakfgaj1hap49wy","SITE-02":"yz6xuvrpj3v7nzamccow2pek","SITE-03":"czgjsvvbyt8gszcwjrwghwu3","SITE-04":"ardndj4dnui7kxrxnkq4feuc","SITE-05":"e1nc2yzeqbbninwhwskpkgtv","SITE-06":"8tnvnjqijnakhqhsvq1owbfx","SITE-07":"d9jkb4t8lp2bvuekqg5mzmyd","SITE-08":"lrbvb5p4kerjfvdwlv9g9cwt","SITE-09":"zl1xrgm9jbsxozmjdx3tfqxc","SITE-10":"csuermrchj4o8m6uovpfegzo","SITE-11":"0wntzypvtmej8vp33ea1sh7c","SITE-12":"aaeeedoafgm4i0yfpezvh6tz","SITE-13":"j3y4koojlif2mcogbusrgoor","SITE-14":"ovlpmow0sqgawkh4xz4hgig0"};
 function publicWebsiteUrl(site:AssignedWebsite):string {
   const number=Number(site.site_key.replace("SITE-",""));
   if(import.meta.env.DEV && Number.isInteger(number) && number>=1 && number<=14)return `http://localhost:${3000+number}`;
+  if(typeof window!=="undefined"&&window.location.hostname.endsWith(".sslip.io")){
+    const stagingHost=stagingSiteHosts[site.site_key];
+    const suffix=window.location.hostname.split(".").slice(1).join(".");
+    if(stagingHost&&suffix)return `http://${stagingHost}.${suffix}`;
+  }
   return `https://${canonicalDomains[site.site_key]}`;
 }
 function friendlyAccountName(identifier:string):string {const local=identifier.split("@",1)[0]||"Admin";return local.split(/[._-]+/).filter(Boolean).map(part=>part.charAt(0).toUpperCase()+part.slice(1)).join(" ")||"Admin"}

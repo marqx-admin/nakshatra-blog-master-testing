@@ -74,4 +74,7 @@ test('My Websites validates each card before opening and the workspace shell sta
   assert.equal(router.includes('Validate and open'),false);
   assert.ok(router.includes('"SITE-01":"WhatsYourRashi.in"'));
   assert.ok(router.includes('"SITE-14":"VastuShastra360.in"'));
+  assert.ok(router.includes('"SITE-01":"jwohxcdtucakfgaj1hap49wy"'));
+  assert.ok(router.includes('"SITE-14":"ovlpmow0sqgawkh4xz4hgig0"'));
+  assert.ok(router.includes('window.location.hostname.endsWith(".sslip.io")'));
 });
