@@ -6,7 +6,7 @@ const sitePermissions=["dashboard.view","posts.view","posts.create","posts.edit"
 const globalPermissions=["network_dashboard.view","sites.view","sites.create","sites.edit","sites.enable","sites.disable","sites.archive","sites.deletion_request","sites.manage_domains","admin_users.view","admin_users.invite","admin_users.edit","admin_users.enable","admin_users.disable","admin_users.manage_site_assignments","roles.view","roles.create","roles.edit","roles.retire","roles.assign","audit.view","audit.export","platform_settings.view","platform_settings.edit","permissions.view"];
 const post={post_id:uuid,status:"DRAFT",version:1,title:"Fixture Post",excerpt:"",body:{content_schema_version:"1.0",blocks:[]},category_ids:[],tag_ids:[],manual_related_post_ids:[],updated_at:new Date().toISOString(),created_at:new Date().toISOString()};
 function dataFor(id:AdminOperationId,input?:AdminRequestInput):unknown{
-  if(id==="API15-S-001")return {site_key:String(input?.path?.site_key??"SITE-01"),display_name:"Fixture Site",lifecycle_state:"ACTIVE",effective_permissions:sitePermissions};
+  if(id==="API15-S-001")return {site_key:String(input?.path?.site_key??"SITE-01"),display_name:"Fixture Site",lifecycle_state:"ACTIVE",timezone_id:"Asia/Kolkata",effective_permissions:sitePermissions};
   if(id==="API15-G-001")return {effective_permissions:globalPermissions};
   if(id==="API15-S-002")return {metrics:[{key:"drafts",label:"Drafts",value:1}],attention_items:[]};
   if(id==="API15-S-010")return {items:[post],page:{page:1,page_size:20,has_more:false}};

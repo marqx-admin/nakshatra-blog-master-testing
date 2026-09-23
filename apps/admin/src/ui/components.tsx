@@ -61,10 +61,10 @@ export function TextField({ label, hint, error, required, id: suppliedId, classN
   const generated = useId(); const id = suppliedId ?? generated;
   return <FieldShell label={label} id={id} {...(hint !== undefined ? { hint } : {})} {...(error !== undefined ? { error } : {})} {...(required !== undefined ? { required } : {})}><input id={id} className={cx("bp-input", className)} aria-invalid={Boolean(error)} aria-describedby={error || hint ? `${id}-message` : undefined} required={required} {...props} /></FieldShell>;
 }
-export function TextArea({ label, hint, error, required, id: suppliedId, className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; hint?: string; error?: string }) {
+export const TextArea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; hint?: string; error?: string }>(function TextArea({ label, hint, error, required, id: suppliedId, className, ...props }, ref) {
   const generated = useId(); const id = suppliedId ?? generated;
-  return <FieldShell label={label} id={id} {...(hint !== undefined ? { hint } : {})} {...(error !== undefined ? { error } : {})} {...(required !== undefined ? { required } : {})}><textarea id={id} className={cx("bp-textarea", className)} aria-invalid={Boolean(error)} aria-describedby={error || hint ? `${id}-message` : undefined} required={required} {...props} /></FieldShell>;
-}
+  return <FieldShell label={label} id={id} {...(hint !== undefined ? { hint } : {})} {...(error !== undefined ? { error } : {})} {...(required !== undefined ? { required } : {})}><textarea ref={ref} id={id} className={cx("bp-textarea", className)} aria-invalid={Boolean(error)} aria-describedby={error || hint ? `${id}-message` : undefined} required={required} {...props} /></FieldShell>;
+});
 export function SelectField({ label, hint, error, required, id: suppliedId, className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement> & { label: string; hint?: string; error?: string }) {
   const generated = useId(); const id = suppliedId ?? generated;
   return <FieldShell label={label} id={id} {...(hint !== undefined ? { hint } : {})} {...(error !== undefined ? { error } : {})} {...(required !== undefined ? { required } : {})}><select id={id} className={cx("bp-select", className)} aria-invalid={Boolean(error)} aria-describedby={error || hint ? `${id}-message` : undefined} required={required} {...props}>{children}</select></FieldShell>;

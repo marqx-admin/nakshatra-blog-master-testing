@@ -7,7 +7,7 @@ import { useAdminContext } from "../site-context/AdminContext";
 import { AdminShell } from "../../ui/AdminShell";
 import { useAdminTransport } from "../query-client/AdminApiProvider";
 import { classifyResponse } from "../query-client/apiState";
-import { Alert, Button, DeniedState, EmptyState, ErrorState, StatusBadge } from "../../ui/components";
+import { Alert, Button, DeniedState, EmptyState, ErrorState, StatCard, StatusBadge } from "../../ui/components";
 import {
   AccessDeniedPage, InvitationSetupPage, LoginPage, LogoutPage, MfaEnrollmentPage, MfaPage, PasswordChangePage,
   PasswordResetCompletePage, PasswordResetRequestPage, SecurityPage, SessionExpiredPage, StepUpPage,
@@ -39,6 +39,7 @@ function GlobalRoute({ children }: { children:ReactNode }) { return <Operational
 
 type SelectableWebsite={site_key:string;display_name:string;lifecycle_state:string};
 type AssignedWebsite=SelectableWebsite&{access_level:"CONTENT_EDITOR"|"FULL_WEBSITE_MANAGER"|"SUPER_ADMIN"};
+type WebsiteSummary={blogs:number;drafts:number;scheduled:number};
 const canonicalDomains:Record<string,string>={"SITE-01":"WhatsYourRashi.in","SITE-02":"ApkiRashi.com","SITE-03":"DailyRashi360.com","SITE-04":"ZodiacDaily.in","SITE-05":"DailyHoroscope360.com","SITE-06":"MyHoroscope360.com","SITE-07":"AstroToday360.com","SITE-08":"ApkiKundli.com","SITE-09":"MatchYourKundli.com","SITE-10":"ApkaNakshatra.com","SITE-11":"JaniyePanchang.com","SITE-12":"RashiRemedies.com","SITE-13":"ApkaPandit.in","SITE-14":"VastuShastra360.in"};
 function publicWebsiteUrl(site:AssignedWebsite):string {
   const number=Number(site.site_key.replace("SITE-",""));
@@ -51,11 +52,22 @@ function accessLabel(value:AssignedWebsite["access_level"]):string {
   if(value==="SUPER_ADMIN")return "Super Admin";
   return "Content Editor";
 }
+function metricValue(metrics:Array<Record<string,unknown>>,keys:string[]):number {
+  const normalized=keys.map(key=>key.toLowerCase());
+  const match=metrics.find(metric=>{
+    const key=String(metric.key??"").toLowerCase();
+    const label=String(metric.label??"").toLowerCase();
+    return normalized.some(candidate=>key===candidate||key.includes(candidate)||label.includes(candidate));
+  });
+  const value=Number(match?.value??0);
+  return Number.isFinite(value)?value:0;
+}
 
 function LandingPage() {
   const transport=useAdminTransport(); const navigate=useNavigate();
   const [state,setState]=useState<"loading"|"ready"|"error">("loading");
   const [sites,setSites]=useState<AssignedWebsite[]>([]);
+  const [summary,setSummary]=useState<WebsiteSummary>({blogs:0,drafts:0,scheduled:0});
   const [accountName,setAccountName]=useState("");
   const [message,setMessage]=useState<string>(); const [busySite,setBusySite]=useState<string>();
   useEffect(()=>{let active=true; void (async()=>{try{
@@ -75,16 +87,20 @@ function LandingPage() {
       if(contextFailure)throw new Error("site context unavailable");
       const effective=new Set(response.data.effective_permissions);
       const access_level:AssignedWebsite["access_level"]=effective.has("tags.view")?"SUPER_ADMIN":effective.has("posts.delete")&&effective.has("site_settings.edit")?"FULL_WEBSITE_MANAGER":"CONTENT_EDITOR";
-      return {...site,access_level};
+      const dashboard=await transport.request<{metrics:Array<Record<string,unknown>>}>("API15-S-002",{path:{site_key:site.site_key}});
+      const dashboardFailure=classifyResponse(dashboard);
+      const metrics=dashboardFailure?[]:dashboard.data.metrics;
+      return {site:{...site,access_level},summary:{blogs:metricValue(metrics,["total_posts","total blogs","posts","blogs"]),drafts:metricValue(metrics,["draft_posts","drafts","draft"]),scheduled:metricValue(metrics,["scheduled_posts","scheduled"])}};
     }));
-    setSites(resolved);
+    setSites(resolved.map(item=>item.site));
+    setSummary(resolved.reduce<WebsiteSummary>((total,item)=>({blogs:total.blogs+item.summary.blogs,drafts:total.drafts+item.summary.drafts,scheduled:total.scheduled+item.summary.scheduled}),{blogs:0,drafts:0,scheduled:0}));
     try{setAccountName(friendlyAccountName(sessionStorage.getItem("bp.accountDisplayName")||"Admin"))}catch{setAccountName("Admin")}
     setState("ready");
   }catch{if(active)setState("error")}})();return()=>{active=false}},[navigate,transport]);
   async function openDashboard(target:string){setBusySite(target);setMessage(undefined);try{const response=await transport.request<{site_key:string}>("API15-S-001",{path:{site_key:target}});const failure=classifyResponse(response);if(failure){if(failure.uiState==="UNAUTHENTICATED"){navigate("/login",{replace:true});return;}setMessage("That website is no longer available to this account.");return;}navigate(`/site/${encodeURIComponent(response.data.site_key)}/dashboard`)}finally{setBusySite(undefined)}}
   if(state==="loading") return <main className="bp-centered-state"><div aria-hidden="true">✦</div><h1>Opening Central Admin</h1><p>Validating the current server-authoritative workspace.</p></main>;
   if(state==="error") return <ErrorState onRetry={()=>window.location.reload()}/>;
-  return <main className="bp-access-layout"><section className="bp-auth-card bp-my-websites"><div className="bp-auth-brand"><span className="bp-brand-mark" aria-hidden="true">✦</span><strong>Nakshatra Central Admin</strong></div><h1>My Websites</h1><p className="bp-page-lead">Welcome, {accountName}. You have access to {sites.length} {sites.length===1?"website":"websites"}.</p>{message?<Alert tone="danger">{message}</Alert>:null}{sites.length===0?<EmptyState title="No websites assigned" description="Ask the Super Admin to assign website access."/>:<div className="bp-grid bp-grid--2">{sites.map(site=><article className="bp-card" key={site.site_key}><div className="bp-card-header"><div><span className="bp-table-secondary">{site.site_key}</span><h2>{site.display_name}</h2></div><StatusBadge value={site.lifecycle_state}/></div><p><strong>Access:</strong> {accessLabel(site.access_level)}</p><div className="bp-form-actions"><Button variant="primary" loading={busySite===site.site_key} onClick={()=>void openDashboard(site.site_key)}>Open Dashboard</Button><a className="bp-button bp-button--tertiary" href={publicWebsiteUrl(site)} target="_blank" rel="noreferrer">Open Website</a></div></article>)}</div>}</section></main>;
+  return <main className="bp-access-layout"><section className="bp-auth-card bp-my-websites"><div className="bp-auth-brand"><span className="bp-brand-mark" aria-hidden="true">✦</span><strong>Nakshatra Central Admin</strong></div><h1>My Websites</h1><p className="bp-page-lead">Welcome, {accountName}. Choose a website to continue.</p><div className="bp-grid bp-grid--stats bp-my-websites-stats"><StatCard label="Assigned Websites" value={sites.length}/><StatCard label="Total Blogs" value={summary.blogs}/><StatCard label="Drafts" value={summary.drafts}/><StatCard label="Scheduled" value={summary.scheduled}/></div>{message?<Alert tone="danger">{message}</Alert>:null}{sites.length===0?<EmptyState title="No websites assigned" description="Ask the Super Admin to assign website access."/>:<div className="bp-grid bp-grid--2">{sites.map(site=><article className="bp-card" key={site.site_key}><div className="bp-card-header"><div><h2>{site.display_name}</h2></div><StatusBadge value={site.lifecycle_state}/></div><p><strong>Access:</strong> {accessLabel(site.access_level)}</p><div className="bp-form-actions"><Button variant="primary" loading={busySite===site.site_key} onClick={()=>void openDashboard(site.site_key)}>Open Dashboard</Button><a className="bp-button bp-button--tertiary" href={publicWebsiteUrl(site)} target="_blank" rel="noreferrer">Open Website</a></div></article>)}</div>}</section></main>;
 }
 
 export function AdminRouter() {

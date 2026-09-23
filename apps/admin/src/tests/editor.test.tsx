@@ -12,12 +12,12 @@ const permissions=["posts.view","posts.edit","posts.preview","posts.publish","po
 test("editor renders the exact block palette and Preview/publish controls",async()=>{
   const router=createMemoryRouter([{
     path:"/site/:siteKey/posts/:postId",
-    element:<DirtyStateProvider><SiteContextValue value={{site_key:"SITE-01",display_name:"Fixture Site",lifecycle_state:"ACTIVE",effective_permissions:permissions,access_level:"FULL_WEBSITE_MANAGER"}}><PostEditorPage mode="edit"/></SiteContextValue></DirtyStateProvider>,
+    element:<DirtyStateProvider><SiteContextValue value={{site_key:"SITE-01",display_name:"Fixture Site",lifecycle_state:"ACTIVE",timezone_id:"Asia/Kolkata",effective_permissions:permissions,access_level:"FULL_WEBSITE_MANAGER"}}><PostEditorPage mode="edit"/></SiteContextValue></DirtyStateProvider>,
   }],{initialEntries:["/site/SITE-01/posts/00000000-0000-4000-8000-000000000001"]});
   render(<AdminApiProvider transport={fixtureTransport()}><RouterProvider router={router}/></AdminApiProvider>);
   expect(await screen.findByRole("heading",{name:"Edit Post"})).toBeInTheDocument();
-  const quickLabels:Partial<Record<(typeof ARTICLE_BLOCK_TYPES)[number],string>>={PARAGRAPH:"Paragraph",HEADING:"Heading",LIST:"List",MEDIA:"Image",QUOTE:"Quote"};
-  for(const type of ARTICLE_BLOCK_TYPES) expect(await screen.findByRole("button",{name:quickLabels[type]??type.replaceAll("_"," ").toLowerCase()})).toBeInTheDocument();
+  const labels:Record<(typeof ARTICLE_BLOCK_TYPES)[number],string>={PARAGRAPH:"Paragraph",HEADING:"H2",LIST:"Bullet list",QUOTE:"Quote",SEPARATOR:"Separator",MEDIA:"Image",TABLE:"Table",EMBED:"Embed",CALLOUT:"Callout",CTA:"Button",DISCLAIMER:"Disclaimer",SOURCES_REFERENCES:"Sources and references"};
+  for(const type of ARTICLE_BLOCK_TYPES) expect(await screen.findByRole("button",{name:labels[type]})).toBeInTheDocument();
   expect(screen.getByRole("button",{name:"Preview"})).toBeInTheDocument();
   expect(screen.getByRole("button",{name:"Publish"})).toBeInTheDocument();
 });

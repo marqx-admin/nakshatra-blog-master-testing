@@ -51,10 +51,11 @@ test("all 12 RC8 authentication and selector operations are represented", () => 
 test("editor covers URL history plus editorial link and related-candidate helpers", () => {
   const editorAssist = fs.readFileSync(path.join(adminRoot, "src/modules/site/EditorAssist.tsx"), "utf8");
   for (const id of ["API15-S-028","API15-S-091","API15-S-092"]) assert.ok(editorAssist.includes(id), id);
-  assert.ok(editorAssist.includes("Media picker"));
+  assert.ok(editorAssist.includes("Choose media"));
+  assert.ok(editorAssist.includes("API15-S-061"));
   assert.ok(editorAssist.includes("BOLD"));
   assert.ok(editorAssist.includes("ITALIC"));
-  assert.ok(editorAssist.includes("Internal target ID"));
+  assert.ok(editorAssist.includes("transformSelection"));
 });
 
 test("the exact 13 DOC-10 execution states are frozen in source", () => {

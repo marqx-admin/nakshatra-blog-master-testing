@@ -4,6 +4,7 @@ export interface SiteContextData {
   site_key: string;
   display_name: string;
   lifecycle_state: string;
+  timezone_id?: string;
   effective_permissions: string[];
   access_level: "SUPER_ADMIN" | "CONTENT_EDITOR" | "FULL_WEBSITE_MANAGER";
 }

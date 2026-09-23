@@ -4,7 +4,7 @@ import { useAdminMutation } from "../../app/query-client/hooks";
 import { useAdminTransport } from "../../app/query-client/AdminApiProvider";
 import { requireSuccess } from "../../app/query-client/apiState";
 import { withMutationHeaders } from "../../app/query-client/adminTransport";
-import { useEffectivePermissions } from "../../app/site-context/AdminContext";
+import { useAdminContext, useEffectivePermissions } from "../../app/site-context/AdminContext";
 import { asRecord, formatDate, stringValue, type UnknownRecord } from "../recordUtils";
 import { Alert, Button, Checkbox, DataTable, FormSection, Modal, SelectField, StatusBadge, TextField } from "../../ui/components";
 
@@ -32,10 +32,10 @@ function selectedTargets(items: UnknownRecord[], selected: Set<string>) {
 
 export function PostsBulkPanel({ siteKey, items, onComplete }: { siteKey: string; items: UnknownRecord[]; onComplete(): void }) {
   const permissions = useEffectivePermissions();
+  const timezone = useAdminContext().site?.timezone_id ?? "Asia/Kolkata";
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [action, setAction] = useState<PostLifecycleAction>("PUBLISH");
   const [scheduleLocal, setScheduleLocal] = useState("");
-  const [timezone, setTimezone] = useState("");
   const mutation = useAdminMutation<UnknownRecord>("API15-S-025");
 
   useEffect(() => setSelected(new Set()), [siteKey, items.map((item) => `${item.post_id}:${item.version}`).join("|")]);
@@ -69,7 +69,7 @@ export function PostsBulkPanel({ siteKey, items, onComplete }: { siteKey: string
   return (
     <FormSection
       title="Bulk lifecycle"
-      description="Selection is browser-local to this site/query only. API15-S-025 repeats action-specific authorization and expected-version checks for every selected Post."
+      description="Choose blogs from this page, then apply one lifecycle action. Every change is checked individually by the server."
     >
       <div className="bp-selection-list" role="group" aria-label="Select posts for bulk action">
         {items.map((row) => {
@@ -92,10 +92,7 @@ export function PostsBulkPanel({ siteKey, items, onComplete }: { siteKey: string
         {available.map((candidate) => <option key={candidate} value={candidate}>{candidate.replaceAll("_", " ")}</option>)}
       </SelectField>
       {action === "SCHEDULE" ? (
-        <div className="bp-grid bp-grid--2">
-          <TextField label="Local date and time" type="datetime-local" value={scheduleLocal} onChange={(event) => setScheduleLocal(event.target.value)} required />
-          <TextField label="Site timezone ID" value={timezone} onChange={(event) => setTimezone(event.target.value)} placeholder="Asia/Kolkata" required />
-        </div>
+        <TextField label={`Date and time (${timezone})`} type="datetime-local" value={scheduleLocal} onChange={(event) => setScheduleLocal(event.target.value)} required />
       ) : null}
       {action === "PERMANENT_DELETE" ? <Alert tone="warning">Permanent deletion also requires the server-defined step-up proof. Reauthenticate from Security/Step-up before submitting; the browser does not treat this selection as authority.</Alert> : null}
       {mutation.isError ? <Alert tone="danger">The bulk mutation was not accepted. No client-side overwrite or retry-without-version is attempted.</Alert> : null}

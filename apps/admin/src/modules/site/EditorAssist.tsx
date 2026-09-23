@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useAdminQuery } from "../../app/query-client/hooks";
+import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useAdminMutation, useAdminQuery } from "../../app/query-client/hooks";
 import { asRecord, asRecords, formatDate, stringValue, type UnknownRecord } from "../recordUtils";
 import { Alert, Button, Checkbox, DataTable, EmptyState, FormSection, Modal, SelectField, StatusBadge, TextArea, TextField } from "../../ui/components";
 
@@ -7,29 +7,54 @@ function listItems(value: unknown): UnknownRecord[] {
   return asRecords(asRecord(value).items);
 }
 
-export function MediaPicker({ siteKey, value, onSelect, label = "Choose media" }: { siteKey: string; value?: string; onSelect(mediaId: string): void; label?: string }) {
+export function MediaPicker({ siteKey, value, onSelect, label = "Choose media", disabled = false }: { siteKey: string; value?: string; onSelect(mediaId: string): void; label?: string; disabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [file, setFile] = useState<File>();
+  const [altText, setAltText] = useState("");
   const query = useAdminQuery<UnknownRecord>("API15-S-060", { path: { site_key: siteKey }, query: { search: search.trim() || undefined, page: 1, page_size: 24, sort: "UPDATED_DESC" } }, open || Boolean(value));
+  const upload = useAdminMutation<UnknownRecord>("API15-S-061", { invalidate: ["API15-S-060"] });
   const items = listItems(query.data);
   const selected = items.find((media) => stringValue(media, "media_id", "") === value);
+  async function uploadAndSelect(event: FormEvent) {
+    event.preventDefault();
+    if (!file) return;
+    const response = await upload.mutateAsync({ path: { site_key: siteKey }, body: { file, alt_text: altText.trim() || undefined } });
+    const media = asRecord(asRecord(response).media);
+    const mediaId = stringValue(media, "media_id", "");
+    if (mediaId && mediaId !== "—") onSelect(mediaId);
+    setFile(undefined);
+    setAltText("");
+    setOpen(false);
+  }
   return <>
-    <div className="bp-inline-actions">
-      <Button type="button" variant="secondary" onClick={() => setOpen(true)}>{label}</Button>
-      {value ? <span className="bp-field-hint">Selected: {selected ? stringValue(selected, "title", stringValue(selected, "filename", "Media")) : "Media selected"}</span> : null}
+    <div className="bp-media-picker-selection">
+      {selected && typeof selected.public_url === "string" ? <img className="bp-media-picker-selected-thumb" src={selected.public_url} alt={stringValue(selected, "alt_text", "")} /> : null}
+      <div><div className="bp-inline-actions">
+        <Button type="button" variant="secondary" onClick={() => setOpen(true)} disabled={disabled}>{value ? "Change media" : label}</Button>
+        {value ? <Button type="button" variant="tertiary" onClick={() => onSelect("")} disabled={disabled}>Remove</Button> : null}
+      </div>{value ? <span className="bp-field-hint">{selected ? stringValue(selected, "title", stringValue(selected, "filename", "Selected media")) : "Selected media"}</span> : null}</div>
     </div>
-    <Modal open={open} title="Media picker" description="Only media returned for the current validated SiteContext can be selected. The picker never reads object storage directly." onClose={() => setOpen(false)}>
+    <Modal open={open} title="Choose media" description="Upload a new file or choose one already used by this website." onClose={() => setOpen(false)}>
       <div className="bp-form-stack">
+        <form className="bp-media-picker-upload" onSubmit={uploadAndSelect}>
+          <strong>Upload new</strong>
+          <TextField label="File" type="file" accept="image/*" onChange={(event) => setFile(event.target.files?.[0])} />
+          <TextField label="Alt text" value={altText} onChange={(event) => setAltText(event.target.value)} hint="Describe the image for readers who cannot see it." />
+          {upload.isError ? <Alert tone="danger">The file could not be uploaded. Check the file and try again.</Alert> : null}
+          <Button type="submit" variant="primary" loading={upload.isPending} disabled={!file}>Upload and select</Button>
+        </form>
+        <div className="bp-media-picker-divider"><span>or choose from the library</span></div>
         <TextField label="Search media" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Title or filename" />
         {query.isLoading ? <p role="status">Loading media…</p> : null}
-        {query.isError ? <Alert tone="danger">Media could not be loaded in this website context.</Alert> : null}
-        {!query.isLoading && !query.isError && items.length === 0 ? <EmptyState title="No selectable media" description="The current authorized media query returned no records." /> : null}
+        {query.isError ? <Alert tone="danger">Media could not be loaded for this website.</Alert> : null}
+        {!query.isLoading && !query.isError && items.length === 0 ? <EmptyState title="No media found" description={search ? "Try a different search, or upload a new file." : "Upload the first file for this website."} /> : null}
         <div className="bp-media-picker-list">
           {items.map((media) => {
             const mediaId = stringValue(media, "media_id", "");
             return <article key={mediaId} className="bp-media-picker-row">
-              <div>{typeof media.public_url === "string" ? <img className="bp-media-picker-thumb" src={media.public_url} alt={stringValue(media, "alt_text", "")} /> : null}<strong>{stringValue(media, "title", stringValue(media, "filename", "Untitled media"))}</strong><span>{stringValue(media, "filename")} · {stringValue(media, "mime_type")} · usage {stringValue(media, "usage_count", "0")}</span></div>
-              <Button type="button" variant="secondary" onClick={() => { onSelect(mediaId); setOpen(false); }}>Select</Button>
+              <div>{typeof media.public_url === "string" ? <img className="bp-media-picker-thumb" src={media.public_url} alt={stringValue(media, "alt_text", "")} /> : null}<strong>{stringValue(media, "title", stringValue(media, "filename", "Untitled media"))}</strong><span>{stringValue(media, "filename")}</span></div>
+              <Button type="button" variant="secondary" onClick={() => { onSelect(mediaId); setOpen(false); }}>{mediaId === value ? "Selected" : "Select"}</Button>
             </article>;
           })}
         </div>
@@ -96,54 +121,51 @@ function normalizeRuns(value: unknown): UnknownRecord[] {
   return runs.length ? runs : [{ text: "", marks: [] }];
 }
 
-function normalizedLink(value: unknown): UnknownRecord | undefined {
-  const link = asRecord(value);
-  return Object.keys(link).length ? link : undefined;
-}
-
 export function RichTextRunsEditor({ label, value, onChange, multiline = false }: { label: string; value: unknown; onChange(value: UnknownRecord): void; multiline?: boolean }) {
   const runs = normalizeRuns(value);
-  function replaceRun(index: number, patch: UnknownRecord) {
-    const next = runs.map((run, current) => current === index ? { ...run, ...patch } : run);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const text = runs.map(run => String(run.text ?? "")).join("");
+  function transformSelection(transform: (run: UnknownRecord) => UnknownRecord) {
+    const start = inputRef.current?.selectionStart ?? 0;
+    const end = inputRef.current?.selectionEnd ?? 0;
+    if (end <= start) return;
+    let offset = 0;
+    const next: UnknownRecord[] = [];
+    for (const run of runs) {
+      const runText = String(run.text ?? "");
+      const runStart = offset;
+      const runEnd = offset + runText.length;
+      const selectedStart = Math.max(start, runStart);
+      const selectedEnd = Math.min(end, runEnd);
+      if (selectedStart >= selectedEnd) next.push(run);
+      else {
+        const before = runText.slice(0, selectedStart - runStart);
+        const selectedText = runText.slice(selectedStart - runStart, selectedEnd - runStart);
+        const after = runText.slice(selectedEnd - runStart);
+        if (before) next.push({ ...run, text: before });
+        next.push(transform({ ...run, text: selectedText }));
+        if (after) next.push({ ...run, text: after });
+      }
+      offset = runEnd;
+    }
     onChange({ runs: next });
+    requestAnimationFrame(() => { inputRef.current?.focus(); inputRef.current?.setSelectionRange(start, end); });
   }
-  function setMark(index: number, mark: "BOLD" | "ITALIC", checked: boolean) {
-    const current = Array.isArray(runs[index]?.marks) ? (runs[index]!.marks as unknown[]).filter((item): item is string => typeof item === "string") : [];
-    const marks = checked ? [...new Set([...current, mark])] : current.filter((item) => item !== mark);
-    replaceRun(index, { marks });
+  function applyMark(mark: "BOLD" | "ITALIC") {
+    transformSelection(run => ({ ...run, marks: [...new Set([...(Array.isArray(run.marks) ? run.marks.filter(item => typeof item === "string") : []), mark])] }));
   }
-  function setLink(index: number, link: UnknownRecord | undefined) {
-    const next = runs.map((run, current) => {
-      if (current !== index) return run;
-      const copy = { ...run };
-      if (link) copy.link = link;
-      else delete copy.link;
-      return copy;
-    });
-    onChange({ runs: next });
+  function applyLink() {
+    const url = window.prompt("Paste the link URL");
+    if (!url) return;
+    transformSelection(run => ({ ...run, link: { kind: "EXTERNAL", url } }));
   }
+  const editor = <TextArea ref={inputRef} label={label} rows={multiline ? 5 : 2} value={text} hint="Select text, then use Bold, Italic, or Link." onChange={event => onChange({ runs: [{ text: event.target.value, marks: [] }] })} />;
   return <div className="bp-rich-text-editor" role="group" aria-label={label}>
-    <div className="bp-rich-text-editor-heading"><strong>{label}</strong><Button type="button" variant="tertiary" onClick={() => onChange({ runs: [...runs, { text: "", marks: [] }] })}>Add text run</Button></div>
-    {runs.map((run, index) => {
-      const marks = Array.isArray(run.marks) ? run.marks as unknown[] : [];
-      const link = normalizedLink(run.link);
-      const kind = link ? stringValue(link, "kind", "EXTERNAL") : "EXTERNAL";
-      // The key must describe the run's identity, not its mutable text.  Including
-      // text here remounted the input after every keystroke and made typing appear
-      // limited to one character.
-      return <div className="bp-rich-text-run" key={index}>
-        {multiline ? <TextArea label={`Text run ${index + 1}`} value={String(run.text ?? "")} onChange={(event) => replaceRun(index, { text: event.target.value })} /> : <TextField label={`Text run ${index + 1}`} value={String(run.text ?? "")} onChange={(event) => replaceRun(index, { text: event.target.value })} />}
-        <div className="bp-inline-actions" role="group" aria-label={`Formatting for text run ${index + 1}`}>
-          <Checkbox label="Bold" checked={marks.includes("BOLD")} onChange={(event) => setMark(index, "BOLD", event.target.checked)} />
-          <Checkbox label="Italic" checked={marks.includes("ITALIC")} onChange={(event) => setMark(index, "ITALIC", event.target.checked)} />
-          <Checkbox label="Link" checked={Boolean(link)} onChange={(event) => setLink(index, event.target.checked ? { kind: "EXTERNAL", url: "" } : undefined)} />
-          {runs.length > 1 ? <Button type="button" variant="tertiary" onClick={() => onChange({ runs: runs.filter((_, current) => current !== index) })}>Remove run</Button> : null}
-        </div>
-        {link ? <div className="bp-rich-text-link-fields">
-          <SelectField label="Link kind" value={kind} onChange={(event) => setLink(index, event.target.value === "INTERNAL" ? { kind: "INTERNAL", target_type: "ARTICLE", target_id: "" } : { kind: "EXTERNAL", url: "" })}><option value="EXTERNAL">External</option><option value="INTERNAL">Internal</option></SelectField>
-          {kind === "INTERNAL" ? <><SelectField label="Internal target type" value={stringValue(link, "target_type", "ARTICLE")} onChange={(event) => setLink(index, { ...link, kind: "INTERNAL", target_type: event.target.value })}><option value="ARTICLE">ARTICLE</option><option value="CATEGORY">CATEGORY</option><option value="TAG">TAG</option><option value="AUTHOR">AUTHOR</option><option value="STATIC">STATIC</option></SelectField><TextField label="Internal target ID" value={stringValue(link, "target_id", "") === "—" ? "" : stringValue(link, "target_id", "")} onChange={(event) => setLink(index, { ...link, kind: "INTERNAL", target_id: event.target.value })} /></> : <TextField label="External URL" type="url" value={stringValue(link, "url", "") === "—" ? "" : stringValue(link, "url", "")} onChange={(event) => setLink(index, { kind: "EXTERNAL", url: event.target.value })} />}
-        </div> : null}
-      </div>;
-    })}
+    <div className="bp-format-toolbar" role="toolbar" aria-label={`${label} formatting`}>
+      <Button type="button" variant="tertiary" onClick={() => applyMark("BOLD")}><strong>Bold</strong></Button>
+      <Button type="button" variant="tertiary" onClick={() => applyMark("ITALIC")}><em>Italic</em></Button>
+      <Button type="button" variant="tertiary" onClick={applyLink}>Link</Button>
+    </div>
+    {editor}
   </div>;
 }
