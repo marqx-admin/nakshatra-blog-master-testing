@@ -47,7 +47,17 @@ async def admin_site_context(request: Request, site_key: str):
         raise NotFound("resource not found")
     payload = await provider.build(principal, context)
     validate_response(request.app.state.canonical_openapi, contract, 200, payload)
-    return JSONResponse(payload, status_code=200, headers={"Cache-Control": "no-store"})
+    resolver = getattr(request.app.state.services.contexts.sites, "public_url_for_site", None)
+    public_url = None
+    if resolver is not None:
+        public_url = await resolver(context.site_id, request.headers.get("host", ""))
+    if not public_url:
+        public_url = f"https://{context.canonical_domain}"
+    return JSONResponse(
+        payload,
+        status_code=200,
+        headers={"Cache-Control": "no-store", "X-BP-Public-Url": public_url},
+    )
 
 
 @router.get("/api/v1/admin/sites/{site_key}/dashboard", operation_id="API15-S-002", status_code=200)
