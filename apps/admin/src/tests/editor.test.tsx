@@ -198,9 +198,25 @@ test("MediaPicker validates type/size, selects site media, and Social Image retu
   function Harness(){const [value,setValue]=useState("");return <MediaPicker siteKey="SITE-01" value={value} fallbackValue="m1" fallbackLabel="Using Featured Image" onSelect={setValue} label="Choose social image"/>;}
   render(<AdminApiProvider transport={transport}><Harness/></AdminApiProvider>);
   expect(await screen.findByText(/Using Featured Image/)).toBeInTheDocument();
-  await userEvent.click(screen.getByRole("button",{name:"Choose social image"}));const dialog=screen.getByRole("dialog");await within(dialog).findByText("Social Override");await userEvent.click(within(dialog).getByRole("button",{name:"Select",exact:true}));
+  await userEvent.click(screen.getByRole("button",{name:"Choose social image"}));const dialog=screen.getByRole("dialog");await within(dialog).findByText("Social Override");await userEvent.click(within(dialog).getByRole("button",{name:"Select"}));
   await waitFor(()=>expect(screen.getByRole("button",{name:"Remove"})).toBeInTheDocument());
   await userEvent.click(screen.getByRole("button",{name:"Remove"}));expect(await screen.findByText(/Using Featured Image/)).toBeInTheDocument();
+});
+
+test("Featured Image loads by site media identity and can be removed without exposing an ID",async()=>{
+  const featured={media_id:"m1",title:"Featured Cover",filename:"cover.jpg",public_url:"https://media.test/cover.jpg",alt_text:"Featured cover"};
+  const post=makePost({featured_media_id:"m1"});
+  const transport=editorTransport(post,(id,input)=>{
+    if(id==="API15-S-062"&&input?.path?.media_id==="m1")return ok({media:featured});
+    return undefined;
+  });
+  renderEditor({post,transport});await screen.findByRole("heading",{name:"Edit Post"});
+  const heading=screen.getByRole("heading",{name:"Featured image"});const section=heading.closest("section");expect(section).toBeTruthy();
+  expect(await within(section as HTMLElement).findByAltText("Featured cover")).toBeInTheDocument();
+  expect(within(section as HTMLElement).getByRole("button",{name:"Change media"})).toBeInTheDocument();
+  await userEvent.click(within(section as HTMLElement).getByRole("button",{name:"Remove"}));
+  expect(within(section as HTMLElement).getByRole("button",{name:"Choose featured image"})).toBeInTheDocument();
+  expect(screen.queryByText("m1")).not.toBeInTheDocument();
 });
 
 test("Related Articles reload by title, exclude the current post, and add another human-title result",async()=>{
@@ -293,6 +309,22 @@ test("dirty content is saved before Schedule and Publish",async()=>{
   fireEvent.change(screen.getByLabelText("Short summary"),{target:{value:"Publish change"}});
   fireEvent.click(screen.getByRole("button",{name:"Publish…"}));dialog=screen.getByRole("dialog");fireEvent.click(within(dialog).getByRole("button",{name:"Publish now"}));
   await waitFor(()=>expect(calls).toEqual(["API15-S-013","API15-S-017","API15-S-013","API15-S-019"]));
+});
+
+test.each([
+  ["Archive","API15-S-020"],
+  ["Move to Trash","API15-S-021"],
+] as const)("%s saves dirty content before the lifecycle mutation",async(actionLabel,lifecycleOp)=>{
+  const post=makePost();const calls:AdminOperationId[]=[];
+  const transport=editorTransport(post,(id,input)=>{
+    if(id==="API15-S-013"){calls.push(id);return ok({post:{...post,...(input?.body as object),version:2,status:"DRAFT"}})}
+    if(id===lifecycleOp){calls.push(id);return ok({post:{...post,version:3,status:lifecycleOp==="API15-S-020"?"ARCHIVED":"TRASH"}})}
+    return undefined;
+  });
+  renderEditor({post,transport});await screen.findByRole("heading",{name:"Edit Post"});
+  fireEvent.change(screen.getByLabelText("Short summary"),{target:{value:"Keep this local edit"}});
+  fireEvent.click(screen.getByRole("button",{name:actionLabel}));const dialog=screen.getByRole("dialog");fireEvent.click(within(dialog).getByRole("button",{name:"Confirm"}));
+  await waitFor(()=>expect(calls).toEqual(["API15-S-013",lifecycleOp]));
 });
 
 test("Preview uses the dynamic current-site origin without publishing",async()=>{
