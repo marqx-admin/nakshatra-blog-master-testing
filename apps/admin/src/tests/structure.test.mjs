@@ -9,6 +9,7 @@ const root=path.resolve(here,'../..');
 const pages=JSON.parse(fs.readFileSync(path.join(root,'src/app/router/admin-pages.json'),'utf8'));
 const router=fs.readFileSync(path.join(root,'src/app/router/AdminRouter.tsx'),'utf8');
 const editor=fs.readFileSync(path.join(root,'src/modules/site/PostEditor.tsx'),'utf8');
+const globalPages=fs.readFileSync(path.join(root,'src/modules/global/GlobalPages.tsx'),'utf8');
 const sources=[];
 function walk(dir){for(const ent of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,ent.name);if(ent.isDirectory())walk(p);else if(/\.(ts|tsx|css|json)$/.test(ent.name))sources.push([p,fs.readFileSync(p,'utf8')]);}}
 walk(path.join(root,'src'));
@@ -78,4 +79,12 @@ test('My Websites validates each card before opening and the workspace shell sta
   assert.equal(router.includes('"SITE-14":"ovlpmow0sqgawkh4xz4hgig0"'),false);
   assert.ok(router.includes('response.headers.get("X-BP-Public-Url")'));
   assert.ok(router.includes('if(site.public_url)return site.public_url'));
+});
+
+test('Super Admin Open Website uses the same server-resolved public URL path',()=>{
+  assert.ok(globalPages.includes('API15-S-001'));
+  assert.ok(globalPages.includes('response.headers.get("X-BP-Public-Url")'));
+  assert.ok(globalPages.includes('publicUrls[siteKey]'));
+  assert.equal(globalPages.includes('function frontendUrl'),false);
+  assert.equal(globalPages.includes('http://localhost:${3000 + siteNumber}'),false);
 });

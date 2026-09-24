@@ -1,22 +1,46 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAdminMutation, useAdminQuery } from "../../app/query-client/hooks";
+import { useAdminTransport } from "../../app/query-client/AdminApiProvider";
 import { useEffectivePermissions } from "../../app/site-context/AdminContext";
 import { useDirtyState } from "../../app/site-context/DirtyStateContext";
 import { PageFrame } from "../PageFrame";
 import { QueryState } from "../QueryStates";
 import { asRecord, asRecords, booleanValue, formatDate, listItems, stringValue, type UnknownRecord } from "../recordUtils";
 import { Alert, Button, Checkbox, ConfirmDialog, DataTable, EmptyState, FilterBar, FormSection, JsonSummary, Pagination, SelectField, StatCard, StatusBadge, SuccessState, TextArea, TextField } from "../../ui/components";
-import { AdminRequestError } from "../../app/query-client/apiState";
+import { AdminRequestError, classifyResponse } from "../../app/query-client/apiState";
 
 function g(path:string){return `/global${path}`}
 function err(error:unknown){if(error instanceof AdminRequestError){if(error.failure.uiState==="CONFLICT")return "The server rejected a stale/conflicting operation.";if(error.failure.uiState==="VALIDATION")return "Server validation rejected one or more fields.";if(error.failure.uiState==="DENIED")return "The action is not authorized under current GLOBAL authority.";}return "The request could not be completed."}
-function frontendUrl(siteKey:string): string {
-	const siteNumber = Number(siteKey.replace("SITE-", ""));
-	return Number.isInteger(siteNumber) && siteNumber >= 1 && siteNumber <= 14 ? `http://localhost:${3000 + siteNumber}` : "#";
-}
+export function NetworkDashboardPage(){
+  const q=useAdminQuery<UnknownRecord>("API15-G-002",{});
+  const transport=useAdminTransport();
+  const [publicUrls,setPublicUrls]=useState<Record<string,string|null>>({});
+  const d=asRecord(q.data);
+  const aggregates=asRecords(d.aggregates);
+  const sites=asRecords(d.site_summaries);
+  const totalBlogs=aggregates.find(metric=>stringValue(metric,"key")==="total_posts");
+  const friendlyStatus=(value:string)=>value==="ACTIVE"?"Live":value==="DISABLED"?"Paused":value==="ARCHIVED"?"Archived":"Action required";
+  const blogCount=(row:UnknownRecord)=>{const metric=asRecords(row.counts).find(item=>stringValue(item,"key")==="total_posts");return stringValue(metric??{},"value","0")};
 
-export function NetworkDashboardPage(){const q=useAdminQuery<UnknownRecord>("API15-G-002",{});const d=asRecord(q.data);const aggregates=asRecords(d.aggregates);const sites=asRecords(d.site_summaries);const totalBlogs=aggregates.find(metric=>stringValue(metric,"key")==="total_posts");const friendlyStatus=(value:string)=>value==="ACTIVE"?"Live":value==="DISABLED"?"Paused":value==="ARCHIVED"?"Archived":"Action required";const blogCount=(row:UnknownRecord)=>{const metric=asRecords(row.counts).find(item=>stringValue(item,"key")==="total_posts");return stringValue(metric??{},"value","0")};return <PageFrame pageId="ADM-G-NET-01"><QueryState isLoading={q.isLoading} error={q.error} hasData={Boolean(q.data)} retry={()=>void q.refetch()}><div className="bp-grid bp-grid--stats"><StatCard label="Total Websites" value={stringValue(d,"site_count","0")}/><StatCard label="Total Blogs" value={stringValue(totalBlogs??{},"value","0")}/></div><section className="bp-card"><div className="bp-card-header"><div><h2>Websites</h2><p>Open a website dashboard or view its public homepage.</p></div></div><DataTable rows={sites} rowKey={r=>stringValue(r,"site_key")} columns={[{key:"site",header:"Site",cell:r=><span className="bp-table-secondary">{stringValue(r,"site_key")}</span>},{key:"name",header:"Website name",cell:r=><span className="bp-table-primary">{stringValue(r,"display_name")}</span>},{key:"blogs",header:"Total blogs",cell:r=>blogCount(r)},{key:"state",header:"Status",cell:r=><StatusBadge value={friendlyStatus(stringValue(r,"lifecycle_state","ACTIVE"))}/>},{key:"open",header:"Dashboard",cell:r=><Link className="bp-button bp-button--tertiary" to={`/site/${encodeURIComponent(stringValue(r,"site_key"))}/dashboard`}>Open Dashboard</Link>},{key:"frontend",header:"Website",cell:r=><a className="bp-button bp-button--tertiary" href={frontendUrl(stringValue(r,"site_key"))} target="_blank" rel="noreferrer">Open Website</a>}]} /></section></QueryState></PageFrame>}
+  useEffect(()=>{
+    let active=true;
+    if(!q.data)return()=>{active=false};
+    void Promise.all(asRecords(asRecord(q.data).site_summaries).map(async row=>{
+      const siteKey=stringValue(row,"site_key");
+      try{
+        const response=await transport.request<{site_key:string}>("API15-S-001",{path:{site_key:siteKey}});
+        const failure=classifyResponse(response);
+        return [siteKey,failure?null:response.headers.get("X-BP-Public-Url")] as const;
+      }catch{
+        return [siteKey,null] as const;
+      }
+    })).then(entries=>{if(active)setPublicUrls(Object.fromEntries(entries))});
+    return()=>{active=false};
+  },[q.data,transport]);
+
+  return <PageFrame pageId="ADM-G-NET-01"><QueryState isLoading={q.isLoading} error={q.error} hasData={Boolean(q.data)} retry={()=>void q.refetch()}><div className="bp-grid bp-grid--stats"><StatCard label="Total Websites" value={stringValue(d,"site_count","0")}/><StatCard label="Total Blogs" value={stringValue(totalBlogs??{},"value","0")}/></div><section className="bp-card"><div className="bp-card-header"><div><h2>Websites</h2><p>Open a website dashboard or view its public homepage.</p></div></div><DataTable rows={sites} rowKey={r=>stringValue(r,"site_key")} columns={[{key:"site",header:"Site",cell:r=><span className="bp-table-secondary">{stringValue(r,"site_key")}</span>},{key:"name",header:"Website name",cell:r=><span className="bp-table-primary">{stringValue(r,"display_name")}</span>},{key:"blogs",header:"Total blogs",cell:r=>blogCount(r)},{key:"state",header:"Status",cell:r=><StatusBadge value={friendlyStatus(stringValue(r,"lifecycle_state","ACTIVE"))}/>},{key:"open",header:"Dashboard",cell:r=><Link className="bp-button bp-button--tertiary" to={`/site/${encodeURIComponent(stringValue(r,"site_key"))}/dashboard`}>Open Dashboard</Link>},{key:"frontend",header:"Website",cell:r=>{const siteKey=stringValue(r,"site_key");const publicUrl=publicUrls[siteKey];return publicUrl===undefined?<Button variant="tertiary" disabled>Resolving website...</Button>:publicUrl===null?<Button variant="tertiary" disabled>Website unavailable</Button>:<a className="bp-button bp-button--tertiary" href={publicUrl} target="_blank" rel="noreferrer">Open Website</a>}}]} /></section></QueryState></PageFrame>
+}
 
 export function GlobalPostsPage(){const [params,setParams]=useSearchParams();const page=Number(params.get("page")??1)||1;const [search,setSearch]=useState(params.get("search")??"");const status=params.get("status")??"";const q=useAdminQuery<UnknownRecord>("API15-G-003",{query:{search:params.get("search")||undefined,status:status||undefined,page,page_size:20}});const items=listItems(q.data);const pageInfo=asRecord(asRecord(q.data).page);const hasMore=Boolean(pageInfo.has_more);function apply(){const next=new URLSearchParams(params);search?next.set("search",search):next.delete("search");next.set("page","1");setParams(next)}return <PageFrame pageId="ADM-G-NET-02" context="Detailed rows are returned only where the server confirms per-site assignment + posts.view"><FilterBar><TextField label="Search" value={search} onChange={e=>setSearch(e.target.value)}/><SelectField label="Status" value={status} onChange={e=>{const n=new URLSearchParams(params);e.target.value?n.set("status",e.target.value):n.delete("status");n.set("page","1");setParams(n)}}><option value="">All</option>{["DRAFT","SCHEDULED","PUBLISHED","ARCHIVED","TRASH"].map(s=><option key={s}>{s}</option>)}</SelectField><Button onClick={apply}>Apply</Button></FilterBar><QueryState isLoading={q.isLoading} error={q.error} hasData={Boolean(q.data)} retry={()=>void q.refetch()}><DataTable rows={items} rowKey={r=>`${stringValue(r,"site_key")}-${stringValue(asRecord(r.post),"post_id")}`} columns={[{key:"site",header:"Site",cell:r=><><span className="bp-table-primary">{stringValue(r,"site_display_name")}</span><span className="bp-table-secondary">{stringValue(r,"site_key")}</span></>},{key:"post",header:"Post",cell:r=>{const p=asRecord(r.post);return <Link className="bp-table-primary" to={`/site/${encodeURIComponent(stringValue(r,"site_key"))}/posts/${encodeURIComponent(stringValue(p,"post_id"))}`}>{stringValue(p,"title","Untitled")}</Link>}},{key:"status",header:"Status",cell:r=><StatusBadge value={stringValue(asRecord(r.post),"status","DRAFT")}/>},{key:"updated",header:"Updated",cell:r=>formatDate(asRecord(r.post).updated_at)}]}/><Pagination page={page} hasNext={hasMore} onPrevious={()=>{const n=new URLSearchParams(params);n.set("page",String(Math.max(1,page-1)));setParams(n)}} onNext={()=>{const n=new URLSearchParams(params);n.set("page",String(page+1));setParams(n)}}/></QueryState></PageFrame>}
 
