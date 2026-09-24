@@ -62,10 +62,10 @@ function tableRows(block:Block):UnknownRecord[][]{
 function listRichItems(block:Block):UnknownRecord[]{const items=Array.isArray(block.items)?block.items.map(item=>asRecord(item)):[];return items.length?items:[rich("")]}
 
 function BlockEditor({
-  siteKey,block,index,count,onChange,onMove,onRemove,onSplit,onMergePrevious,onFocus,onUndo,onRedo,onSlashCommand,
+  siteKey,block,index,count,onChange,onMove,onRemove,onSplit,onMergePrevious,onExitList,onFocus,onUndo,onRedo,onSlashCommand,
 }:{
   siteKey:string;block:Block;index:number;count:number;onChange(block:Block):void;onMove(delta:number):void;onRemove():void;
-  onSplit(offset:number):void;onMergePrevious():boolean;onFocus():void;onUndo():void;onRedo():void;onSlashCommand(command:string):boolean;
+  onSplit(offset:number):void;onMergePrevious():boolean;onExitList(itemIndex:number):void;onFocus():void;onUndo():void;onRedo():void;onSlashCommand(command:string):boolean;
 }){
   const field=(key:string,value:string)=>onChange({...block,[key]:value});
   const type=block.type;
@@ -94,7 +94,7 @@ function BlockEditor({
     <header className={`bp-block-header${naturalWriting?" bp-block-header--writing":""}`}><span className="bp-block-type">{BLOCK_LABELS[type]}</span><div className="bp-block-actions"><Button variant="tertiary" type="button" onClick={()=>onMove(-1)} disabled={index===0} aria-label={`Move ${BLOCK_LABELS[type]} up`}>↑</Button><Button variant="tertiary" type="button" onClick={()=>onMove(1)} disabled={index===count-1} aria-label={`Move ${BLOCK_LABELS[type]} down`}>↓</Button><Button variant="tertiary" type="button" onClick={onRemove} aria-label={`Remove ${BLOCK_LABELS[type]}`}>Remove</Button></div></header>
     {type==="PARAGRAPH"?<RichTextRunsEditor siteKey={siteKey} editorId={`bp-writer-${block.block_id}`} label="Paragraph" variant="paragraph" placeholder="Start writing or type / for a quick block…" value={block.content} onChange={value=>onChange({...block,content:value})} multiline onEnter={onSplit} onBackspaceAtStart={onMergePrevious} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo} onSlashCommand={onSlashCommand}/>:null}
     {type==="HEADING"?<><select className="bp-select bp-heading-level-select" aria-label="Heading level" value={String(headingLevel)} onChange={e=>onChange({...block,level:Number(e.target.value)})}><option value="2">H2</option><option value="3">H3</option><option value="4">H4</option></select><RichTextRunsEditor siteKey={siteKey} editorId={`bp-writer-${block.block_id}`} label={`Heading H${headingLevel}`} variant={headingLevel===3?"heading3":headingLevel===4?"heading4":"heading2"} placeholder="Add heading" value={block.content} onChange={value=>onChange({...block,content:value})} onEnter={onSplit} onBackspaceAtStart={onMergePrevious} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo}/></>:null}
-    {type==="LIST"?<div className="bp-list-editor"><div className="bp-list-style-label">{String(block.style??"UNORDERED")==="ORDERED"?"Numbered list":"Bulleted list"}</div>{String(block.style??"UNORDERED")==="ORDERED"?<ol>{items.map((item,itemIndex)=><li key={itemIndex}><RichTextRunsEditor editorId={`bp-list-${block.block_id}-${itemIndex}`} label={`List item ${itemIndex+1}`} value={item} onChange={value=>updateListItem(itemIndex,value)} placeholder="List item" showToolbar={false} onUndo={onUndo} onRedo={onRedo} onEnter={()=>{if(!richText(item).trim()&&itemIndex===items.length-1){removeListItem(itemIndex)}else addListItemAfter(itemIndex)}} onBackspaceAtStart={()=>{if(!richText(item).trim()){removeListItem(itemIndex);return true}return false}}/></li>)}</ol>:<ul>{items.map((item,itemIndex)=><li key={itemIndex}><RichTextRunsEditor editorId={`bp-list-${block.block_id}-${itemIndex}`} label={`List item ${itemIndex+1}`} value={item} onChange={value=>updateListItem(itemIndex,value)} placeholder="List item" showToolbar={false} onUndo={onUndo} onRedo={onRedo} onEnter={()=>{if(!richText(item).trim()&&itemIndex===items.length-1){removeListItem(itemIndex)}else addListItemAfter(itemIndex)}} onBackspaceAtStart={()=>{if(!richText(item).trim()){removeListItem(itemIndex);return true}return false}}/></li>)}</ul>}</div>:null}
+    {type==="LIST"?<div className="bp-list-editor"><div className="bp-list-style-label">{String(block.style??"UNORDERED")==="ORDERED"?"Numbered list":"Bulleted list"}</div>{String(block.style??"UNORDERED")==="ORDERED"?<ol>{items.map((item,itemIndex)=><li key={itemIndex}><RichTextRunsEditor editorId={`bp-list-${block.block_id}-${itemIndex}`} label={`List item ${itemIndex+1}`} value={item} onChange={value=>updateListItem(itemIndex,value)} placeholder="List item" showToolbar={false} onUndo={onUndo} onRedo={onRedo} onEnter={()=>{if(!richText(item).trim()&&itemIndex===items.length-1){onExitList(itemIndex)}else addListItemAfter(itemIndex)}} onBackspaceAtStart={()=>{if(!richText(item).trim()){removeListItem(itemIndex);return true}return false}}/></li>)}</ol>:<ul>{items.map((item,itemIndex)=><li key={itemIndex}><RichTextRunsEditor editorId={`bp-list-${block.block_id}-${itemIndex}`} label={`List item ${itemIndex+1}`} value={item} onChange={value=>updateListItem(itemIndex,value)} placeholder="List item" showToolbar={false} onUndo={onUndo} onRedo={onRedo} onEnter={()=>{if(!richText(item).trim()&&itemIndex===items.length-1){onExitList(itemIndex)}else addListItemAfter(itemIndex)}} onBackspaceAtStart={()=>{if(!richText(item).trim()){removeListItem(itemIndex);return true}return false}}/></li>)}</ul>}</div>:null}
     {type==="QUOTE"?<div className="bp-quote-editor"><RichTextRunsEditor siteKey={siteKey} label="Quote" variant="quote" placeholder="Write the quote…" value={block.quote} onChange={value=>onChange({...block,quote:value})} multiline onUndo={onUndo} onRedo={onRedo}/><details className="bp-inline-details"><summary>Add citation</summary><div className="bp-form-stack"><TextField label="Attribution" value={String(block.attribution??"")} onChange={e=>field("attribution",e.target.value)}/><TextField label="Source" value={String(block.source??"")} onChange={e=>field("source",e.target.value)}/></div></details></div>:null}
     {type==="SEPARATOR"?<div className="bp-separator-preview" aria-label="Divider"><hr/></div>:null}
     {type==="MEDIA"?<div className="bp-article-image-editor"><MediaPicker siteKey={siteKey} value={String(block.media_id??"")} onSelect={mediaId=>field("media_id",mediaId)} label="Upload or choose image" preview="article"/><details className="bp-inline-details"><summary>Image details</summary><div className="bp-form-stack"><TextField label="Alternative text" value={String(block.alt_override??"")} onChange={e=>field("alt_override",e.target.value)} hint="Describe the image for readers who cannot see it."/><TextArea label="Caption" value={String(block.caption??"")} onChange={e=>field("caption",e.target.value)}/></div></details></div>:null}
@@ -114,7 +114,30 @@ function modelFromPost(post:UnknownRecord):EditorModel{
   return {title:stringValue(post,"title","")==="—"?"":stringValue(post,"title",""),excerpt:stringValue(post,"excerpt","")==="—"?"":stringValue(post,"excerpt",""),blocks:blocks.length?blocks:[newBlock("PARAGRAPH")],slug:stringValue(post,"slug","")==="—"?"":stringValue(post,"slug",""),author:stringValue(post,"author_site_profile_id","")==="—"?"":stringValue(post,"author_site_profile_id",""),categories:arrayValue(post,"category_ids").join(", "),tags:arrayValue(post,"tag_ids").join(", "),featuredMedia:stringValue(post,"featured_media_id","")==="—"?"":stringValue(post,"featured_media_id",""),related:arrayValue(post,"manual_related_post_ids").join(", "),seoTitle:stringValue(post,"seo_title","")==="—"?"":stringValue(post,"seo_title",""),metaDescription:stringValue(post,"meta_description","")==="—"?"":stringValue(post,"meta_description",""),canonical:stringValue(post,"canonical_override","")==="—"?"":stringValue(post,"canonical_override",""),indexPolicy:stringValue(post,"index_policy","INHERIT"),robots:stringValue(post,"link_robots_policy","INHERIT"),ogTitle:stringValue(post,"og_title","")==="—"?"":stringValue(post,"og_title",""),ogDescription:stringValue(post,"og_description","")==="—"?"":stringValue(post,"og_description",""),ogImage:stringValue(post,"og_image_media_id","")==="—"?"":stringValue(post,"og_image_media_id",""),breadcrumbLabel:stringValue(post,"breadcrumb_label","")==="—"?"":stringValue(post,"breadcrumb_label","")};
 }
 function ids(text:string){return text.split(",").map(v=>v.trim()).filter(Boolean)}
-function createBody(model:EditorModel,includeTags=true):UnknownRecord{return stripEmpty({title:model.title||undefined,excerpt:model.excerpt||undefined,body:{content_schema_version:"1",blocks:model.blocks},category_ids:ids(model.categories),...(includeTags?{tag_ids:ids(model.tags)}:{}),featured_media_id:model.featuredMedia||undefined,manual_related_post_ids:ids(model.related),slug:model.slug||undefined,seo_title:model.seoTitle||undefined,meta_description:model.metaDescription||undefined,canonical_override:model.canonical||undefined,index_policy:model.indexPolicy,link_robots_policy:model.robots,og_title:model.ogTitle||undefined,og_description:model.ogDescription||undefined,author_site_profile_id:model.author||undefined,og_image_media_id:model.ogImage||undefined,breadcrumb_label:model.breadcrumbLabel||undefined});}
+function destinationReady(value:unknown):boolean{
+  const destination=asRecord(value);const kind=stringValue(destination,"kind","");
+  if(kind==="EXTERNAL"){const url=stringValue(destination,"url","");try{const parsed=new URL(url);return parsed.protocol==="http:"||parsed.protocol==="https:"}catch{return false}}
+  if(kind!=="INTERNAL")return false;
+  const targetType=stringValue(destination,"target_type","");
+  return targetType==="STATIC"?Boolean(stringValue(destination,"static_page_key","")):Boolean(targetType&&stringValue(destination,"target_id",""));
+}
+export function persistableArticleBlocks(blocks:Block[]):Block[]{
+  const out:Block[]=[];
+  for(const block of blocks){
+    if(block.type==="PARAGRAPH"||block.type==="HEADING"){if(richText(block.content).trim())out.push(block);continue}
+    if(block.type==="LIST"){const items=listRichItems(block).filter(item=>richText(item).trim());if(items.length)out.push({...block,items});continue}
+    if(block.type==="QUOTE"){if(richText(block.quote).trim())out.push(block);continue}
+    if(block.type==="MEDIA"){if(String(block.media_id??"").trim())out.push(block);continue}
+    if(block.type==="CALLOUT"||block.type==="DISCLAIMER"){if(richText(block.body).trim())out.push(block);continue}
+    if(block.type==="CTA"){if(String(block.label??"").trim()&&destinationReady(block.destination))out.push(block);continue}
+    if(block.type==="SOURCES_REFERENCES"){const entries=Array.isArray(block.entries)?block.entries.filter(entry=>String(asRecord(entry).title??"").trim()):[];if(entries.length)out.push({...block,entries});continue}
+    if(block.type==="EMBED"){if(String(block.provider_key??"").trim()&&String(block.source_url_or_id??"").trim())out.push(block);continue}
+    if(block.type==="TABLE"){const rows=Array.isArray(block.rows)?block.rows.filter(Array.isArray):[];if(rows.length&&rows[0]?.length)out.push(block);continue}
+    out.push(block);
+  }
+  return out;
+}
+function createBody(model:EditorModel,includeTags=true):UnknownRecord{return stripEmpty({title:model.title||undefined,excerpt:model.excerpt||undefined,body:{content_schema_version:"1",blocks:persistableArticleBlocks(model.blocks)},category_ids:ids(model.categories),...(includeTags?{tag_ids:ids(model.tags)}:{}),featured_media_id:model.featuredMedia||undefined,manual_related_post_ids:ids(model.related),slug:model.slug||undefined,seo_title:model.seoTitle||undefined,meta_description:model.metaDescription||undefined,canonical_override:model.canonical||undefined,index_policy:model.indexPolicy,link_robots_policy:model.robots,og_title:model.ogTitle||undefined,og_description:model.ogDescription||undefined,author_site_profile_id:model.author||undefined,og_image_media_id:model.ogImage||undefined,breadcrumb_label:model.breadcrumbLabel||undefined});}
 function hasMeaningfulBody(blocks:Block[]):boolean{
   return blocks.some(block=>{
     if(block.type==="PARAGRAPH"||block.type==="HEADING")return Boolean(richText(block.content).trim());
@@ -150,6 +173,10 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
   const [autosaveState,setAutosaveState]=useState<"clean"|"unsaved"|"saving"|"saved"|"error">("clean");
   const [autosaveTime,setAutosaveTime]=useState<string>();
   const hydrated=useRef(false);
+  const modelRef=useRef<EditorModel>(model);
+  const serverVersionRef=useRef(serverVersion);
+  const editRevisionRef=useRef(0);
+  const lastAutosavedRevisionRef=useRef(0);
   const historyRef=useRef<{past:EditorModel[];future:EditorModel[]}>({past:[],future:[]});
   const [historyState,setHistoryState]=useState({canUndo:false,canRedo:false});
   const [activeBlockId,setActiveBlockId]=useState<string>();
@@ -176,14 +203,18 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
   const anyError=createMutation.error??saveMutation.error??previewMutation.error??scheduleMutation.error??publishMutation.error??archiveMutation.error??trashMutation.error??restoreMutation.error??deleteMutation.error??duplicateMutation.error;
   const conflict=anyError instanceof AdminRequestError&&anyError.failure.uiState==="CONFLICT";
 
+  useEffect(()=>{modelRef.current=model},[model]);
+  useEffect(()=>{serverVersionRef.current=serverVersion},[serverVersion]);
+
   useEffect(()=>{
     if(mode==="edit"&&postQuery.data&&!hydrated.current){
-      setModel(modelFromPost(post));setServerVersion(Number(post.version??1));setStatus(stringValue(post,"status","DRAFT"));
-      historyRef.current={past:[],future:[]};setHistoryState({canUndo:false,canRedo:false});dirtyState.setDirty(false);hydrated.current=true;
+      const hydratedModel=modelFromPost(post);const hydratedVersion=Number(post.version??1);
+      setModel(hydratedModel);modelRef.current=hydratedModel;setServerVersion(hydratedVersion);serverVersionRef.current=hydratedVersion;setStatus(stringValue(post,"status","DRAFT"));
+      editRevisionRef.current=0;lastAutosavedRevisionRef.current=0;historyRef.current={past:[],future:[]};setHistoryState({canUndo:false,canRedo:false});dirtyState.setDirty(false);hydrated.current=true;
     }
     if(mode==="create"&&!hydrated.current){
-      setModel({...EMPTY,blocks:[newBlock("PARAGRAPH")]});setStatus("DRAFT");setServerVersion(1);
-      historyRef.current={past:[],future:[]};setHistoryState({canUndo:false,canRedo:false});hydrated.current=true;dirtyState.setDirty(false);
+      const initialModel={...EMPTY,blocks:[newBlock("PARAGRAPH")]};setModel(initialModel);modelRef.current=initialModel;setStatus("DRAFT");setServerVersion(1);serverVersionRef.current=1;
+      editRevisionRef.current=0;lastAutosavedRevisionRef.current=0;historyRef.current={past:[],future:[]};setHistoryState({canUndo:false,canRedo:false});hydrated.current=true;dirtyState.setDirty(false);
     }
   },[mode,postQuery.data]);
 
@@ -202,16 +233,16 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
   },[mode,dirtyState.dirty,model,createMutation.isPending]);
 
   useEffect(()=>{
-    if(mode!=="edit"||!dirtyState.dirty||!permissions.includes("posts.edit")||autosaveMutation.isPending)return;
+    if(mode!=="edit"||!dirtyState.dirty||editRevisionRef.current<=lastAutosavedRevisionRef.current||!permissions.includes("posts.edit")||autosaveMutation.isPending)return;
     const timer=window.setTimeout(()=>void autosaveNow(),4000);
     return()=>window.clearTimeout(timer);
   },[mode,dirtyState.dirty,model,serverVersion,postId,site.site_key,editorInstanceId,permissions,autosaveMutation.isPending]);
 
-  function markEdited(){dirtyState.setDirty(true);dirtyState.setDirtyLabel("post editor changes");setSuccess(undefined);setAutosaveState("unsaved")}
+  function markEdited(){editRevisionRef.current+=1;dirtyState.setDirty(true);dirtyState.setDirtyLabel("post editor changes");setSuccess(undefined);setAutosaveState("unsaved");return editRevisionRef.current}
   function commitModel(change:(current:EditorModel)=>EditorModel){
     markEdited();
     setModel(current=>{
-      const next=change(current);
+      const next=change(current);modelRef.current=next;
       historyRef.current.past=[...historyRef.current.past,current].slice(-100);
       historyRef.current.future=[];
       setHistoryState({canUndo:true,canRedo:false});
@@ -226,7 +257,7 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
       const previous=historyRef.current.past.pop();
       if(!previous)return current;
       historyRef.current.future=[current,...historyRef.current.future].slice(0,100);
-      setHistoryState({canUndo:historyRef.current.past.length>0,canRedo:true});
+      modelRef.current=previous;setHistoryState({canUndo:historyRef.current.past.length>0,canRedo:true});
       return previous;
     });
   }
@@ -237,7 +268,7 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
       const next=historyRef.current.future.shift();
       if(!next)return current;
       historyRef.current.past=[...historyRef.current.past,current].slice(-100);
-      setHistoryState({canUndo:true,canRedo:historyRef.current.future.length>0});
+      modelRef.current=next;setHistoryState({canUndo:true,canRedo:historyRef.current.future.length>0});
       return next;
     });
   }
@@ -271,6 +302,18 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
     commitModel(current=>{const next=[...current.blocks];const liveIndex=next.findIndex(block=>block.block_id===blockId);if(liveIndex<=0)return current;const live=next[liveIndex]!;const before=next[liveIndex-1]!;if(!richText(live.content)){next.splice(liveIndex,1);return {...current,blocks:next}};next.splice(liveIndex-1,2,{...before,content:mergeRich(before.content,live.content)});return {...current,blocks:next}});
     setActiveBlockId(previous.block_id);focusWriter(previous.block_id,true);return true;
   }
+  function exitList(blockId:string,itemIndex:number){
+    const paragraph=newBlock("PARAGRAPH");
+    commitModel(current=>{
+      const index=current.blocks.findIndex(block=>block.block_id===blockId);if(index<0)return current;
+      const block=current.blocks[index];if(!block||block.type!=="LIST")return current;
+      const liveItems=listRichItems(block);if(itemIndex!==liveItems.length-1||richText(liveItems[itemIndex]).trim())return current;
+      const kept=liveItems.filter((_,i)=>i!==itemIndex);const next=[...current.blocks];
+      if(kept.length)next.splice(index,1,{...block,items:kept},paragraph);else next.splice(index,1,paragraph);
+      return {...current,blocks:next};
+    });
+    setActiveBlockId(paragraph.block_id);focusWriter(paragraph.block_id);
+  }
   function slashCommand(blockId:string,command:string):boolean{
     const normalized=command.trim().toLowerCase();
     const spec:Record<string,{type:BlockType;overrides?:UnknownRecord}>={
@@ -287,31 +330,47 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
 
   async function createInitialDraft(announce=true){
     if(mode!=="create"||createMutation.isPending)return;
-    const result=await createMutation.mutateAsync({path:{site_key:site.site_key},body:createBody(model,permissions.includes("tags.view"))});
+    const includeTags=permissions.includes("tags.view");const creationRevision=editRevisionRef.current;const creationSnapshot=modelRef.current;
+    const result=await createMutation.mutateAsync({path:{site_key:site.site_key},body:createBody(creationSnapshot,includeTags)});
     const created=asRecord(asRecord(result).post);const createdId=stringValue(created,"post_id","");
     if(!createdId||createdId==="—")throw new Error("Created draft did not return a post id");
+    let version=Number(created.version??1);serverVersionRef.current=version;setServerVersion(version);let persistedRevision=creationRevision;
+    while(editRevisionRef.current>persistedRevision){
+      const revision=editRevisionRef.current;const snapshot=modelRef.current;
+      const savedResult=await saveMutation.mutateAsync({path:{site_key:site.site_key,post_id:createdId},body:{...createBody(snapshot,includeTags),expected_version:version}});
+      const saved=asRecord(asRecord(savedResult).post);version=Number(saved.version??version);serverVersionRef.current=version;setServerVersion(version);persistedRevision=revision;
+    }
     dirtyState.setDirty(false);setAutosaveState("clean");if(announce)setSuccess("Draft created");
     navigate(`/site/${site.site_key}/posts/${createdId}`,{replace:true});
   }
   async function saveExisting(announce=true):Promise<UnknownRecord>{
-    const result=await saveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{...createBody(model,permissions.includes("tags.view")),expected_version:serverVersion}});
-    const saved=asRecord(asRecord(result).post);
-    const nextVersion=Number(saved.version??serverVersion);const nextStatus=stringValue(saved,"status",status);const nextSlug=postSlug(saved,model.slug);
-    setServerVersion(nextVersion);setStatus(nextStatus);if(nextSlug!==model.slug)setModel(current=>({...current,slug:nextSlug}));
-    dirtyState.setDirty(false);setAutosaveState("clean");if(announce)setSuccess(nextStatus==="PUBLISHED"?"Published article updated":"Draft changes saved");
+    const includeTags=permissions.includes("tags.view");const snapshotRevision=editRevisionRef.current;const snapshot=modelRef.current;const expectedVersion=serverVersionRef.current;
+    const result=await saveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{...createBody(snapshot,includeTags),expected_version:expectedVersion}});
+    const saved=asRecord(asRecord(result).post);const nextVersion=Number(saved.version??expectedVersion);const nextStatus=stringValue(saved,"status",status);const nextSlug=postSlug(saved,snapshot.slug);
+    serverVersionRef.current=nextVersion;setServerVersion(nextVersion);setStatus(nextStatus);
+    if(nextSlug!==modelRef.current.slug)setModel(current=>{const next={...current,slug:nextSlug};modelRef.current=next;return next});
+    if(editRevisionRef.current===snapshotRevision){dirtyState.setDirty(false);setAutosaveState("clean");if(announce)setSuccess(nextStatus==="PUBLISHED"?"Published article updated":"Draft changes saved")}
+    else{dirtyState.setDirty(true);setAutosaveState("unsaved")}
     return saved;
   }
   async function saveDurable(){setSuccess(undefined);if(mode==="create"){await createInitialDraft(true);return}await saveExisting(true)}
   async function saveBeforeLifecycle():Promise<number>{
-    if(mode!=="edit")return serverVersion;
-    if(!dirtyState.dirty)return serverVersion;
-    const saved=await saveExisting(false);return Number(saved.version??serverVersion);
+    if(mode!=="edit")return serverVersionRef.current;
+    let persistedRevision=-1;
+    while(dirtyState.dirty&&editRevisionRef.current!==persistedRevision){
+      persistedRevision=editRevisionRef.current;await saveExisting(false);if(editRevisionRef.current===persistedRevision)break;
+    }
+    return serverVersionRef.current;
   }
   async function autosaveNow(){
-    if(mode!=="edit"||!dirtyState.dirty)return;
+    if(mode!=="edit"||!dirtyState.dirty||editRevisionRef.current<=lastAutosavedRevisionRef.current)return;
+    const requestRevision=editRevisionRef.current;const workingCopy=createBody(modelRef.current,permissions.includes("tags.view"));const baseVersion=serverVersionRef.current;
     setAutosaveState("saving");
-    try{const data=await autosaveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{editor_instance_id:editorInstanceId,base_version:serverVersion,working_copy:createBody(model,permissions.includes("tags.view"))}});setAutosaveState("saved");setAutosaveTime(formatDate(asRecord(data).saved_at))}
-    catch{setAutosaveState("error")}
+    try{
+      const data=await autosaveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{editor_instance_id:editorInstanceId,base_version:baseVersion,working_copy:workingCopy}});
+      lastAutosavedRevisionRef.current=Math.max(lastAutosavedRevisionRef.current,requestRevision);
+      if(editRevisionRef.current===requestRevision){setAutosaveState("saved");setAutosaveTime(formatDate(asRecord(data).saved_at))}else setAutosaveState("unsaved");
+    }catch{if(editRevisionRef.current===requestRevision)setAutosaveState("error");else setAutosaveState("unsaved")}
   }
   async function resolvedPublicOrigin():Promise<string>{
     const response=await transport.request<UnknownRecord>("API15-S-001",{path:{site_key:site.site_key}});
@@ -335,40 +394,41 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
     setOpeningPublic(true);
     try{const origin=await resolvedPublicOrigin();window.open(`${origin}/article/${encodeURIComponent(model.slug)}`,"_blank","noopener,noreferrer")}finally{setOpeningPublic(false)}
   }
-  async function versionCommand(mutation:typeof archiveMutation,label:string){
-    const result=await mutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:serverVersion}});
-    const p=asRecord(asRecord(result).post);setServerVersion(Number(p.version??serverVersion));setStatus(stringValue(p,"status",status));const slug=postSlug(p,model.slug);if(slug!==model.slug)setModel(current=>({...current,slug}));
-    dirtyState.setDirty(false);setAutosaveState("clean");setSuccess(label);
+  async function versionCommand(mutation:typeof archiveMutation,label:string,expectedVersion=serverVersionRef.current){
+    const actionRevision=editRevisionRef.current;
+    const result=await mutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:expectedVersion}});
+    const p=asRecord(asRecord(result).post);const nextVersion=Number(p.version??expectedVersion);serverVersionRef.current=nextVersion;setServerVersion(nextVersion);setStatus(stringValue(p,"status",status));const slug=postSlug(p,modelRef.current.slug);if(slug!==modelRef.current.slug)setModel(current=>{const next={...current,slug};modelRef.current=next;return next});
+    if(editRevisionRef.current===actionRevision){dirtyState.setDirty(false);setAutosaveState("clean")}else{dirtyState.setDirty(true);setAutosaveState("unsaved")}setSuccess(label);
   }
   async function publishCurrent(){
     setPublishReviewOpen(false);
     const version=await saveBeforeLifecycle();
     const result=await publishMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:version}});
-    const p=asRecord(asRecord(result).post);const slug=postSlug(p,model.slug);setServerVersion(Number(p.version??version));setStatus(stringValue(p,"status","PUBLISHED"));if(slug!==model.slug)setModel(current=>({...current,slug}));
+    const p=asRecord(asRecord(result).post);const slug=postSlug(p,modelRef.current.slug);const nextVersion=Number(p.version??version);serverVersionRef.current=nextVersion;setServerVersion(nextVersion);setStatus(stringValue(p,"status","PUBLISHED"));if(slug!==modelRef.current.slug)setModel(current=>{const next={...current,slug};modelRef.current=next;return next});
     dirtyState.setDirty(false);setAutosaveState("clean");setSuccess("Post published");
   }
   async function schedule(){
     const version=await saveBeforeLifecycle();
     const result=await scheduleMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:version,schedule_local_input:scheduleLocal,schedule_timezone_id:scheduleTz}});
-    const p=asRecord(asRecord(result).post);const slug=postSlug(p,model.slug);setServerVersion(Number(p.version??version));setStatus(stringValue(p,"status","SCHEDULED"));if(slug!==model.slug)setModel(current=>({...current,slug}));
+    const p=asRecord(asRecord(result).post);const slug=postSlug(p,modelRef.current.slug);const nextVersion=Number(p.version??version);serverVersionRef.current=nextVersion;setServerVersion(nextVersion);setStatus(stringValue(p,"status","SCHEDULED"));if(slug!==modelRef.current.slug)setModel(current=>{const next={...current,slug};modelRef.current=next;return next});
     dirtyState.setDirty(false);setAutosaveState("clean");setScheduleOpen(false);setSuccess("Post scheduled");
   }
   async function unschedule(){
     const version=await saveBeforeLifecycle();
     const result=await unscheduleMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:version}});
-    const p=asRecord(asRecord(result).post);setServerVersion(Number(p.version??version));setStatus(stringValue(p,"status","DRAFT"));dirtyState.setDirty(false);setAutosaveState("clean");setSuccess("Schedule removed");
+    const p=asRecord(asRecord(result).post);const nextVersion=Number(p.version??version);serverVersionRef.current=nextVersion;setServerVersion(nextVersion);setStatus(stringValue(p,"status","DRAFT"));dirtyState.setDirty(false);setAutosaveState("clean");setSuccess("Schedule removed");
   }
   async function confirmLifecycle(){
     const action=confirmAction;setConfirmAction(undefined);
-    if(action==="archive")await versionCommand(archiveMutation,"Post archived");
-    if(action==="trash")await versionCommand(trashMutation,"Post moved to Trash");
+    if(action==="archive"){const version=await saveBeforeLifecycle();await versionCommand(archiveMutation,"Post archived",version)}
+    if(action==="trash"){const version=await saveBeforeLifecycle();await versionCommand(trashMutation,"Post moved to Trash",version)}
     if(action==="restore")await versionCommand(restoreMutation,"Post restored to non-public working state");
     if(action==="delete"){await deleteMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:serverVersion}});dirtyState.setDirty(false);navigate(`/site/${site.site_key}/posts`)}
   }
   function recover(){
-    const auto=asRecord(autosaveQuery.data);const copy=asRecord(auto.working_copy);const body=asRecord(copy.body);
-    setModel({...model,title:stringValue(copy,"title",model.title),excerpt:stringValue(copy,"excerpt",model.excerpt),blocks:safeBlocks(body.blocks),slug:stringValue(copy,"slug",model.slug),author:stringValue(copy,"author_site_profile_id",model.author),categories:arrayValue(copy,"category_ids").join(", "),tags:arrayValue(copy,"tag_ids").join(", "),featuredMedia:stringValue(copy,"featured_media_id",model.featuredMedia),related:arrayValue(copy,"manual_related_post_ids").join(", "),seoTitle:stringValue(copy,"seo_title",model.seoTitle),metaDescription:stringValue(copy,"meta_description",model.metaDescription),canonical:stringValue(copy,"canonical_override",model.canonical),indexPolicy:stringValue(copy,"index_policy",model.indexPolicy),robots:stringValue(copy,"link_robots_policy",model.robots),ogTitle:stringValue(copy,"og_title",model.ogTitle),ogDescription:stringValue(copy,"og_description",model.ogDescription),ogImage:stringValue(copy,"og_image_media_id",model.ogImage),breadcrumbLabel:stringValue(copy,"breadcrumb_label",model.breadcrumbLabel)});
-    dirtyState.setDirty(true);dirtyState.setDirtyLabel("recovered autosave changes");setAutosaveState("unsaved");setRecoverOpen(false);
+    const auto=asRecord(autosaveQuery.data);const copy=asRecord(auto.working_copy);const body=asRecord(copy.body);const recoveredBlocks=safeBlocks(body.blocks);const current=modelRef.current;
+    const recovered={...current,title:stringValue(copy,"title",current.title),excerpt:stringValue(copy,"excerpt",current.excerpt),blocks:recoveredBlocks.length?recoveredBlocks:[newBlock("PARAGRAPH")],slug:stringValue(copy,"slug",current.slug),author:stringValue(copy,"author_site_profile_id",current.author),categories:arrayValue(copy,"category_ids").join(", "),tags:arrayValue(copy,"tag_ids").join(", "),featuredMedia:stringValue(copy,"featured_media_id",current.featuredMedia),related:arrayValue(copy,"manual_related_post_ids").join(", "),seoTitle:stringValue(copy,"seo_title",current.seoTitle),metaDescription:stringValue(copy,"meta_description",current.metaDescription),canonical:stringValue(copy,"canonical_override",current.canonical),indexPolicy:stringValue(copy,"index_policy",current.indexPolicy),robots:stringValue(copy,"link_robots_policy",current.robots),ogTitle:stringValue(copy,"og_title",current.ogTitle),ogDescription:stringValue(copy,"og_description",current.ogDescription),ogImage:stringValue(copy,"og_image_media_id",current.ogImage),breadcrumbLabel:stringValue(copy,"breadcrumb_label",current.breadcrumbLabel)};
+    editRevisionRef.current+=1;setModel(recovered);modelRef.current=recovered;dirtyState.setDirty(true);dirtyState.setDirtyLabel("recovered autosave changes");setAutosaveState("unsaved");setRecoverOpen(false);
   }
   function toggleCategory(categoryId:string,checked:boolean){
     const selected=new Set(ids(model.categories));if(checked)selected.add(categoryId);else selected.delete(categoryId);update("categories",[...selected].join(", "));
@@ -397,7 +457,10 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
     <AutosaveIndicator state={autosaveState} {...(autosaveTime!==undefined?{time:autosaveTime}:{})} onRetry={()=>void autosaveNow()}/>
     {canPreview?<Button onClick={()=>void preview()} loading={previewMutation.isPending}>Preview</Button>:null}
     {mode==="edit"&&status==="PUBLISHED"&&model.slug?<Button onClick={()=>void openLivePost()} loading={openingPublic}>View Live Post</Button>:null}
-    <Button variant="primary" onClick={()=>void saveDurable()} loading={createMutation.isPending||saveMutation.isPending}>{mode==="create"?"Save draft":status==="PUBLISHED"?"Update":"Save draft"}</Button>
+    <Button onClick={()=>void saveDurable()} loading={createMutation.isPending||saveMutation.isPending}>{mode==="create"?"Save draft":status==="PUBLISHED"?"Update":"Save draft"}</Button>
+    {mode==="edit"&&permissions.includes("posts.schedule")&&status!=="PUBLISHED"&&status!=="TRASH"&&status!=="ARCHIVED"?<Button onClick={()=>setScheduleOpen(true)}>{status==="SCHEDULED"?"Reschedule":"Schedule"}</Button>:null}
+    {mode==="edit"&&permissions.includes("posts.schedule")&&status==="SCHEDULED"?<Button onClick={()=>void unschedule()} loading={unscheduleMutation.isPending}>Unschedule</Button>:null}
+    {mode==="edit"&&permissions.includes("posts.publish")&&status!=="PUBLISHED"&&status!=="TRASH"&&status!=="ARCHIVED"?<Button variant="primary" onClick={()=>setPublishReviewOpen(true)}>Publish…</Button>:null}
   </>}>
     {conflict?<div className="bp-conflict-sticky"><ConflictPanel onReload={()=>window.location.reload()}>The server rejected a stale write. Your local editor values remain visible. Reload the authoritative version before deciding how to continue; automatic overwrite is prohibited.</ConflictPanel></div>:null}
     {success?<SuccessState>{success}. The visible status/version is refreshed from the server response.</SuccessState>:null}
@@ -408,6 +471,7 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
         <TextField className="bp-editor-title" label="Article title" placeholder="Add title" value={model.title} onChange={e=>update("title",e.target.value)}/>
         <div className="bp-editor-toolbar" role="toolbar" aria-label="Writing toolbar">
           <span className="bp-editor-toolbar-label">Insert</span>
+          <Button type="button" variant="tertiary" onClick={()=>insertBlock("PARAGRAPH")}>Paragraph</Button>
           <Button type="button" variant="tertiary" onClick={()=>insertBlock("HEADING",{level:2})}>H2</Button>
           <Button type="button" variant="tertiary" onClick={()=>insertBlock("HEADING",{level:3})}>H3</Button>
           <Button type="button" variant="tertiary" onClick={()=>insertBlock("LIST",{style:"UNORDERED",items:[rich("")]})}>Bulleted list</Button>
@@ -421,7 +485,7 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
           <Button type="button" variant="tertiary" onClick={redoEditor} disabled={!historyState.canRedo} title="Redo (⌘/Ctrl+Shift+Z)">Redo</Button>
         </div>
         <p className="bp-writer-hint">Write naturally. Press Enter for a new paragraph, or type /h2, /h3, /list, /number, /quote, /image, /table or /divider and press Enter.</p>
-        <div className="bp-block-list">{model.blocks.map((block,index)=><BlockEditor key={block.block_id} siteKey={site.site_key} block={block} index={index} count={model.blocks.length} onChange={next=>replaceBlock(block.block_id,next)} onMove={delta=>moveBlock(block.block_id,delta)} onRemove={()=>removeBlock(block.block_id)} onSplit={offset=>splitBlock(block.block_id,offset)} onMergePrevious={()=>mergePrevious(block.block_id)} onFocus={()=>setActiveBlockId(block.block_id)} onUndo={undoEditor} onRedo={redoEditor} onSlashCommand={command=>slashCommand(block.block_id,command)}/>)}</div>
+        <div className="bp-block-list">{model.blocks.map((block,index)=><BlockEditor key={block.block_id} siteKey={site.site_key} block={block} index={index} count={model.blocks.length} onChange={next=>replaceBlock(block.block_id,next)} onMove={delta=>moveBlock(block.block_id,delta)} onRemove={()=>removeBlock(block.block_id)} onSplit={offset=>splitBlock(block.block_id,offset)} onMergePrevious={()=>mergePrevious(block.block_id)} onExitList={itemIndex=>exitList(block.block_id,itemIndex)} onFocus={()=>setActiveBlockId(block.block_id)} onUndo={undoEditor} onRedo={redoEditor} onSlashCommand={command=>slashCommand(block.block_id,command)}/>)}</div>
         <details className="bp-block-inserter"><summary>+ More content types</summary><div className="bp-block-palette">{ARTICLE_BLOCK_TYPES.filter(type=>!["PARAGRAPH","HEADING","LIST","MEDIA","QUOTE","TABLE","SEPARATOR"].includes(type)).map(type=><button type="button" key={type} onClick={()=>insertBlock(type)}>{BLOCK_LABELS[type]}</button>)}</div></details>
       </section>
 
@@ -442,15 +506,12 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
           <TextArea label="Meta description" value={model.metaDescription} onChange={e=>update("metaDescription",e.target.value)} disabled={!permissions.includes("seo.edit")} placeholder={model.excerpt||"Short search description"}/>
           <TextField label="URL slug" value={model.slug} onChange={e=>update("slug",e.target.value)} placeholder="Generated from title when published"/>
           <div className="bp-search-preview"><span>Search preview</span><strong>{model.seoTitle||model.title||"Your article title"}</strong><p>{model.metaDescription||model.excerpt||"Add a short description for search results."}</p></div>
-          {permissions.includes("media.view")?<MediaPicker siteKey={site.site_key} value={model.ogImage} onSelect={mediaId=>update("ogImage",mediaId)} label="Choose social image"/>:null}
+          {permissions.includes("media.view")?<MediaPicker siteKey={site.site_key} value={model.ogImage} fallbackValue={model.featuredMedia} fallbackLabel="Using Featured Image" onSelect={mediaId=>update("ogImage",mediaId)} label="Choose social image"/>:null}
         </FormSection>
 
         {mode==="edit"&&postId?<details className="bp-advanced-settings"><summary>Advanced URL history</summary><UrlHistoryPanel siteKey={site.site_key} postId={postId}/></details>:null}
 
         {mode==="edit"?<section className="bp-editor-lifecycle"><h3>Publish</h3><div className="bp-editor-lifecycle-actions">
-          {permissions.includes("posts.publish")&&status!=="PUBLISHED"&&status!=="TRASH"&&status!=="ARCHIVED"?<Button variant="primary" onClick={()=>setPublishReviewOpen(true)}>Publish…</Button>:null}
-          {permissions.includes("posts.schedule")&&status!=="PUBLISHED"&&status!=="TRASH"&&status!=="ARCHIVED"?<Button onClick={()=>setScheduleOpen(true)}>{status==="SCHEDULED"?"Reschedule":"Schedule"}</Button>:null}
-          {permissions.includes("posts.schedule")&&status==="SCHEDULED"?<Button onClick={()=>void unschedule()} loading={unscheduleMutation.isPending}>Unschedule</Button>:null}
           {permissions.includes("posts.archive")&&status!=="ARCHIVED"&&status!=="TRASH"?<Button onClick={()=>setConfirmAction("archive")}>Archive</Button>:null}
           {permissions.includes("posts.trash")&&status!=="TRASH"?<Button variant="destructive" onClick={()=>setConfirmAction("trash")}>Move to Trash</Button>:null}
           {permissions.includes("posts.restore")&&status==="TRASH"?<Button onClick={()=>setConfirmAction("restore")}>Restore</Button>:null}
