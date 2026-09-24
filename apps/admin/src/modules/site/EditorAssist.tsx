@@ -7,42 +7,73 @@ function listItems(value: unknown): UnknownRecord[] {
   return asRecords(asRecord(value).items);
 }
 
-export function MediaPicker({ siteKey, value, onSelect, label = "Choose media", disabled = false }: { siteKey: string; value?: string; onSelect(mediaId: string): void; label?: string; disabled?: boolean }) {
+const MEDIA_MAX_BYTES = 20 * 1024 * 1024;
+const MEDIA_TYPES: Record<string, string[]> = {
+  "image/jpeg": ["jpg", "jpeg"],
+  "image/png": ["png"],
+  "image/webp": ["webp"],
+  "image/avif": ["avif"],
+};
+export function mediaFileValidationError(file: Pick<File, "name" | "size" | "type">): string | undefined {
+  const extensions=MEDIA_TYPES[file.type];
+  if(!extensions)return "Use a JPG, PNG, WebP or AVIF image.";
+  const extension=file.name.includes(".")?file.name.split(".").pop()?.toLowerCase():"";
+  if(!extension||!extensions.includes(extension))return "The file extension does not match the selected image type.";
+  if(file.size>MEDIA_MAX_BYTES)return "Images must be 20 MB or smaller.";
+  return undefined;
+}
+
+function normalizedInternalCandidate(candidate: UnknownRecord): UnknownRecord | undefined {
+  const postId=stringValue(candidate,"post_id",stringValue(candidate,"resource_id",""));
+  if(postId&&postId!=="—")return {kind:"ARTICLE",resource_id:postId,label:stringValue(candidate,"title",stringValue(candidate,"label","Untitled article"))};
+  const staticPageKey=stringValue(candidate,"static_page_key","");
+  if(staticPageKey&&staticPageKey!=="—")return {kind:"STATIC",static_page_key:staticPageKey,label:stringValue(candidate,"label","Website page")};
+  return undefined;
+}
+
+export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSelect, label = "Choose media", disabled = false, preview = "compact" }: { siteKey: string; value?: string; fallbackValue?: string; fallbackLabel?: string; onSelect(mediaId: string): void; label?: string; disabled?: boolean; preview?: "compact" | "article" }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [file, setFile] = useState<File>();
   const [altText, setAltText] = useState("");
-  const query = useAdminQuery<UnknownRecord>("API15-S-060", { path: { site_key: siteKey }, query: { search: search.trim() || undefined, page: 1, page_size: 24, sort: "UPDATED_DESC" } }, open || Boolean(value));
+  const [validationError,setValidationError]=useState<string>();
+  const effectiveValue=value||fallbackValue||"";
+  const query = useAdminQuery<UnknownRecord>("API15-S-060", { path: { site_key: siteKey }, query: { search: search.trim() || undefined, page: 1, page_size: 24, sort: "UPDATED_DESC" } }, open);
+  const selectedQuery = useAdminQuery<UnknownRecord>("API15-S-062", { path: { site_key: siteKey, media_id: effectiveValue } }, Boolean(effectiveValue));
   const upload = useAdminMutation<UnknownRecord>("API15-S-061", { invalidate: ["API15-S-060"] });
   const items = listItems(query.data);
-  const selected = items.find((media) => stringValue(media, "media_id", "") === value);
+  const selectedDetail = asRecord(asRecord(selectedQuery.data).media);
+  const selected = Object.keys(selectedDetail).length ? selectedDetail : items.find((media) => stringValue(media, "media_id", "") === effectiveValue);
   async function uploadAndSelect(event: FormEvent) {
     event.preventDefault();
     if (!file) return;
+    const problem=mediaFileValidationError(file);setValidationError(problem);if(problem)return;
     const response = await upload.mutateAsync({ path: { site_key: siteKey }, body: { file, alt_text: altText.trim() || undefined } });
     const media = asRecord(asRecord(response).media);
     const mediaId = stringValue(media, "media_id", "");
     if (mediaId && mediaId !== "—") onSelect(mediaId);
     setFile(undefined);
     setAltText("");
+    setValidationError(undefined);
     setOpen(false);
   }
   return <>
     <div className="bp-media-picker-selection">
-      {selected && typeof selected.public_url === "string" ? <img className="bp-media-picker-selected-thumb" src={selected.public_url} alt={stringValue(selected, "alt_text", "")} /> : null}
+      {selected && typeof selected.public_url === "string" ? <img className={preview === "article" ? "bp-media-picker-selected-thumb bp-media-picker-selected-thumb--article" : "bp-media-picker-selected-thumb"} src={selected.public_url} alt={stringValue(selected, "alt_text", "")} /> : null}
       <div><div className="bp-inline-actions">
-        <Button type="button" variant="secondary" onClick={() => setOpen(true)} disabled={disabled}>{value ? "Change media" : label}</Button>
+        <Button type="button" variant="secondary" onClick={() => setOpen(true)} disabled={disabled}>{value ? "Change media" : fallbackValue ? "Choose social image" : label}</Button>
         {value ? <Button type="button" variant="tertiary" onClick={() => onSelect("")} disabled={disabled}>Remove</Button> : null}
-      </div>{value ? <span className="bp-field-hint">{selected ? stringValue(selected, "title", stringValue(selected, "filename", "Selected media")) : "Selected media"}</span> : null}</div>
+      </div>{effectiveValue ? <span className="bp-field-hint">{!value&&fallbackValue?(fallbackLabel??"Using fallback")+" · ":""}{selected ? stringValue(selected, "title", stringValue(selected, "filename", "Selected media")) : !value&&fallbackValue?(fallbackLabel??"Using fallback"):"Selected media"}</span> : null}</div>
     </div>
     <Modal open={open} title="Choose media" description="Upload a new file or choose one already used by this website." onClose={() => setOpen(false)}>
       <div className="bp-form-stack">
         <form className="bp-media-picker-upload" onSubmit={uploadAndSelect}>
           <strong>Upload new</strong>
-          <TextField label="File" type="file" accept="image/*" onChange={(event) => setFile(event.target.files?.[0])} />
+          <TextField label="File" type="file" accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif" onChange={(event) => {const next=event.target.files?.[0];setFile(next);setValidationError(next?mediaFileValidationError(next):undefined)}} />
           <TextField label="Alt text" value={altText} onChange={(event) => setAltText(event.target.value)} hint="Describe the image for readers who cannot see it." />
+          {validationError ? <Alert tone="warning">{validationError}</Alert> : null}
           {upload.isError ? <Alert tone="danger">The file could not be uploaded. Check the file and try again.</Alert> : null}
-          <Button type="submit" variant="primary" loading={upload.isPending} disabled={!file}>Upload and select</Button>
+          <Button type="submit" variant="primary" loading={upload.isPending} disabled={!file||Boolean(validationError)}>Upload and select</Button>
         </form>
         <div className="bp-media-picker-divider"><span>or choose from the library</span></div>
         <TextField label="Search media" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Title or filename" />
@@ -54,7 +85,7 @@ export function MediaPicker({ siteKey, value, onSelect, label = "Choose media", 
             const mediaId = stringValue(media, "media_id", "");
             return <article key={mediaId} className="bp-media-picker-row">
               <div>{typeof media.public_url === "string" ? <img className="bp-media-picker-thumb" src={media.public_url} alt={stringValue(media, "alt_text", "")} /> : null}<strong>{stringValue(media, "title", stringValue(media, "filename", "Untitled media"))}</strong><span>{stringValue(media, "filename")}</span></div>
-              <Button type="button" variant="secondary" onClick={() => { onSelect(mediaId); setOpen(false); }}>{mediaId === value ? "Selected" : "Select"}</Button>
+              <Button type="button" variant="secondary" onClick={() => { onSelect(mediaId); setOpen(false); }}>{mediaId === effectiveValue ? "Selected" : "Select"}</Button>
             </article>;
           })}
         </div>
@@ -82,33 +113,44 @@ export function InternalLinkSearchPanel({ siteKey, onUse }: { siteKey: string; o
   const [search, setSearch] = useState("");
   const enabled = search.trim().length > 0;
   const query = useAdminQuery<UnknownRecord>("API15-S-091", { path: { site_key: siteKey }, query: { q: search.trim() || undefined, page: 1, page_size: 20 } }, enabled);
-  const items = listItems(query.data);
-  return <FormSection title="Internal link search" description="Search same-site link candidates through the RC8 editorial helper. Selecting a candidate only prepares structured link data in the working copy.">
-    <TextField label="Search link candidates" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search current website" />
+  const candidates = listItems(query.data).map(normalizedInternalCandidate).filter((item): item is UnknownRecord => Boolean(item));
+  return <FormSection title="Internal link search" description="Search articles on this website and choose a destination by title.">
+    <TextField label="Search articles" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by title" />
     {query.isLoading ? <p role="status">Searching…</p> : null}
-    {query.isError ? <Alert tone="warning">Internal-link candidates could not be loaded.</Alert> : null}
-    {enabled && !query.isLoading && !query.isError && items.length === 0 ? <p className="bp-field-hint">No same-site link candidates returned.</p> : null}
-    {items.length ? <DataTable caption="Internal link candidates" rows={items} rowKey={(row) => `${stringValue(row, "kind")}-${stringValue(row, "resource_id", stringValue(row, "destination_url"))}`} columns={[
-      { key: "label", header: "Candidate", cell: (row) => <><strong>{stringValue(row, "label")}</strong><span className="bp-table-secondary">{stringValue(row, "destination_url")}</span></> },
-      { key: "kind", header: "Kind", cell: (row) => <StatusBadge value={stringValue(row, "kind", "ARTICLE")} /> },
-      { key: "action", header: "Action", cell: (row) => <Button type="button" variant="secondary" onClick={() => onUse(row)} disabled={!row.resource_id}>Insert CTA</Button> },
-    ]} /> : null}
+    {query.isError ? <Alert tone="warning">Articles could not be searched right now.</Alert> : null}
+    {enabled && !query.isLoading && !query.isError && candidates.length === 0 ? <p className="bp-field-hint">No matching articles found.</p> : null}
+    {candidates.length ? <div className="bp-link-candidate-list">{candidates.map((candidate) => <InternalArticleCandidate key={stringValue(candidate,"resource_id",stringValue(candidate,"static_page_key"))} siteKey={siteKey} candidate={candidate} onUse={onUse}/>)}</div> : null}
   </FormSection>;
+}
+
+function InternalArticleCandidate({siteKey,candidate,onUse}:{siteKey:string;candidate:UnknownRecord;onUse(candidate:UnknownRecord):void}){
+  const postId=stringValue(candidate,"resource_id","");
+  const detail=useAdminQuery<UnknownRecord>("API15-S-012",{path:{site_key:siteKey,post_id:postId}},Boolean(postId));
+  const post=asRecord(asRecord(detail.data).post);
+  const title=stringValue(candidate,"label",stringValue(post,"title","Untitled article"));
+  const slug=stringValue(post,"slug","");
+  return <button className="bp-link-candidate" type="button" onClick={()=>onUse(candidate)}><strong>{title}</strong><span>{slug&&slug!=="—"?"/article/"+slug:"Article on this website"}</span></button>;
+}
+function SelectedRelatedArticle({ siteKey, postId, onRemove }: { siteKey: string; postId: string; onRemove(): void }) {
+  const query = useAdminQuery<UnknownRecord>("API15-S-012", { path: { site_key: siteKey, post_id: postId } }, Boolean(postId));
+  const post = asRecord(asRecord(query.data).post);
+  return <span className="bp-related-chip"><span>{query.isLoading ? "Loading article…" : query.isError ? "Selected article" : stringValue(post, "title", "Selected article")}</span><Button type="button" variant="tertiary" onClick={onRemove}>Remove</Button></span>;
 }
 
 export function RelatedCandidatePanel({ siteKey, postId, relatedIds, onChange }: { siteKey: string; postId?: string; relatedIds: string[]; onChange(ids: string[]): void }) {
   const [search, setSearch] = useState("");
   const enabled = search.trim().length > 0;
   const query = useAdminQuery<UnknownRecord>("API15-S-092", { path: { site_key: siteKey }, query: { post_id: postId || undefined, q: search.trim() || undefined, page: 1, page_size: 20 } }, enabled);
-  const items = listItems(query.data);
+  const items = listItems(query.data).filter(row=>stringValue(row,"post_id",stringValue(row,"resource_id",""))!==postId);
   const selected = useMemo(() => new Set(relatedIds.filter(Boolean)), [relatedIds.join("|")]);
-  return <FormSection title="Manual related posts" description="Candidate search is site-scoped. Final same-site relationship validation remains server-authoritative when the Post is saved.">
-    <TextField label="Search related candidates" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search Posts" />
+  return <FormSection title="Related articles" description="Search and choose articles from this website only.">
+    {relatedIds.length ? <div className="bp-related-selected" aria-label="Selected related articles">{relatedIds.map((id) => <SelectedRelatedArticle key={id} siteKey={siteKey} postId={id} onRemove={() => onChange(relatedIds.filter((candidate) => candidate !== id))}/>)}</div> : <p className="bp-field-hint">No related articles selected.</p>}
+    <TextField label="Find an article" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by title" />
     {query.isLoading ? <p role="status">Searching…</p> : null}
-    {query.isError ? <Alert tone="warning">Related Post candidates could not be loaded.</Alert> : null}
-    {enabled && !query.isLoading && !query.isError && items.length === 0 ? <p className="bp-field-hint">No candidate Posts returned.</p> : null}
-    {items.length ? <DataTable caption="Related Post candidates" rows={items} rowKey={(row) => stringValue(row, "post_id")} columns={[
-      { key: "title", header: "Post", cell: (row) => <><strong>{stringValue(row, "title")}</strong><span className="bp-table-secondary">{stringValue(row, "post_id")}</span></> },
+    {query.isError ? <Alert tone="warning">Related article suggestions could not be loaded.</Alert> : null}
+    {enabled && !query.isLoading && !query.isError && items.length === 0 ? <p className="bp-field-hint">No matching articles found.</p> : null}
+    {items.length ? <DataTable caption="Related article candidates" rows={items} rowKey={(row) => stringValue(row, "post_id")} columns={[
+      { key: "title", header: "Article", cell: (row) => <strong>{stringValue(row, "title", "Untitled article")}</strong> },
       { key: "status", header: "Status", cell: (row) => <StatusBadge value={stringValue(row, "status", "DRAFT")} /> },
       { key: "action", header: "Action", cell: (row) => { const id = stringValue(row, "post_id", ""); const exists = selected.has(id); return <Button type="button" variant="secondary" onClick={() => onChange(exists ? relatedIds.filter((candidate) => candidate !== id) : [...relatedIds, id])}>{exists ? "Remove" : "Add"}</Button>; } },
     ]} /> : null}
@@ -136,8 +178,8 @@ function richHtml(value: unknown): string {
     if (marks.includes("BOLD")) html = `<strong>${html}</strong>`;
     if (marks.includes("ITALIC")) html = `<em>${html}</em>`;
     const link = asRecord(run.link);
-    const href = stringValue(link, "url", "");
-    if (href && href !== "—") html = `<a href="${escapeHtml(href)}">${html}</a>`;
+    const kind=stringValue(link,"kind","");
+    if(kind==="INTERNAL"){const targetType=stringValue(link,"target_type","");const targetId=stringValue(link,"target_id","");const staticPageKey=stringValue(link,"static_page_key","");const attrs=["data-bp-link-kind=\"INTERNAL\"",targetType?"data-bp-target-type=\""+escapeHtml(targetType)+"\"":"",targetId?"data-bp-target-id=\""+escapeHtml(targetId)+"\"":"",staticPageKey?"data-bp-static-page-key=\""+escapeHtml(staticPageKey)+"\"":""].filter(Boolean).join(" ");html="<a href=\"#\" "+attrs+">"+html+"</a>"}else{const href=stringValue(link,"url","");if(href&&href!=="—")html="<a href=\""+escapeHtml(href)+"\" data-bp-link-kind=\"EXTERNAL\">"+html+"</a>"};
     return html;
   }).join("");
 }
@@ -145,8 +187,8 @@ function richHtml(value: unknown): string {
 function sameRunStyle(a: UnknownRecord, b: UnknownRecord): boolean {
   const aMarks = Array.isArray(a.marks) ? a.marks.map(String).sort().join("|") : "";
   const bMarks = Array.isArray(b.marks) ? b.marks.map(String).sort().join("|") : "";
-  const aLink = stringValue(asRecord(a.link), "url", "");
-  const bLink = stringValue(asRecord(b.link), "url", "");
+  const aLink = JSON.stringify(asRecord(a.link));
+  const bLink = JSON.stringify(asRecord(b.link));
   return aMarks === bMarks && aLink === bLink;
 }
 
@@ -173,7 +215,8 @@ function parseRichEditor(root: HTMLElement): UnknownRecord {
     const nextMarks = [...marks];
     if ((tag === "STRONG" || tag === "B") && !nextMarks.includes("BOLD")) nextMarks.push("BOLD");
     if ((tag === "EM" || tag === "I") && !nextMarks.includes("ITALIC")) nextMarks.push("ITALIC");
-    const nextLink = tag === "A" ? { kind: "EXTERNAL", url: node.getAttribute("href") ?? "" } : link;
+    let nextLink=link;
+    if(tag==="A"){if(node.getAttribute("data-bp-link-kind")==="INTERNAL"){const targetType=node.getAttribute("data-bp-target-type")??"ARTICLE";const targetId=node.getAttribute("data-bp-target-id");const staticPageKey=node.getAttribute("data-bp-static-page-key");nextLink=targetType==="STATIC"?{kind:"INTERNAL",target_type:"STATIC",static_page_key:staticPageKey??""}:{kind:"INTERNAL",target_type:targetType,target_id:targetId??""}}else nextLink={kind:"EXTERNAL",url:node.getAttribute("href")??""}}
     const isBlock = tag === "DIV" || tag === "P";
     const beforeLength = runs.reduce((total, run) => total + String(run.text ?? "").length, 0);
     node.childNodes.forEach(child => walk(child, nextMarks, nextLink));
@@ -266,6 +309,39 @@ function transformRichSelection(value: unknown, start: number, end: number, tran
   return { runs: next.length ? next : [{ text: "", marks: [] }] };
 }
 
+function plainRichText(value: unknown): string {
+  return normalizeRuns(value).map((run) => String(run.text ?? "")).join("");
+}
+
+function runsInsideSelection(value: unknown, start: number, end: number): UnknownRecord[] {
+  if (end <= start) return [];
+  const runs = normalizeRuns(value);
+  const selected: UnknownRecord[] = [];
+  let offset = 0;
+  for (const run of runs) {
+    const text = String(run.text ?? "");
+    const runStart = offset;
+    const runEnd = offset + text.length;
+    const selectedStart = Math.max(start, runStart);
+    const selectedEnd = Math.min(end, runEnd);
+    if (selectedStart < selectedEnd) selected.push({ ...run, text: text.slice(selectedStart - runStart, selectedEnd - runStart) });
+    offset = runEnd;
+  }
+  return selected;
+}
+
+function formattingAtOffset(value:unknown,offset:number):{marks:string[];link?:UnknownRecord}{
+  const runs=normalizeRuns(value);let cursor=0;
+  for(const run of runs){const text=String(run.text??"");const end=cursor+text.length;if(offset<=end){const marks=Array.isArray(run.marks)?run.marks.map(String):[];const link=asRecord(run.link);return {marks,...(Object.keys(link).length?{link}:{})}}cursor=end}
+  return {marks:[]};
+}
+export function insertRichTextAt(value:unknown,offset:number,text:string,marks:string[],link?:UnknownRecord):UnknownRecord{
+  const runs=normalizeRuns(value);let cursor=0;const next:UnknownRecord[]=[];let inserted=false;
+  for(const run of runs){const runText=String(run.text??"");const end=cursor+runText.length;if(!inserted&&offset<=end){const cut=Math.max(0,Math.min(runText.length,offset-cursor));const before=runText.slice(0,cut);const after=runText.slice(cut);if(before)next.push({...run,text:before});next.push({text,marks:[...marks],...(link&&Object.keys(link).length?{link}:{})});if(after)next.push({...run,text:after});inserted=true}else next.push(run);cursor=end}
+  if(!inserted)next.push({text,marks:[...marks],...(link&&Object.keys(link).length?{link}:{})});
+  const merged:UnknownRecord[]=[];for(const run of next){const previous=merged.at(-1);if(previous&&sameRunStyle(previous,run))previous.text=String(previous.text??"")+String(run.text??"");else merged.push(run)}
+  return {runs:merged.length?merged:[{text:"",marks:[]}]};
+}
 export function RichTextRunsEditor({
   label,
   value,
@@ -274,9 +350,14 @@ export function RichTextRunsEditor({
   variant = "body",
   editorId,
   placeholder,
+  siteKey,
   onEnter,
   onBackspaceAtStart,
   onFocus,
+  onUndo,
+  onRedo,
+  onSlashCommand,
+  showToolbar = true,
 }: {
   label: string;
   value: unknown;
@@ -285,13 +366,30 @@ export function RichTextRunsEditor({
   variant?: "body" | "paragraph" | "heading2" | "heading3" | "heading4" | "quote";
   editorId?: string;
   placeholder?: string;
+  siteKey?: string;
   onEnter?(offset: number): void;
   onBackspaceAtStart?(): boolean;
   onFocus?(): void;
+  onUndo?(): void;
+  onRedo?(): void;
+  onSlashCommand?(command: string): boolean;
+  showToolbar?: boolean;
 }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const localSignature = useRef<string | undefined>(undefined);
+  const linkRangeRef = useRef<{ start: number; end: number } | undefined>(undefined);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkSearch, setLinkSearch] = useState("");
+  const caretFormatRef=useRef<{active:boolean;marks:string[];link?:UnknownRecord}>({active:false,marks:[]});
+  const [,setCaretFormatTick]=useState(0);
   const signature = runSignature(value);
+  const internalLinkQuery = useAdminQuery<UnknownRecord>(
+    "API15-S-091",
+    { path: { site_key: siteKey || "" }, query: { q: linkSearch.trim() || undefined, page: 1, page_size: 12 } },
+    Boolean(siteKey && linkOpen && linkSearch.trim()),
+  );
+  const internalCandidates = listItems(internalLinkQuery.data);
 
   useEffect(() => {
     const root = editorRef.current;
@@ -324,29 +422,81 @@ export function RichTextRunsEditor({
 
   function applyMark(mark: "BOLD" | "ITALIC") {
     const range = selectedRange();
-    if (!range || range.end <= range.start) return;
-    const selected = normalizeRuns(transformRichSelection(value, range.start, range.end, run => run)).filter(run => String(run.text ?? ""));
-    const shouldRemove = selected.length > 0 && selected.every(run => Array.isArray(run.marks) && run.marks.map(String).includes(mark));
-    const next = transformRichSelection(value, range.start, range.end, run => {
+    if (!range) return;
+    if(range.end<=range.start){const base=caretFormatRef.current.active?caretFormatRef.current:formattingAtOffset(value,range.start);const marks=base.marks.includes(mark)?base.marks.filter(item=>item!==mark):[...new Set([...base.marks,mark])];caretFormatRef.current={active:true,marks,...(base.link?{link:base.link}:{})};setCaretFormatTick(tick=>tick+1);return}
+    caretFormatRef.current={active:false,marks:[]};
+    const selected = runsInsideSelection(value, range.start, range.end);
+    const shouldRemove = selected.length > 0 && selected.every((run) => Array.isArray(run.marks) && run.marks.map(String).includes(mark));
+    const next = transformRichSelection(value, range.start, range.end, (run) => {
       const marks = Array.isArray(run.marks) ? run.marks.map(String) : [];
-      return { ...run, marks: shouldRemove ? marks.filter(item => item !== mark) : [...new Set([...marks, mark])] };
+      return { ...run, marks: shouldRemove ? marks.filter((item) => item !== mark) : [...new Set([...marks, mark])] };
     });
     emit(next, range);
   }
 
-  function applyLink() {
+  function openLinkEditor() {
     const range = selectedRange();
-    if (!range || range.end <= range.start) return;
-    const url = window.prompt("Paste the link URL");
-    if (!url) return;
-    emit(transformRichSelection(value, range.start, range.end, run => ({ ...run, link: { kind: "EXTERNAL", url } })), range);
+    if (!range) return;
+    linkRangeRef.current = range;
+    const linked = range.end>range.start?runsInsideSelection(value, range.start, range.end).map((run) => asRecord(run.link)).find((link) => Object.keys(link).length > 0):caretFormatRef.current.link??formattingAtOffset(value,range.start).link;
+    setLinkUrl(linked && stringValue(linked, "kind", "") === "EXTERNAL" ? stringValue(linked, "url", "") : "");
+    setLinkSearch("");
+    setLinkOpen(true);
   }
+
+  function applyLinkDestination(destination: UnknownRecord) {
+    const range = linkRangeRef.current;
+    if (!range) return;
+    if(range.end<=range.start){const base=caretFormatRef.current.active?caretFormatRef.current:formattingAtOffset(value,range.start);caretFormatRef.current={active:true,marks:base.marks,link:destination};setCaretFormatTick(tick=>tick+1)}else emit(transformRichSelection(value, range.start, range.end, (run) => ({ ...run, link: destination })), range);
+    setLinkOpen(false);
+  }
+
+  function removeLink() {
+    const range = linkRangeRef.current;
+    if (!range) return;
+    if(range.end<=range.start){const base=caretFormatRef.current.active?caretFormatRef.current:formattingAtOffset(value,range.start);caretFormatRef.current={active:true,marks:base.marks};setCaretFormatTick(tick=>tick+1)}else emit(transformRichSelection(value, range.start, range.end, (run) => {const next = { ...run };delete next.link;return next;}), range);
+    setLinkOpen(false);
+  }
+
+  function applyInternalCandidate(candidate: UnknownRecord) {
+    const normalized=normalizedInternalCandidate(candidate)??candidate;
+    const kind = stringValue(normalized, "kind", "ARTICLE");
+    if (kind === "STATIC") {
+      const staticPageKey = stringValue(normalized, "static_page_key", "");
+      if (!staticPageKey || staticPageKey === "—") return;
+      applyLinkDestination({ kind: "INTERNAL", target_type: "STATIC", static_page_key: staticPageKey });
+      return;
+    }
+    const resourceId = stringValue(normalized, "resource_id", "");
+    if (!resourceId || resourceId === "—") return;
+    applyLinkDestination({ kind: "INTERNAL", target_type: kind, target_id: resourceId });
+  }
+
+  function handleBeforeInput(event: FormEvent<HTMLDivElement>){const root=editorRef.current;const native=event.nativeEvent as InputEvent;if(!root||!caretFormatRef.current.active||native.inputType!=="insertText"||!native.data)return;const range=selectionOffsets(root);if(!range||range.start!==range.end)return;event.preventDefault();const context=caretFormatRef.current;const next=insertRichTextAt(value,range.start,native.data,context.marks,context.link);const end=range.start+native.data.length;emit(next,{start:end,end})}
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const root = editorRef.current;
     if (!root) return;
     const range = selectionOffsets(root);
     if (!range) return;
+    const modifier = event.metaKey || event.ctrlKey;
+    const key = event.key.toLowerCase();
+    if (modifier && key === "b") { event.preventDefault(); applyMark("BOLD"); return; }
+    if (modifier && key === "i") { event.preventDefault(); applyMark("ITALIC"); return; }
+    if (modifier && key === "k") { event.preventDefault(); openLinkEditor(); return; }
+    if (modifier && key === "z") {
+      event.preventDefault();
+      if (event.shiftKey) onRedo?.(); else onUndo?.();
+      return;
+    }
+    if (modifier && key === "y") { event.preventDefault(); onRedo?.(); return; }
+    if (event.key === "Enter" && !event.shiftKey && onSlashCommand) {
+      const command = plainRichText(value).trim();
+      if (command.startsWith("/") && onSlashCommand(command)) {
+        event.preventDefault();
+        return;
+      }
+    }
     if (event.key === "Enter" && !event.shiftKey && onEnter) {
       event.preventDefault();
       onEnter(range.start);
@@ -358,11 +508,11 @@ export function RichTextRunsEditor({
   }
 
   return <div className={`bp-rich-text-editor bp-rich-text-editor--writer bp-rich-text-editor--${variant}`}>
-    <div className="bp-format-toolbar" role="toolbar" aria-label={`${label} formatting`}>
-      <Button type="button" variant="tertiary" onClick={() => applyMark("BOLD")}><strong>Bold</strong></Button>
-      <Button type="button" variant="tertiary" onClick={() => applyMark("ITALIC")}><em>Italic</em></Button>
-      <Button type="button" variant="tertiary" onClick={applyLink}>Link</Button>
-    </div>
+    {showToolbar?<div className="bp-format-toolbar" role="toolbar" aria-label={`${label} formatting`}>
+      <Button type="button" variant="tertiary" onMouseDown={(event) => event.preventDefault()} onClick={() => applyMark("BOLD")} title="Bold (⌘/Ctrl+B)"><strong>Bold</strong></Button>
+      <Button type="button" variant="tertiary" onMouseDown={(event) => event.preventDefault()} onClick={() => applyMark("ITALIC")} title="Italic (⌘/Ctrl+I)"><em>Italic</em></Button>
+      <Button type="button" variant="tertiary" onMouseDown={(event) => event.preventDefault()} onClick={openLinkEditor} title="Link (⌘/Ctrl+K)">Link</Button>
+    </div>:null}
     <div
       ref={editorRef}
       id={editorId}
@@ -374,8 +524,21 @@ export function RichTextRunsEditor({
       suppressContentEditableWarning
       data-placeholder={placeholder ?? label}
       onInput={handleInput}
+      onBeforeInput={handleBeforeInput}
       onKeyDown={handleKeyDown}
+      onMouseUp={()=>{const range=selectedRange();if(range&&range.start===range.end){const base=formattingAtOffset(value,range.start);caretFormatRef.current={active:false,marks:base.marks,...(base.link?{link:base.link}:{})}}}}
       onFocus={onFocus}
     />
+    <Modal open={linkOpen} title="Add or edit link" description="Paste a web address or choose content from this website." onClose={() => setLinkOpen(false)} footer={<><Button type="button" onClick={() => setLinkOpen(false)}>Cancel</Button><Button type="button" variant="tertiary" onClick={removeLink}>Remove link</Button><Button type="button" variant="primary" disabled={!linkUrl.trim()} onClick={() => applyLinkDestination({ kind: "EXTERNAL", url: linkUrl.trim() })}>Apply URL</Button></>}>
+      <div className="bp-form-stack">
+        <TextField label="Web address" type="url" value={linkUrl} onChange={(event) => setLinkUrl(event.target.value)} placeholder="https://example.com" />
+        {siteKey ? <><div className="bp-media-picker-divider"><span>or link to this website</span></div><TextField label="Search this website" value={linkSearch} onChange={(event) => setLinkSearch(event.target.value)} placeholder="Search by title" />
+          {internalLinkQuery.isLoading ? <p role="status">Searching…</p> : null}
+          {internalLinkQuery.isError ? <Alert tone="warning">Internal links could not be searched right now.</Alert> : null}
+          <div className="bp-link-candidate-list">{internalCandidates.map(normalizedInternalCandidate).filter((candidate):candidate is UnknownRecord=>Boolean(candidate)).map((candidate) => <InternalArticleCandidate siteKey={siteKey} candidate={candidate} key={stringValue(candidate,"resource_id",stringValue(candidate,"static_page_key"))} onUse={applyInternalCandidate}/>)}</div>
+        </> : null}
+      </div>
+    </Modal>
   </div>;
 }
+

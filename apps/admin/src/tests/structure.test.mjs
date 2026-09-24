@@ -98,3 +98,23 @@ test('Post editor keeps natural writer-state controls out of browser execCommand
   assert.ok(editor.includes('undoEditor'));
   assert.ok(editor.includes('redoEditor'));
 });
+
+test('Phase 1 editor keeps technical concepts out of the routine writer flow',()=>{
+  assert.ok(editor.includes('Bulleted list'));
+  assert.ok(editor.includes('Numbered list'));
+  assert.ok(editor.includes('>Divider<'));
+  assert.equal(editor.includes('label="List style"'),false);
+  assert.equal(editor.includes('A horizontal divider will appear here.'),false);
+  assert.equal(editor.includes('Put each row on a new line and press Tab between columns.'),false);
+  assert.ok(editor.includes('bp-table-editor-grid'));
+  assert.ok(editor.includes('Short summary'));
+});
+
+test('Phase 1 lifecycle saves current content before publish and schedule',()=>{
+  assert.ok(editor.includes('saveBeforeLifecycle'));
+  assert.ok(editor.includes('await saveBeforeLifecycle()'));
+  assert.ok(editor.includes('setPublishReviewOpen(true)'));
+  assert.ok(editor.includes('X-BP-Public-Url'));
+  assert.ok(editor.includes('/article/'));
+  assert.ok(editor.includes('View Live Post'));
+});
