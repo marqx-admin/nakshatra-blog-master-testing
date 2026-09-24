@@ -312,6 +312,7 @@ export function RichTextRunsEditor({
   onUndo,
   onRedo,
   onSlashCommand,
+  showToolbar = true,
 }: {
   label: string;
   value: unknown;
@@ -327,6 +328,7 @@ export function RichTextRunsEditor({
   onUndo?(): void;
   onRedo?(): void;
   onSlashCommand?(command: string): boolean;
+  showToolbar?: boolean;
 }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const localSignature = useRef<string | undefined>(undefined);
@@ -458,11 +460,11 @@ export function RichTextRunsEditor({
   }
 
   return <div className={`bp-rich-text-editor bp-rich-text-editor--writer bp-rich-text-editor--${variant}`}>
-    <div className="bp-format-toolbar" role="toolbar" aria-label={`${label} formatting`}>
+    {showToolbar?<div className="bp-format-toolbar" role="toolbar" aria-label={`${label} formatting`}>
       <Button type="button" variant="tertiary" onMouseDown={(event) => event.preventDefault()} onClick={() => applyMark("BOLD")} title="Bold (⌘/Ctrl+B)"><strong>Bold</strong></Button>
       <Button type="button" variant="tertiary" onMouseDown={(event) => event.preventDefault()} onClick={() => applyMark("ITALIC")} title="Italic (⌘/Ctrl+I)"><em>Italic</em></Button>
       <Button type="button" variant="tertiary" onMouseDown={(event) => event.preventDefault()} onClick={openLinkEditor} title="Link (⌘/Ctrl+K)">Link</Button>
-    </div>
+    </div>:null}
     <div
       ref={editorRef}
       id={editorId}
