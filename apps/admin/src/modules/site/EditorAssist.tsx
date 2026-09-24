@@ -93,7 +93,7 @@ export function InternalLinkSearchPanel({ siteKey, onUse }: { siteKey: string; o
     {items.length ? <DataTable caption="Internal link candidates" rows={items} rowKey={(row) => `${stringValue(row, "kind")}-${stringValue(row, "resource_id", stringValue(row, "destination_url"))}`} columns={[
       { key: "label", header: "Candidate", cell: (row) => <><strong>{stringValue(row, "label")}</strong><span className="bp-table-secondary">{stringValue(row, "destination_url")}</span></> },
       { key: "kind", header: "Kind", cell: (row) => <StatusBadge value={stringValue(row, "kind", "ARTICLE")} /> },
-      { key: "action", header: "Action", cell: (row) => <Button type="button" variant="secondary" onClick={() => onUse(row)} disabled={!row.resource_id}>Insert CTA</Button> },
+      { key: "action", header: "Action", cell: (row) => { const selectable=Boolean(row.resource_id||row.static_page_key); return <Button type="button" variant="secondary" onClick={() => onUse(row)} disabled={!selectable}>Use</Button>; } },
     ]} /> : null}
   </FormSection>;
 }
