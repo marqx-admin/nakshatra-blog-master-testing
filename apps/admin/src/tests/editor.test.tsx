@@ -59,7 +59,8 @@ test("bold formatting toggles on and back off for the selected text",async()=>{
   const user=userEvent.setup();
   const editor=screen.getByRole("textbox",{name:"Paragraph"});
   const selectSecond=()=>{
-    const textNode=editor.firstChild;
+    const walker=document.createTreeWalker(editor,NodeFilter.SHOW_TEXT);
+    const textNode=walker.nextNode();
     expect(textNode).toBeTruthy();
     const range=document.createRange();
     range.setStart(textNode!,0);range.setEnd(textNode!,6);
