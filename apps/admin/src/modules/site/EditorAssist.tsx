@@ -7,44 +7,73 @@ function listItems(value: unknown): UnknownRecord[] {
   return asRecords(asRecord(value).items);
 }
 
-export function MediaPicker({ siteKey, value, onSelect, label = "Choose media", disabled = false, preview = "compact" }: { siteKey: string; value?: string; onSelect(mediaId: string): void; label?: string; disabled?: boolean; preview?: "compact" | "article" }) {
+const MEDIA_MAX_BYTES = 20 * 1024 * 1024;
+const MEDIA_TYPES: Record<string, string[]> = {
+  "image/jpeg": ["jpg", "jpeg"],
+  "image/png": ["png"],
+  "image/webp": ["webp"],
+  "image/avif": ["avif"],
+};
+export function mediaFileValidationError(file: Pick<File, "name" | "size" | "type">): string | undefined {
+  const extensions=MEDIA_TYPES[file.type];
+  if(!extensions)return "Use a JPG, PNG, WebP or AVIF image.";
+  const extension=file.name.includes(".")?file.name.split(".").pop()?.toLowerCase():"";
+  if(!extension||!extensions.includes(extension))return "The file extension does not match the selected image type.";
+  if(file.size>MEDIA_MAX_BYTES)return "Images must be 20 MB or smaller.";
+  return undefined;
+}
+
+function normalizedInternalCandidate(candidate: UnknownRecord): UnknownRecord | undefined {
+  const postId=stringValue(candidate,"post_id",stringValue(candidate,"resource_id",""));
+  if(postId&&postId!=="—")return {kind:"ARTICLE",resource_id:postId,label:stringValue(candidate,"title",stringValue(candidate,"label","Untitled article"))};
+  const staticPageKey=stringValue(candidate,"static_page_key","");
+  if(staticPageKey&&staticPageKey!=="—")return {kind:"STATIC",static_page_key:staticPageKey,label:stringValue(candidate,"label","Website page")};
+  return undefined;
+}
+
+export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSelect, label = "Choose media", disabled = false, preview = "compact" }: { siteKey: string; value?: string; fallbackValue?: string; fallbackLabel?: string; onSelect(mediaId: string): void; label?: string; disabled?: boolean; preview?: "compact" | "article" }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [file, setFile] = useState<File>();
   const [altText, setAltText] = useState("");
+  const [validationError,setValidationError]=useState<string>();
+  const effectiveValue=value||fallbackValue||"";
   const query = useAdminQuery<UnknownRecord>("API15-S-060", { path: { site_key: siteKey }, query: { search: search.trim() || undefined, page: 1, page_size: 24, sort: "UPDATED_DESC" } }, open);
-  const selectedQuery = useAdminQuery<UnknownRecord>("API15-S-062", { path: { site_key: siteKey, media_id: value || "" } }, Boolean(value));
+  const selectedQuery = useAdminQuery<UnknownRecord>("API15-S-062", { path: { site_key: siteKey, media_id: effectiveValue } }, Boolean(effectiveValue));
   const upload = useAdminMutation<UnknownRecord>("API15-S-061", { invalidate: ["API15-S-060"] });
   const items = listItems(query.data);
   const selectedDetail = asRecord(asRecord(selectedQuery.data).media);
-  const selected = Object.keys(selectedDetail).length ? selectedDetail : items.find((media) => stringValue(media, "media_id", "") === value);
+  const selected = Object.keys(selectedDetail).length ? selectedDetail : items.find((media) => stringValue(media, "media_id", "") === effectiveValue);
   async function uploadAndSelect(event: FormEvent) {
     event.preventDefault();
     if (!file) return;
+    const problem=mediaFileValidationError(file);setValidationError(problem);if(problem)return;
     const response = await upload.mutateAsync({ path: { site_key: siteKey }, body: { file, alt_text: altText.trim() || undefined } });
     const media = asRecord(asRecord(response).media);
     const mediaId = stringValue(media, "media_id", "");
     if (mediaId && mediaId !== "—") onSelect(mediaId);
     setFile(undefined);
     setAltText("");
+    setValidationError(undefined);
     setOpen(false);
   }
   return <>
     <div className="bp-media-picker-selection">
       {selected && typeof selected.public_url === "string" ? <img className={preview === "article" ? "bp-media-picker-selected-thumb bp-media-picker-selected-thumb--article" : "bp-media-picker-selected-thumb"} src={selected.public_url} alt={stringValue(selected, "alt_text", "")} /> : null}
       <div><div className="bp-inline-actions">
-        <Button type="button" variant="secondary" onClick={() => setOpen(true)} disabled={disabled}>{value ? "Change media" : label}</Button>
+        <Button type="button" variant="secondary" onClick={() => setOpen(true)} disabled={disabled}>{value ? "Change media" : fallbackValue ? "Choose social image" : label}</Button>
         {value ? <Button type="button" variant="tertiary" onClick={() => onSelect("")} disabled={disabled}>Remove</Button> : null}
-      </div>{value ? <span className="bp-field-hint">{selected ? stringValue(selected, "title", stringValue(selected, "filename", "Selected media")) : "Selected media"}</span> : null}</div>
+      </div>{effectiveValue ? <span className="bp-field-hint">{!value&&fallbackValue?(fallbackLabel??"Using fallback")+" · ":""}{selected ? stringValue(selected, "title", stringValue(selected, "filename", "Selected media")) : !value&&fallbackValue?(fallbackLabel??"Using fallback"):"Selected media"}</span> : null}</div>
     </div>
     <Modal open={open} title="Choose media" description="Upload a new file or choose one already used by this website." onClose={() => setOpen(false)}>
       <div className="bp-form-stack">
         <form className="bp-media-picker-upload" onSubmit={uploadAndSelect}>
           <strong>Upload new</strong>
-          <TextField label="File" type="file" accept="image/*" onChange={(event) => setFile(event.target.files?.[0])} />
+          <TextField label="File" type="file" accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif" onChange={(event) => {const next=event.target.files?.[0];setFile(next);setValidationError(next?mediaFileValidationError(next):undefined)}} />
           <TextField label="Alt text" value={altText} onChange={(event) => setAltText(event.target.value)} hint="Describe the image for readers who cannot see it." />
+          {validationError ? <Alert tone="warning">{validationError}</Alert> : null}
           {upload.isError ? <Alert tone="danger">The file could not be uploaded. Check the file and try again.</Alert> : null}
-          <Button type="submit" variant="primary" loading={upload.isPending} disabled={!file}>Upload and select</Button>
+          <Button type="submit" variant="primary" loading={upload.isPending} disabled={!file||Boolean(validationError)}>Upload and select</Button>
         </form>
         <div className="bp-media-picker-divider"><span>or choose from the library</span></div>
         <TextField label="Search media" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Title or filename" />
@@ -56,7 +85,7 @@ export function MediaPicker({ siteKey, value, onSelect, label = "Choose media", 
             const mediaId = stringValue(media, "media_id", "");
             return <article key={mediaId} className="bp-media-picker-row">
               <div>{typeof media.public_url === "string" ? <img className="bp-media-picker-thumb" src={media.public_url} alt={stringValue(media, "alt_text", "")} /> : null}<strong>{stringValue(media, "title", stringValue(media, "filename", "Untitled media"))}</strong><span>{stringValue(media, "filename")}</span></div>
-              <Button type="button" variant="secondary" onClick={() => { onSelect(mediaId); setOpen(false); }}>{mediaId === value ? "Selected" : "Select"}</Button>
+              <Button type="button" variant="secondary" onClick={() => { onSelect(mediaId); setOpen(false); }}>{mediaId === effectiveValue ? "Selected" : "Select"}</Button>
             </article>;
           })}
         </div>
