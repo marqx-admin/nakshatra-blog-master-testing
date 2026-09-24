@@ -302,6 +302,12 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
     commitModel(current=>{const next=[...current.blocks];const liveIndex=next.findIndex(block=>block.block_id===blockId);if(liveIndex<=0)return current;const live=next[liveIndex]!;const before=next[liveIndex-1]!;if(!richText(live.content)){next.splice(liveIndex,1);return {...current,blocks:next}};next.splice(liveIndex-1,2,{...before,content:mergeRich(before.content,live.content)});return {...current,blocks:next}});
     setActiveBlockId(previous.block_id);focusWriter(previous.block_id,true);return true;
   }
+  function insertParagraphOrConvert(){
+    const active=modelRef.current.blocks.find(block=>block.block_id===activeBlockId);
+    if(active?.type==="PARAGRAPH"){focusWriter(active.block_id);return}
+    if(active?.type==="HEADING"){const converted={...newBlock("PARAGRAPH"),block_id:active.block_id,content:active.content} as Block;replaceBlock(active.block_id,converted);setActiveBlockId(active.block_id);focusWriter(active.block_id);return}
+    insertBlock("PARAGRAPH");
+  }
   function exitList(blockId:string,itemIndex:number){
     const paragraph=newBlock("PARAGRAPH");
     commitModel(current=>{
@@ -402,21 +408,21 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
   }
   async function publishCurrent(){
     setPublishReviewOpen(false);
-    const version=await saveBeforeLifecycle();
+    const version=await saveBeforeLifecycle();const lifecycleRevision=editRevisionRef.current;
     const result=await publishMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:version}});
     const p=asRecord(asRecord(result).post);const slug=postSlug(p,modelRef.current.slug);const nextVersion=Number(p.version??version);serverVersionRef.current=nextVersion;setServerVersion(nextVersion);setStatus(stringValue(p,"status","PUBLISHED"));if(slug!==modelRef.current.slug)setModel(current=>{const next={...current,slug};modelRef.current=next;return next});
-    dirtyState.setDirty(false);setAutosaveState("clean");setSuccess("Post published");
+    if(editRevisionRef.current===lifecycleRevision){dirtyState.setDirty(false);setAutosaveState("clean")}else{dirtyState.setDirty(true);setAutosaveState("unsaved")}setSuccess("Post published");
   }
   async function schedule(){
-    const version=await saveBeforeLifecycle();
+    const version=await saveBeforeLifecycle();const lifecycleRevision=editRevisionRef.current;
     const result=await scheduleMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:version,schedule_local_input:scheduleLocal,schedule_timezone_id:scheduleTz}});
     const p=asRecord(asRecord(result).post);const slug=postSlug(p,modelRef.current.slug);const nextVersion=Number(p.version??version);serverVersionRef.current=nextVersion;setServerVersion(nextVersion);setStatus(stringValue(p,"status","SCHEDULED"));if(slug!==modelRef.current.slug)setModel(current=>{const next={...current,slug};modelRef.current=next;return next});
-    dirtyState.setDirty(false);setAutosaveState("clean");setScheduleOpen(false);setSuccess("Post scheduled");
+    if(editRevisionRef.current===lifecycleRevision){dirtyState.setDirty(false);setAutosaveState("clean")}else{dirtyState.setDirty(true);setAutosaveState("unsaved")}setScheduleOpen(false);setSuccess("Post scheduled");
   }
   async function unschedule(){
-    const version=await saveBeforeLifecycle();
+    const version=await saveBeforeLifecycle();const lifecycleRevision=editRevisionRef.current;
     const result=await unscheduleMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:version}});
-    const p=asRecord(asRecord(result).post);const nextVersion=Number(p.version??version);serverVersionRef.current=nextVersion;setServerVersion(nextVersion);setStatus(stringValue(p,"status","DRAFT"));dirtyState.setDirty(false);setAutosaveState("clean");setSuccess("Schedule removed");
+    const p=asRecord(asRecord(result).post);const nextVersion=Number(p.version??version);serverVersionRef.current=nextVersion;setServerVersion(nextVersion);setStatus(stringValue(p,"status","DRAFT"));if(editRevisionRef.current===lifecycleRevision){dirtyState.setDirty(false);setAutosaveState("clean")}else{dirtyState.setDirty(true);setAutosaveState("unsaved")}setSuccess("Schedule removed");
   }
   async function confirmLifecycle(){
     const action=confirmAction;setConfirmAction(undefined);
@@ -471,7 +477,7 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
         <TextField className="bp-editor-title" label="Article title" placeholder="Add title" value={model.title} onChange={e=>update("title",e.target.value)}/>
         <div className="bp-editor-toolbar" role="toolbar" aria-label="Writing toolbar">
           <span className="bp-editor-toolbar-label">Insert</span>
-          <Button type="button" variant="tertiary" onClick={()=>insertBlock("PARAGRAPH")}>Paragraph</Button>
+          <Button type="button" variant="tertiary" onClick={insertParagraphOrConvert}>Paragraph</Button>
           <Button type="button" variant="tertiary" onClick={()=>insertBlock("HEADING",{level:2})}>H2</Button>
           <Button type="button" variant="tertiary" onClick={()=>insertBlock("HEADING",{level:3})}>H3</Button>
           <Button type="button" variant="tertiary" onClick={()=>insertBlock("LIST",{style:"UNORDERED",items:[rich("")]})}>Bulleted list</Button>
@@ -511,7 +517,7 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
 
         {mode==="edit"&&postId?<details className="bp-advanced-settings"><summary>Advanced URL history</summary><UrlHistoryPanel siteKey={site.site_key} postId={postId}/></details>:null}
 
-        {mode==="edit"?<section className="bp-editor-lifecycle"><h3>Publish</h3><div className="bp-editor-lifecycle-actions">
+        {mode==="edit"?<section className="bp-editor-lifecycle"><h3>Post actions</h3><div className="bp-editor-lifecycle-actions">
           {permissions.includes("posts.archive")&&status!=="ARCHIVED"&&status!=="TRASH"?<Button onClick={()=>setConfirmAction("archive")}>Archive</Button>:null}
           {permissions.includes("posts.trash")&&status!=="TRASH"?<Button variant="destructive" onClick={()=>setConfirmAction("trash")}>Move to Trash</Button>:null}
           {permissions.includes("posts.restore")&&status==="TRASH"?<Button onClick={()=>setConfirmAction("restore")}>Restore</Button>:null}
