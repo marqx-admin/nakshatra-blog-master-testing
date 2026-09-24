@@ -88,3 +88,13 @@ test('Super Admin Open Website uses the same server-resolved public URL path',()
   assert.equal(globalPages.includes('function frontendUrl'),false);
   assert.equal(globalPages.includes('http://localhost:${3000 + siteNumber}'),false);
 });
+
+
+test('Post editor keeps natural writer-state controls out of browser execCommand',()=>{
+  assert.equal(editor.includes('document.execCommand('),false);
+  assert.ok(editor.includes('onEnter={onSplit}'));
+  assert.ok(editor.includes('onBackspaceAtStart={onMergePrevious}'));
+  assert.ok(editor.includes('activeBlockId'));
+  assert.ok(editor.includes('undoEditor'));
+  assert.ok(editor.includes('redoEditor'));
+});

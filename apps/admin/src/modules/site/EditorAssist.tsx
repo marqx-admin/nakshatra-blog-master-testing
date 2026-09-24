@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useAdminMutation, useAdminQuery } from "../../app/query-client/hooks";
 import { asRecord, asRecords, formatDate, stringValue, type UnknownRecord } from "../recordUtils";
 import { Alert, Button, Checkbox, DataTable, EmptyState, FormSection, Modal, SelectField, StatusBadge, TextArea, TextField } from "../../ui/components";
@@ -121,51 +121,261 @@ function normalizeRuns(value: unknown): UnknownRecord[] {
   return runs.length ? runs : [{ text: "", marks: [] }];
 }
 
-export function RichTextRunsEditor({ label, value, onChange, multiline = false }: { label: string; value: unknown; onChange(value: UnknownRecord): void; multiline?: boolean }) {
-  const runs = normalizeRuns(value);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const text = runs.map(run => String(run.text ?? "")).join("");
-  function transformSelection(transform: (run: UnknownRecord) => UnknownRecord) {
-    const start = inputRef.current?.selectionStart ?? 0;
-    const end = inputRef.current?.selectionEnd ?? 0;
-    if (end <= start) return;
-    let offset = 0;
-    const next: UnknownRecord[] = [];
-    for (const run of runs) {
-      const runText = String(run.text ?? "");
-      const runStart = offset;
-      const runEnd = offset + runText.length;
-      const selectedStart = Math.max(start, runStart);
-      const selectedEnd = Math.min(end, runEnd);
-      if (selectedStart >= selectedEnd) next.push(run);
-      else {
-        const before = runText.slice(0, selectedStart - runStart);
-        const selectedText = runText.slice(selectedStart - runStart, selectedEnd - runStart);
-        const after = runText.slice(selectedEnd - runStart);
-        if (before) next.push({ ...run, text: before });
-        next.push(transform({ ...run, text: selectedText }));
-        if (after) next.push({ ...run, text: after });
-      }
-      offset = runEnd;
+function runSignature(value: unknown): string {
+  return JSON.stringify(normalizeRuns(value));
+}
+
+function escapeHtml(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+}
+
+function richHtml(value: unknown): string {
+  return normalizeRuns(value).map(run => {
+    let html = escapeHtml(String(run.text ?? "")).replaceAll("\n", "<br>");
+    const marks = Array.isArray(run.marks) ? run.marks.map(String) : [];
+    if (marks.includes("BOLD")) html = \`<strong>\${html}</strong>\`;
+    if (marks.includes("ITALIC")) html = \`<em>\${html}</em>\`;
+    const link = asRecord(run.link);
+    const href = stringValue(link, "url", "");
+    if (href && href !== "—") html = \`<a href="\${escapeHtml(href)}">\${html}</a>\`;
+    return html;
+  }).join("");
+}
+
+function sameRunStyle(a: UnknownRecord, b: UnknownRecord): boolean {
+  const aMarks = Array.isArray(a.marks) ? a.marks.map(String).sort().join("|") : "";
+  const bMarks = Array.isArray(b.marks) ? b.marks.map(String).sort().join("|") : "";
+  const aLink = stringValue(asRecord(a.link), "url", "");
+  const bLink = stringValue(asRecord(b.link), "url", "");
+  return aMarks === bMarks && aLink === bLink;
+}
+
+function parseRichEditor(root: HTMLElement): UnknownRecord {
+  const runs: UnknownRecord[] = [];
+  const push = (text: string, marks: string[], link?: UnknownRecord) => {
+    if (!text) return;
+    const next = { text, marks: [...new Set(marks)], ...(link && Object.keys(link).length ? { link } : {}) };
+    const previous = runs.at(-1);
+    if (previous && sameRunStyle(previous, next)) previous.text = String(previous.text ?? "") + text;
+    else runs.push(next);
+  };
+  const walk = (node: Node, marks: string[], link?: UnknownRecord) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      push(node.textContent ?? "", marks, link);
+      return;
     }
-    onChange({ runs: next });
-    requestAnimationFrame(() => { inputRef.current?.focus(); inputRef.current?.setSelectionRange(start, end); });
+    if (!(node instanceof HTMLElement)) return;
+    const tag = node.tagName;
+    if (tag === "BR") {
+      push("\n", marks, link);
+      return;
+    }
+    const nextMarks = [...marks];
+    if ((tag === "STRONG" || tag === "B") && !nextMarks.includes("BOLD")) nextMarks.push("BOLD");
+    if ((tag === "EM" || tag === "I") && !nextMarks.includes("ITALIC")) nextMarks.push("ITALIC");
+    const nextLink = tag === "A" ? { kind: "EXTERNAL", url: node.getAttribute("href") ?? "" } : link;
+    const isBlock = tag === "DIV" || tag === "P";
+    const beforeLength = runs.reduce((total, run) => total + String(run.text ?? "").length, 0);
+    node.childNodes.forEach(child => walk(child, nextMarks, nextLink));
+    const afterLength = runs.reduce((total, run) => total + String(run.text ?? "").length, 0);
+    if (isBlock && afterLength > beforeLength) {
+      const last = runs.at(-1);
+      if (last && !String(last.text ?? "").endsWith("\n")) push("\n", nextMarks, nextLink);
+    }
+  };
+  root.childNodes.forEach(node => walk(node, [], undefined));
+  const last = runs.at(-1);
+  if (last && String(last.text ?? "").endsWith("\n")) last.text = String(last.text ?? "").slice(0, -1);
+  return { runs: runs.length ? runs : [{ text: "", marks: [] }] };
+}
+
+function selectionOffsets(root: HTMLElement): { start: number; end: number } | undefined {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return undefined;
+  const range = selection.getRangeAt(0);
+  if (!root.contains(range.startContainer) || !root.contains(range.endContainer)) return undefined;
+  const beforeStart = document.createRange();
+  beforeStart.selectNodeContents(root);
+  beforeStart.setEnd(range.startContainer, range.startOffset);
+  const beforeEnd = document.createRange();
+  beforeEnd.selectNodeContents(root);
+  beforeEnd.setEnd(range.endContainer, range.endOffset);
+  return { start: beforeStart.toString().length, end: beforeEnd.toString().length };
+}
+
+function restoreSelection(root: HTMLElement, start: number, end: number): void {
+  const selection = window.getSelection();
+  if (!selection) return;
+  let cursor = 0;
+  let startNode: Node | undefined;
+  let endNode: Node | undefined;
+  let startOffset = 0;
+  let endOffset = 0;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    const length = node.textContent?.length ?? 0;
+    if (!startNode && start <= cursor + length) {
+      startNode = node;
+      startOffset = Math.max(0, Math.min(length, start - cursor));
+    }
+    if (!endNode && end <= cursor + length) {
+      endNode = node;
+      endOffset = Math.max(0, Math.min(length, end - cursor));
+      break;
+    }
+    cursor += length;
   }
+  if (!startNode) {
+    startNode = root;
+    startOffset = root.childNodes.length;
+  }
+  if (!endNode) {
+    endNode = startNode;
+    endOffset = startOffset;
+  }
+  const range = document.createRange();
+  range.setStart(startNode, startOffset);
+  range.setEnd(endNode, endOffset);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+function transformRichSelection(value: unknown, start: number, end: number, transform: (run: UnknownRecord) => UnknownRecord): UnknownRecord {
+  const runs = normalizeRuns(value);
+  if (end <= start) return { runs };
+  let offset = 0;
+  const next: UnknownRecord[] = [];
+  for (const run of runs) {
+    const runText = String(run.text ?? "");
+    const runStart = offset;
+    const runEnd = offset + runText.length;
+    const selectedStart = Math.max(start, runStart);
+    const selectedEnd = Math.min(end, runEnd);
+    if (selectedStart >= selectedEnd) next.push(run);
+    else {
+      const before = runText.slice(0, selectedStart - runStart);
+      const selectedText = runText.slice(selectedStart - runStart, selectedEnd - runStart);
+      const after = runText.slice(selectedEnd - runStart);
+      if (before) next.push({ ...run, text: before });
+      next.push(transform({ ...run, text: selectedText }));
+      if (after) next.push({ ...run, text: after });
+    }
+    offset = runEnd;
+  }
+  return { runs: next.length ? next : [{ text: "", marks: [] }] };
+}
+
+export function RichTextRunsEditor({
+  label,
+  value,
+  onChange,
+  multiline = false,
+  variant = "body",
+  editorId,
+  placeholder,
+  onEnter,
+  onBackspaceAtStart,
+  onFocus,
+}: {
+  label: string;
+  value: unknown;
+  onChange(value: UnknownRecord): void;
+  multiline?: boolean;
+  variant?: "body" | "paragraph" | "heading2" | "heading3" | "heading4" | "quote";
+  editorId?: string;
+  placeholder?: string;
+  onEnter?(offset: number): void;
+  onBackspaceAtStart?(): boolean;
+  onFocus?(): void;
+}) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const localSignature = useRef<string>();
+  const signature = runSignature(value);
+
+  useEffect(() => {
+    const root = editorRef.current;
+    if (!root || signature === localSignature.current) return;
+    root.innerHTML = richHtml(value);
+    localSignature.current = signature;
+  }, [signature, value]);
+
+  function emit(next: UnknownRecord, selection?: { start: number; end: number }) {
+    const root = editorRef.current;
+    const nextSignature = runSignature(next);
+    localSignature.current = nextSignature;
+    if (root) {
+      root.innerHTML = richHtml(next);
+      if (selection) requestAnimationFrame(() => restoreSelection(root, selection.start, selection.end));
+    }
+    onChange(next);
+  }
+
+  function handleInput(event: FormEvent<HTMLDivElement>) {
+    const next = parseRichEditor(event.currentTarget);
+    localSignature.current = runSignature(next);
+    onChange(next);
+  }
+
+  function selectedRange() {
+    const root = editorRef.current;
+    return root ? selectionOffsets(root) : undefined;
+  }
+
   function applyMark(mark: "BOLD" | "ITALIC") {
-    transformSelection(run => ({ ...run, marks: [...new Set([...(Array.isArray(run.marks) ? run.marks.filter(item => typeof item === "string") : []), mark])] }));
+    const range = selectedRange();
+    if (!range || range.end <= range.start) return;
+    const selected = normalizeRuns(transformRichSelection(value, range.start, range.end, run => run)).filter(run => String(run.text ?? ""));
+    const shouldRemove = selected.length > 0 && selected.every(run => Array.isArray(run.marks) && run.marks.map(String).includes(mark));
+    const next = transformRichSelection(value, range.start, range.end, run => {
+      const marks = Array.isArray(run.marks) ? run.marks.map(String) : [];
+      return { ...run, marks: shouldRemove ? marks.filter(item => item !== mark) : [...new Set([...marks, mark])] };
+    });
+    emit(next, range);
   }
+
   function applyLink() {
+    const range = selectedRange();
+    if (!range || range.end <= range.start) return;
     const url = window.prompt("Paste the link URL");
     if (!url) return;
-    transformSelection(run => ({ ...run, link: { kind: "EXTERNAL", url } }));
+    emit(transformRichSelection(value, range.start, range.end, run => ({ ...run, link: { kind: "EXTERNAL", url } })), range);
   }
-  const editor = <TextArea ref={inputRef} label={label} rows={multiline ? 5 : 2} value={text} hint="Select text, then use Bold, Italic, or Link." onChange={event => onChange({ runs: [{ text: event.target.value, marks: [] }] })} />;
-  return <div className="bp-rich-text-editor" role="group" aria-label={label}>
-    <div className="bp-format-toolbar" role="toolbar" aria-label={`${label} formatting`}>
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const root = editorRef.current;
+    if (!root) return;
+    const range = selectionOffsets(root);
+    if (!range) return;
+    if (event.key === "Enter" && !event.shiftKey && onEnter) {
+      event.preventDefault();
+      onEnter(range.start);
+      return;
+    }
+    if (event.key === "Backspace" && range.start === 0 && range.end === 0 && onBackspaceAtStart?.()) {
+      event.preventDefault();
+    }
+  }
+
+  return <div className={\`bp-rich-text-editor bp-rich-text-editor--writer bp-rich-text-editor--\${variant}\`}>
+    <div className="bp-format-toolbar" role="toolbar" aria-label={\`\${label} formatting\`}>
       <Button type="button" variant="tertiary" onClick={() => applyMark("BOLD")}><strong>Bold</strong></Button>
       <Button type="button" variant="tertiary" onClick={() => applyMark("ITALIC")}><em>Italic</em></Button>
       <Button type="button" variant="tertiary" onClick={applyLink}>Link</Button>
     </div>
-    {editor}
+    <div
+      ref={editorRef}
+      id={editorId}
+      role="textbox"
+      aria-label={label}
+      aria-multiline={multiline}
+      className="bp-rich-text-surface"
+      contentEditable
+      suppressContentEditableWarning
+      data-placeholder={placeholder ?? label}
+      onInput={handleInput}
+      onKeyDown={handleKeyDown}
+      onFocus={onFocus}
+    />
   </div>;
 }
