@@ -97,7 +97,8 @@ test("transient empty writer blocks are omitted from persisted ArticleBody conte
   ] as never[];
   const persisted=persistableArticleBlocks(blocks);
   expect(persisted.map(block=>block.type)).toEqual(["PARAGRAPH","LIST","SEPARATOR"]);
-  expect((persisted[1] as {items:unknown[]}).items).toHaveLength(1);
+  const listItems=persisted[1]?.items;
+  expect(Array.isArray(listItems)?listItems:[]).toHaveLength(1);
 });
 
 test("Enter splits paragraphs, Backspace merges them, and Undo/Redo restore actual editor state",async()=>{
