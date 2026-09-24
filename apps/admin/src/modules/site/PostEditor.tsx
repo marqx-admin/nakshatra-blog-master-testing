@@ -129,11 +129,16 @@ function postSlug(post:UnknownRecord,fallback:string):string{const value=stringV
 function AutosaveIndicator({state,time,onRetry}:{state:"clean"|"unsaved"|"saving"|"saved"|"error";time?:string;onRetry():void}){if(state==="clean")return null;return <span className={`bp-autosave${state==="error"?" bp-autosave--error":""}`} aria-live="polite">{state==="unsaved"?"Unsaved changes":state==="saving"?"Saving...":state==="saved"?`Saved${time?` ${time}`:""}`:<><span>Autosave failed.</span><Button type="button" variant="tertiary" onClick={onRetry}>Retry</Button></>}</span>}
 
 export function PostEditorPage({mode}:{mode:"create"|"edit"}){
-  const site=useAdminContext().site!;const permissions=useEffectivePermissions();const {postId=""}=useParams();const navigate=useNavigate();const dirtyState=useDirtyState();
+  const site=useAdminContext().site!;
+  const permissions=useEffectivePermissions();
+  const {postId=""}=useParams();
+  const navigate=useNavigate();
+  const dirtyState=useDirtyState();
+  const transport=useAdminTransport();
   const editorInstanceId=useMemo(()=>editorInstanceIdFor(`${site.site_key}:${postId||"new"}`),[site.site_key,postId]);
   const postQuery=useAdminQuery<UnknownRecord>("API15-S-012",{path:{site_key:site.site_key,post_id:postId}},mode==="edit");
-  const authorsQuery=useAdminQuery<UnknownRecord>("API15-S-050",{path:{site_key:site.site_key}},permissions.includes("authors.view"));
-  const categoriesQuery=useAdminQuery<UnknownRecord>("API15-S-030",{path:{site_key:site.site_key}},permissions.includes("categories.view"));
+  const authorsQuery=useAdminQuery<UnknownRecord>("API15-S-050",{path:{site_key:site.site_key},query:{page:1,page_size:100}},permissions.includes("authors.view"));
+  const categoriesQuery=useAdminQuery<UnknownRecord>("API15-S-030",{path:{site_key:site.site_key},query:{page:1,page_size:100}},permissions.includes("categories.view"));
   const autosaveQuery=useAdminQuery<UnknownRecord>("API15-S-015",{path:{site_key:site.site_key,post_id:postId},query:{editor_instance_id:editorInstanceId}},mode==="edit");
   const post=asRecord(asRecord(postQuery.data).post);
   const [model,setModel]=useState<EditorModel>(EMPTY);
@@ -145,42 +150,332 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
   const historyRef=useRef<{past:EditorModel[];future:EditorModel[]}>({past:[],future:[]});
   const [historyState,setHistoryState]=useState({canUndo:false,canRedo:false});
   const [activeBlockId,setActiveBlockId]=useState<string>();
-  const createMutation=useAdminMutation<UnknownRecord>("API15-S-011");const saveMutation=useAdminMutation<UnknownRecord>("API15-S-013");const autosaveMutation=useAdminMutation<UnknownRecord>("API15-S-014");const previewMutation=useAdminMutation<UnknownRecord>("API15-S-016");const scheduleMutation=useAdminMutation<UnknownRecord>("API15-S-017");const unscheduleMutation=useAdminMutation<UnknownRecord>("API15-S-018");const publishMutation=useAdminMutation<UnknownRecord>("API15-S-019");const archiveMutation=useAdminMutation<UnknownRecord>("API15-S-020");const trashMutation=useAdminMutation<UnknownRecord>("API15-S-021");const restoreMutation=useAdminMutation<UnknownRecord>("API15-S-022");const deleteMutation=useAdminMutation("API15-S-023");const duplicateMutation=useAdminMutation<UnknownRecord>("API15-S-024");
-  const [scheduleOpen,setScheduleOpen]=useState(false);const [scheduleLocal,setScheduleLocal]=useState("");const scheduleTz=site.timezone_id??"Asia/Kolkata";const [confirmAction,setConfirmAction]=useState<"archive"|"trash"|"restore"|"delete"|undefined>();const [recoverOpen,setRecoverOpen]=useState(false);const [success,setSuccess]=useState<string>();
+  const createMutation=useAdminMutation<UnknownRecord>("API15-S-011");
+  const saveMutation=useAdminMutation<UnknownRecord>("API15-S-013");
+  const autosaveMutation=useAdminMutation<UnknownRecord>("API15-S-014");
+  const previewMutation=useAdminMutation<UnknownRecord>("API15-S-016");
+  const scheduleMutation=useAdminMutation<UnknownRecord>("API15-S-017");
+  const unscheduleMutation=useAdminMutation<UnknownRecord>("API15-S-018");
+  const publishMutation=useAdminMutation<UnknownRecord>("API15-S-019");
+  const archiveMutation=useAdminMutation<UnknownRecord>("API15-S-020");
+  const trashMutation=useAdminMutation<UnknownRecord>("API15-S-021");
+  const restoreMutation=useAdminMutation<UnknownRecord>("API15-S-022");
+  const deleteMutation=useAdminMutation("API15-S-023");
+  const duplicateMutation=useAdminMutation<UnknownRecord>("API15-S-024");
+  const [scheduleOpen,setScheduleOpen]=useState(false);
+  const [scheduleLocal,setScheduleLocal]=useState("");
+  const scheduleTz=site.timezone_id??"Asia/Kolkata";
+  const [publishReviewOpen,setPublishReviewOpen]=useState(false);
+  const [confirmAction,setConfirmAction]=useState<"archive"|"trash"|"restore"|"delete"|undefined>();
+  const [recoverOpen,setRecoverOpen]=useState(false);
+  const [success,setSuccess]=useState<string>();
+  const [openingPublic,setOpeningPublic]=useState(false);
   const anyError=createMutation.error??saveMutation.error??previewMutation.error??scheduleMutation.error??publishMutation.error??archiveMutation.error??trashMutation.error??restoreMutation.error??deleteMutation.error??duplicateMutation.error;
   const conflict=anyError instanceof AdminRequestError&&anyError.failure.uiState==="CONFLICT";
-  useEffect(()=>{if(mode==="edit"&&postQuery.data&&!hydrated.current){setModel(modelFromPost(post));setServerVersion(Number(post.version??1));setStatus(stringValue(post,"status","DRAFT"));historyRef.current={past:[],future:[]};setHistoryState({canUndo:false,canRedo:false});dirtyState.setDirty(false);hydrated.current=true;}if(mode==="create"&&!hydrated.current){setModel(EMPTY);setStatus("DRAFT");setServerVersion(1);historyRef.current={past:[],future:[]};setHistoryState({canUndo:false,canRedo:false});hydrated.current=true;dirtyState.setDirty(false)}},[mode,postQuery.data]);
-  useEffect(()=>{if(mode!=="edit"||!autosaveQuery.data||!postQuery.data||dirtyState.dirty)return;const auto=asRecord(autosaveQuery.data);const savedAt=new Date(stringValue(auto,"saved_at","")).getTime();const updatedAt=new Date(stringValue(post,"updated_at","")).getTime();if(Number.isFinite(savedAt)&&savedAt>updatedAt&&Number(auto.base_version)===Number(post.version))setRecoverOpen(true)},[autosaveQuery.data,postQuery.data]);
-  useEffect(()=>{if(mode!=="edit"||!dirtyState.dirty||!permissions.includes("posts.edit")||autosaveMutation.isPending)return;const timer=window.setTimeout(()=>void autosaveNow(),8000);return()=>window.clearTimeout(timer)},[mode,dirtyState.dirty,model,serverVersion,postId,site.site_key,editorInstanceId,permissions,autosaveMutation.isPending]);
-  async function autosaveNow(){if(mode!=="edit"||!dirtyState.dirty)return;setAutosaveState("saving");try{const data=await autosaveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{editor_instance_id:editorInstanceId,base_version:serverVersion,working_copy:createBody(model,permissions.includes("tags.view"))}});setAutosaveState("saved");setAutosaveTime(formatDate(asRecord(data).saved_at))}catch{setAutosaveState("error")}}
+
+  useEffect(()=>{
+    if(mode==="edit"&&postQuery.data&&!hydrated.current){
+      setModel(modelFromPost(post));setServerVersion(Number(post.version??1));setStatus(stringValue(post,"status","DRAFT"));
+      historyRef.current={past:[],future:[]};setHistoryState({canUndo:false,canRedo:false});dirtyState.setDirty(false);hydrated.current=true;
+    }
+    if(mode==="create"&&!hydrated.current){
+      setModel({...EMPTY,blocks:[newBlock("PARAGRAPH")]});setStatus("DRAFT");setServerVersion(1);
+      historyRef.current={past:[],future:[]};setHistoryState({canUndo:false,canRedo:false});hydrated.current=true;dirtyState.setDirty(false);
+    }
+  },[mode,postQuery.data]);
+
+  useEffect(()=>{
+    if(mode!=="edit"||!autosaveQuery.data||!postQuery.data||dirtyState.dirty)return;
+    const auto=asRecord(autosaveQuery.data);
+    const savedAt=new Date(stringValue(auto,"saved_at","1970-01-01T00:00:00Z"));
+    const updatedAt=new Date(stringValue(post,"updated_at","1970-01-01T00:00:00Z"));
+    if(savedAt>updatedAt&&Number(auto.base_version)===Number(post.version))setRecoverOpen(true);
+  },[autosaveQuery.data,postQuery.data]);
+
+  useEffect(()=>{
+    if(mode!=="create"||!dirtyState.dirty||!hasMeaningfulDraft(model)||createMutation.isPending)return;
+    const timer=window.setTimeout(()=>void createInitialDraft(false),2500);
+    return()=>window.clearTimeout(timer);
+  },[mode,dirtyState.dirty,model,createMutation.isPending]);
+
+  useEffect(()=>{
+    if(mode!=="edit"||!dirtyState.dirty||!permissions.includes("posts.edit")||autosaveMutation.isPending)return;
+    const timer=window.setTimeout(()=>void autosaveNow(),4000);
+    return()=>window.clearTimeout(timer);
+  },[mode,dirtyState.dirty,model,serverVersion,postId,site.site_key,editorInstanceId,permissions,autosaveMutation.isPending]);
+
   function markEdited(){dirtyState.setDirty(true);dirtyState.setDirtyLabel("post editor changes");setSuccess(undefined);setAutosaveState("unsaved")}
-  function recordHistory(snapshot:EditorModel){historyRef.current.past=[...historyRef.current.past,snapshot].slice(-100);historyRef.current.future=[];setHistoryState({canUndo:true,canRedo:false})}
-  function update<K extends keyof EditorModel>(key:K,value:EditorModel[K]){recordHistory(model);setModel(current=>({...current,[key]:value}));markEdited()}
-  function undoEditor(){const previous=historyRef.current.past.pop();if(!previous)return;historyRef.current.future=[model,...historyRef.current.future].slice(0,100);setModel(previous);setHistoryState({canUndo:historyRef.current.past.length>0,canRedo:true});markEdited()}
-  function redoEditor(){const next=historyRef.current.future.shift();if(!next)return;historyRef.current.past=[...historyRef.current.past,model].slice(-100);setModel(next);setHistoryState({canUndo:true,canRedo:historyRef.current.future.length>0});markEdited()}
-  function replaceBlock(index:number,next:Block){update("blocks",model.blocks.map((b,i)=>i===index?next:b))}
+  function commitModel(change:(current:EditorModel)=>EditorModel){
+    markEdited();
+    setModel(current=>{
+      const next=change(current);
+      historyRef.current.past=[...historyRef.current.past,current].slice(-100);
+      historyRef.current.future=[];
+      setHistoryState({canUndo:true,canRedo:false});
+      return next;
+    });
+  }
+  function update<K extends keyof EditorModel>(key:K,value:EditorModel[K]){commitModel(current=>({...current,[key]:value}))}
+  function undoEditor(){
+    if(!historyRef.current.past.length)return;
+    markEdited();
+    setModel(current=>{
+      const previous=historyRef.current.past.pop();
+      if(!previous)return current;
+      historyRef.current.future=[current,...historyRef.current.future].slice(0,100);
+      setHistoryState({canUndo:historyRef.current.past.length>0,canRedo:true});
+      return previous;
+    });
+  }
+  function redoEditor(){
+    if(!historyRef.current.future.length)return;
+    markEdited();
+    setModel(current=>{
+      const next=historyRef.current.future.shift();
+      if(!next)return current;
+      historyRef.current.past=[...historyRef.current.past,current].slice(-100);
+      setHistoryState({canUndo:true,canRedo:historyRef.current.future.length>0});
+      return next;
+    });
+  }
+  function replaceBlock(blockId:string,next:Block){commitModel(current=>({...current,blocks:current.blocks.map(block=>block.block_id===blockId?next:block)}))}
   function focusWriter(blockId:string,atEnd=false){requestAnimationFrame(()=>{const el=document.getElementById(`bp-writer-${blockId}`);if(!(el instanceof HTMLElement))return;el.focus();const range=document.createRange();range.selectNodeContents(el);range.collapse(!atEnd);const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range)})}
-  function moveBlock(index:number,delta:number){const next=[...model.blocks];const target=index+delta;if(target<0||target>=next.length)return;[next[index],next[target]]=[next[target]!,next[index]!];update("blocks",next)}
-  function insertBlock(type:BlockType,overrides:UnknownRecord={}){const block={...newBlock(type),...overrides} as Block;const activeIndex=model.blocks.findIndex(item=>item.block_id===activeBlockId);const insertAt=activeIndex>=0?activeIndex+1:model.blocks.length;const next=[...model.blocks];next.splice(insertAt,0,block);update("blocks",next);setActiveBlockId(block.block_id);if(type==="PARAGRAPH"||type==="HEADING")focusWriter(block.block_id)}
-  function splitBlock(index:number,offset:number){const block=model.blocks[index];if(!block||(block.type!=="PARAGRAPH"&&block.type!=="HEADING"))return;const [before,after]=splitRich(block.content,offset);const nextBlock={...newBlock("PARAGRAPH"),content:after} as Block;const next=[...model.blocks];next.splice(index,1,{...block,content:before},nextBlock);update("blocks",next);setActiveBlockId(nextBlock.block_id);focusWriter(nextBlock.block_id)}
-  function mergePrevious(index:number):boolean{if(index<=0)return false;const current=model.blocks[index];const previous=model.blocks[index-1];if(!current||!previous||(current.type!=="PARAGRAPH"&&current.type!=="HEADING")||(previous.type!=="PARAGRAPH"&&previous.type!=="HEADING"))return false;const currentText=richText(current.content);if(currentText.length===0){const next=model.blocks.filter((_,i)=>i!==index);update("blocks",next);setActiveBlockId(previous.block_id);focusWriter(previous.block_id,true);return true}if(current.type!==previous.type)return false;const next=[...model.blocks];next.splice(index-1,2,{...previous,content:mergeRich(previous.content,current.content)});update("blocks",next);setActiveBlockId(previous.block_id);focusWriter(previous.block_id,true);return true}
-  async function saveDurable(){setSuccess(undefined);const includeTags=permissions.includes("tags.view");if(mode==="create"){const result=await createMutation.mutateAsync({path:{site_key:site.site_key},body:createBody(model,includeTags)});const created=asRecord(asRecord(result).post);dirtyState.setDirty(false);setAutosaveState("clean");navigate(`/site/${site.site_key}/posts/${stringValue(created,"post_id")}`,{replace:true});return;}const result=await saveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{...createBody(model,includeTags),expected_version:serverVersion}});const saved=asRecord(asRecord(result).post);setServerVersion(Number(saved.version??serverVersion));setStatus(stringValue(saved,"status",status));dirtyState.setDirty(false);setAutosaveState("clean");setSuccess(status==="PUBLISHED"?"Published article updated":"Draft changes saved")}
-  async function preview(){if(mode!=="edit")return;const working=dirtyState.dirty;const body=working?{source_kind:"WORKING_COPY",base_version:serverVersion,working_copy:createBody(model,permissions.includes("tags.view"))}:{source_kind:"COMMITTED"};const result=await previewMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body});const url=stringValue(asRecord(result),"preview_url","");if(url&&url!=="—")window.open(url,"_blank","noopener,noreferrer")}
-  async function versionCommand(mutation:typeof publishMutation,label:string){const result=await mutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:serverVersion}});const p=asRecord(asRecord(result).post);setServerVersion(Number(p.version??serverVersion));setStatus(stringValue(p,"status",status));dirtyState.setDirty(false);setAutosaveState("clean");setSuccess(label)}
-  async function schedule(){const result=await scheduleMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:serverVersion,schedule_local_input:scheduleLocal,schedule_timezone_id:scheduleTz}});const p=asRecord(asRecord(result).post);setServerVersion(Number(p.version??serverVersion));setStatus(stringValue(p,"status","SCHEDULED"));dirtyState.setDirty(false);setScheduleOpen(false);setSuccess("Schedule accepted")}
-  async function confirmLifecycle(){const action=confirmAction;setConfirmAction(undefined);if(action==="archive")await versionCommand(archiveMutation,"Post archived");if(action==="trash")await versionCommand(trashMutation,"Post moved to Trash");if(action==="restore")await versionCommand(restoreMutation,"Post restored to non-public working state");if(action==="delete"){await deleteMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:serverVersion}});dirtyState.setDirty(false);navigate(`/site/${site.site_key}/posts`)}}
-  function recover(){const auto=asRecord(autosaveQuery.data);const copy=asRecord(auto.working_copy);const body=asRecord(copy.body);setModel({...model,title:stringValue(copy,"title",model.title),excerpt:stringValue(copy,"excerpt",model.excerpt),blocks:safeBlocks(body.blocks),slug:stringValue(copy,"slug",model.slug),author:stringValue(copy,"author_site_profile_id",model.author),categories:arrayValue(copy,"category_ids").join(", "),tags:arrayValue(copy,"tag_ids").join(", "),featuredMedia:stringValue(copy,"featured_media_id",model.featuredMedia),related:arrayValue(copy,"manual_related_post_ids").join(", "),seoTitle:stringValue(copy,"seo_title",model.seoTitle),metaDescription:stringValue(copy,"meta_description",model.metaDescription),canonical:stringValue(copy,"canonical_override",model.canonical),indexPolicy:stringValue(copy,"index_policy",model.indexPolicy),robots:stringValue(copy,"link_robots_policy",model.robots),ogTitle:stringValue(copy,"og_title",model.ogTitle),ogDescription:stringValue(copy,"og_description",model.ogDescription),ogImage:stringValue(copy,"og_image_media_id",model.ogImage),breadcrumbLabel:stringValue(copy,"breadcrumb_label",model.breadcrumbLabel)});dirtyState.setDirty(true);dirtyState.setDirtyLabel("recovered autosave changes");setAutosaveState("unsaved");setRecoverOpen(false)}
-  const required=mode==="create"?["posts.view","posts.create"]:["posts.view","posts.edit"];const canPreview=mode==="edit"&&permissions.includes("posts.preview");const context=mode==="create"?`${site.display_name} · new DRAFT`: `${site.display_name} · ${status} · version ${serverVersion}`;
+  function moveBlock(blockId:string,delta:number){
+    commitModel(current=>{const next=[...current.blocks];const index=next.findIndex(block=>block.block_id===blockId);const target=index+delta;if(index<0||target<0||target>=next.length)return current;[next[index],next[target]]=[next[target]!,next[index]!];return {...current,blocks:next}});
+  }
+  function removeBlock(blockId:string){commitModel(current=>{const next=current.blocks.filter(block=>block.block_id!==blockId);return {...current,blocks:next.length?next:[newBlock("PARAGRAPH")]}})}
+  function insertBlock(type:BlockType,overrides:UnknownRecord={}){
+    const defaults=type==="LIST"?{items:[rich("")]}:type==="TABLE"?{rows:[[rich(""),rich("")],[rich(""),rich("")]]}:{};
+    const block={...newBlock(type),...defaults,...overrides} as Block;
+    commitModel(current=>{const activeIndex=current.blocks.findIndex(item=>item.block_id===activeBlockId);const insertAt=activeIndex>=0?activeIndex+1:current.blocks.length;const next=[...current.blocks];next.splice(insertAt,0,block);return {...current,blocks:next}});
+    setActiveBlockId(block.block_id);
+    if(type==="PARAGRAPH"||type==="HEADING")focusWriter(block.block_id);
+  }
+  function splitBlock(blockId:string,offset:number){
+    const source=model.blocks.find(block=>block.block_id===blockId);
+    if(!source||(source.type!=="PARAGRAPH"&&source.type!=="HEADING"))return;
+    const nextBlock={...newBlock("PARAGRAPH")} as Block;
+    commitModel(current=>{const index=current.blocks.findIndex(block=>block.block_id===blockId);const block=current.blocks[index];if(index<0||!block||(block.type!=="PARAGRAPH"&&block.type!=="HEADING"))return current;const [before,after]=splitRich(block.content,offset);nextBlock.content=after;const next=[...current.blocks];next.splice(index,1,{...block,content:before},nextBlock);return {...current,blocks:next}});
+    setActiveBlockId(nextBlock.block_id);focusWriter(nextBlock.block_id);
+  }
+  function mergePrevious(blockId:string):boolean{
+    const index=model.blocks.findIndex(block=>block.block_id===blockId);
+    if(index<=0)return false;
+    const currentBlock=model.blocks[index];const previous=model.blocks[index-1];
+    if(!currentBlock||!previous||(currentBlock.type!=="PARAGRAPH"&&currentBlock.type!=="HEADING")||(previous.type!=="PARAGRAPH"&&previous.type!=="HEADING"))return false;
+    const currentText=richText(currentBlock.content);
+    if(currentText.length>0&&currentBlock.type!==previous.type)return false;
+    commitModel(current=>{const next=[...current.blocks];const liveIndex=next.findIndex(block=>block.block_id===blockId);if(liveIndex<=0)return current;const live=next[liveIndex]!;const before=next[liveIndex-1]!;if(!richText(live.content)){next.splice(liveIndex,1);return {...current,blocks:next}};next.splice(liveIndex-1,2,{...before,content:mergeRich(before.content,live.content)});return {...current,blocks:next}});
+    setActiveBlockId(previous.block_id);focusWriter(previous.block_id,true);return true;
+  }
+  function slashCommand(blockId:string,command:string):boolean{
+    const normalized=command.trim().toLowerCase();
+    const spec:Record<string,{type:BlockType;overrides?:UnknownRecord}>={
+      "/h2":{type:"HEADING",overrides:{level:2}},"/h3":{type:"HEADING",overrides:{level:3}},
+      "/list":{type:"LIST",overrides:{style:"UNORDERED",items:[rich("")]}},"/bullet":{type:"LIST",overrides:{style:"UNORDERED",items:[rich("")]}},
+      "/number":{type:"LIST",overrides:{style:"ORDERED",items:[rich("")]}},"/quote":{type:"QUOTE"},"/image":{type:"MEDIA"},
+      "/table":{type:"TABLE",overrides:{rows:[[rich(""),rich("")],[rich(""),rich("")]]}},"/divider":{type:"SEPARATOR"},"/separator":{type:"SEPARATOR"},
+    };
+    const target=spec[normalized];if(!target)return false;
+    const replacement={...newBlock(target.type),...(target.overrides??{}),block_id:blockId} as Block;
+    replaceBlock(blockId,replacement);setActiveBlockId(blockId);
+    if(target.type==="HEADING")focusWriter(blockId);return true;
+  }
+
+  async function createInitialDraft(announce=true){
+    if(mode!=="create"||createMutation.isPending)return;
+    const result=await createMutation.mutateAsync({path:{site_key:site.site_key},body:createBody(model,permissions.includes("tags.view"))});
+    const created=asRecord(asRecord(result).post);const createdId=stringValue(created,"post_id","");
+    if(!createdId||createdId==="—")throw new Error("Created draft did not return a post id");
+    dirtyState.setDirty(false);setAutosaveState("clean");if(announce)setSuccess("Draft created");
+    navigate(`/site/${site.site_key}/posts/${createdId}`,{replace:true});
+  }
+  async function saveExisting(announce=true):Promise<UnknownRecord>{
+    const result=await saveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{...createBody(model,permissions.includes("tags.view")),expected_version:serverVersion}});
+    const saved=asRecord(asRecord(result).post);
+    const nextVersion=Number(saved.version??serverVersion);const nextStatus=stringValue(saved,"status",status);const nextSlug=postSlug(saved,model.slug);
+    setServerVersion(nextVersion);setStatus(nextStatus);if(nextSlug!==model.slug)setModel(current=>({...current,slug:nextSlug}));
+    dirtyState.setDirty(false);setAutosaveState("clean");if(announce)setSuccess(nextStatus==="PUBLISHED"?"Published article updated":"Draft changes saved");
+    return saved;
+  }
+  async function saveDurable(){setSuccess(undefined);if(mode==="create"){await createInitialDraft(true);return}await saveExisting(true)}
+  async function saveBeforeLifecycle():Promise<number>{
+    if(mode!=="edit")return serverVersion;
+    if(!dirtyState.dirty)return serverVersion;
+    const saved=await saveExisting(false);return Number(saved.version??serverVersion);
+  }
+  async function autosaveNow(){
+    if(mode!=="edit"||!dirtyState.dirty)return;
+    setAutosaveState("saving");
+    try{const data=await autosaveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{editor_instance_id:editorInstanceId,base_version:serverVersion,working_copy:createBody(model,permissions.includes("tags.view"))}});setAutosaveState("saved");setAutosaveTime(formatDate(asRecord(data).saved_at))}
+    catch{setAutosaveState("error")}
+  }
+  async function resolvedPublicOrigin():Promise<string>{
+    const response=await transport.request<UnknownRecord>("API15-S-001",{path:{site_key:site.site_key}});
+    const value=response.headers.get("X-BP-Public-Url");if(!value)throw new Error("Public website URL is unavailable");
+    return value.replace(/\/$/,"");
+  }
+  async function preview(){
+    if(mode!=="edit")return;
+    const useWorkingCopy=dirtyState.dirty||status==="PUBLISHED";
+    const body=useWorkingCopy?{source_kind:"WORKING_COPY",base_version:serverVersion,working_copy:createBody(model,permissions.includes("tags.view"))}:{source_kind:"COMMITTED"};
+    const result=await previewMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body});
+    const raw=stringValue(asRecord(result),"preview_url","");
+    if(!raw||raw==="—")return;
+    const origin=await resolvedPublicOrigin();
+    let pathAndQuery=raw;
+    try{const parsed=new URL(raw);pathAndQuery=`${parsed.pathname}${parsed.search}${parsed.hash}`}catch{/* keep server-relative value */}
+    window.open(`${origin}${pathAndQuery.startsWith("/")?"":"/"}${pathAndQuery}`,"_blank","noopener,noreferrer");
+  }
+  async function openLivePost(){
+    if(!model.slug)return;
+    setOpeningPublic(true);
+    try{const origin=await resolvedPublicOrigin();window.open(`${origin}/article/${encodeURIComponent(model.slug)}`,"_blank","noopener,noreferrer")}finally{setOpeningPublic(false)}
+  }
+  async function versionCommand(mutation:typeof archiveMutation,label:string){
+    const result=await mutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:serverVersion}});
+    const p=asRecord(asRecord(result).post);setServerVersion(Number(p.version??serverVersion));setStatus(stringValue(p,"status",status));const slug=postSlug(p,model.slug);if(slug!==model.slug)setModel(current=>({...current,slug}));
+    dirtyState.setDirty(false);setAutosaveState("clean");setSuccess(label);
+  }
+  async function publishCurrent(){
+    setPublishReviewOpen(false);
+    const version=await saveBeforeLifecycle();
+    const result=await publishMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:version}});
+    const p=asRecord(asRecord(result).post);const slug=postSlug(p,model.slug);setServerVersion(Number(p.version??version));setStatus(stringValue(p,"status","PUBLISHED"));if(slug!==model.slug)setModel(current=>({...current,slug}));
+    dirtyState.setDirty(false);setAutosaveState("clean");setSuccess("Post published");
+  }
+  async function schedule(){
+    const version=await saveBeforeLifecycle();
+    const result=await scheduleMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:version,schedule_local_input:scheduleLocal,schedule_timezone_id:scheduleTz}});
+    const p=asRecord(asRecord(result).post);const slug=postSlug(p,model.slug);setServerVersion(Number(p.version??version));setStatus(stringValue(p,"status","SCHEDULED"));if(slug!==model.slug)setModel(current=>({...current,slug}));
+    dirtyState.setDirty(false);setAutosaveState("clean");setScheduleOpen(false);setSuccess("Post scheduled");
+  }
+  async function unschedule(){
+    const version=await saveBeforeLifecycle();
+    const result=await unscheduleMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:version}});
+    const p=asRecord(asRecord(result).post);setServerVersion(Number(p.version??version));setStatus(stringValue(p,"status","DRAFT"));dirtyState.setDirty(false);setAutosaveState("clean");setSuccess("Schedule removed");
+  }
+  async function confirmLifecycle(){
+    const action=confirmAction;setConfirmAction(undefined);
+    if(action==="archive")await versionCommand(archiveMutation,"Post archived");
+    if(action==="trash")await versionCommand(trashMutation,"Post moved to Trash");
+    if(action==="restore")await versionCommand(restoreMutation,"Post restored to non-public working state");
+    if(action==="delete"){await deleteMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{expected_version:serverVersion}});dirtyState.setDirty(false);navigate(`/site/${site.site_key}/posts`)}
+  }
+  function recover(){
+    const auto=asRecord(autosaveQuery.data);const copy=asRecord(auto.working_copy);const body=asRecord(copy.body);
+    setModel({...model,title:stringValue(copy,"title",model.title),excerpt:stringValue(copy,"excerpt",model.excerpt),blocks:safeBlocks(body.blocks),slug:stringValue(copy,"slug",model.slug),author:stringValue(copy,"author_site_profile_id",model.author),categories:arrayValue(copy,"category_ids").join(", "),tags:arrayValue(copy,"tag_ids").join(", "),featuredMedia:stringValue(copy,"featured_media_id",model.featuredMedia),related:arrayValue(copy,"manual_related_post_ids").join(", "),seoTitle:stringValue(copy,"seo_title",model.seoTitle),metaDescription:stringValue(copy,"meta_description",model.metaDescription),canonical:stringValue(copy,"canonical_override",model.canonical),indexPolicy:stringValue(copy,"index_policy",model.indexPolicy),robots:stringValue(copy,"link_robots_policy",model.robots),ogTitle:stringValue(copy,"og_title",model.ogTitle),ogDescription:stringValue(copy,"og_description",model.ogDescription),ogImage:stringValue(copy,"og_image_media_id",model.ogImage),breadcrumbLabel:stringValue(copy,"breadcrumb_label",model.breadcrumbLabel)});
+    dirtyState.setDirty(true);dirtyState.setDirtyLabel("recovered autosave changes");setAutosaveState("unsaved");setRecoverOpen(false);
+  }
+  function toggleCategory(categoryId:string,checked:boolean){
+    const selected=new Set(ids(model.categories));if(checked)selected.add(categoryId);else selected.delete(categoryId);update("categories",[...selected].join(", "));
+  }
+
+  const required=mode==="create"?["posts.view","posts.create"]:["posts.view","posts.edit"];
+  const canPreview=mode==="edit"&&permissions.includes("posts.preview");
+  const context=mode==="create"?`${site.display_name} · new draft`:`${site.display_name} · ${status} · version ${serverVersion}`;
+  const publishProblems=[
+    !model.title.trim()?"Add a title.":"",
+    !hasMeaningfulBody(model.blocks)?"Add article content.":"",
+    !model.author?"Choose an author.":"",
+  ].filter(Boolean);
+  const publishWarnings=[
+    !ids(model.categories).length?"No category selected.":"",
+    !model.featuredMedia?"No featured image selected.":"",
+    !model.seoTitle.trim()?"SEO title is using the article title.":"",
+    !model.metaDescription.trim()?"Meta description is empty.":"",
+  ].filter(Boolean);
+  const authors=asRecords(asRecord(authorsQuery.data).items);
+  const categories=asRecords(asRecord(categoriesQuery.data).items);
+
   if(mode==="edit"&&!hydrated.current)return <PageFrame pageId="ADM-S-POST-03"><QueryState isLoading={postQuery.isLoading} error={postQuery.error} hasData={Boolean(postQuery.data)} retry={()=>void postQuery.refetch()}><span/></QueryState></PageFrame>;
-  return <PageFrame pageId={mode==="create"?"ADM-S-POST-02":"ADM-S-POST-03"} required={required} context={context} back={<Link to={`/site/${site.site_key}/posts`}>← Back to Posts</Link>} actions={<><AutosaveIndicator state={autosaveState} {...(autosaveTime !== undefined ? { time: autosaveTime } : {})} onRetry={()=>void autosaveNow()}/>{canPreview?<Button onClick={()=>void preview()} loading={previewMutation.isPending}>Preview</Button>:null}<Button variant="primary" onClick={()=>void saveDurable()} loading={createMutation.isPending||saveMutation.isPending}>{mode==="create"?"Create draft":status==="PUBLISHED"?"Update published":"Save draft"}</Button></>}>
-    {conflict?<div className="bp-conflict-sticky"><ConflictPanel onReload={()=>window.location.reload()}>The server rejected a stale write. Your local editor values remain visible. Reload the authoritative version before deciding how to continue; automatic merge/overwrite is prohibited.</ConflictPanel></div>:null}
+
+  return <PageFrame pageId={mode==="create"?"ADM-S-POST-02":"ADM-S-POST-03"} required={required} context={context} back={<Link to={`/site/${site.site_key}/posts`}>← Back to Posts</Link>} actions={<>
+    <AutosaveIndicator state={autosaveState} {...(autosaveTime!==undefined?{time:autosaveTime}:{})} onRetry={()=>void autosaveNow()}/>
+    {canPreview?<Button onClick={()=>void preview()} loading={previewMutation.isPending}>Preview</Button>:null}
+    {mode==="edit"&&status==="PUBLISHED"&&model.slug?<Button onClick={()=>void openLivePost()} loading={openingPublic}>View Live Post</Button>:null}
+    <Button variant="primary" onClick={()=>void saveDurable()} loading={createMutation.isPending||saveMutation.isPending}>{mode==="create"?"Save draft":status==="PUBLISHED"?"Update":"Save draft"}</Button>
+  </>}>
+    {conflict?<div className="bp-conflict-sticky"><ConflictPanel onReload={()=>window.location.reload()}>The server rejected a stale write. Your local editor values remain visible. Reload the authoritative version before deciding how to continue; automatic overwrite is prohibited.</ConflictPanel></div>:null}
     {success?<SuccessState>{success}. The visible status/version is refreshed from the server response.</SuccessState>:null}
-    {anyError&&!conflict?<Alert tone="danger">{anyError instanceof AdminRequestError&&anyError.failure.uiState==="VALIDATION"?"Server validation rejected the current working copy. Review required fields and block payloads.":"The requested editor action was not accepted."}</Alert>:null}
-    <div className="bp-editor-layout"><section className="bp-editor-canvas" aria-label="Article editor canvas"><TextField className="bp-editor-title" label="Title" value={model.title} onChange={e=>update("title",e.target.value)}/><TextArea label="Short summary" value={model.excerpt} onChange={e=>update("excerpt",e.target.value)}/><div className="bp-editor-toolbar" role="toolbar" aria-label="Writing toolbar"><span className="bp-editor-toolbar-label">Add block</span><Button type="button" variant="tertiary" onClick={()=>insertBlock("PARAGRAPH")}>Paragraph</Button><Button type="button" variant="tertiary" onClick={()=>insertBlock("HEADING",{level:2})}>H2</Button><Button type="button" variant="tertiary" onClick={()=>insertBlock("HEADING",{level:3})}>H3</Button><Button type="button" variant="tertiary" onClick={()=>insertBlock("LIST",{style:"UNORDERED"})}>Bullet list</Button><Button type="button" variant="tertiary" onClick={()=>insertBlock("LIST",{style:"ORDERED"})}>Numbered list</Button><Button type="button" variant="tertiary" onClick={()=>insertBlock("QUOTE")}>Quote</Button><Button type="button" variant="tertiary" onClick={()=>insertBlock("MEDIA")}>Image</Button><Button type="button" variant="tertiary" onClick={()=>insertBlock("TABLE")}>Table</Button><Button type="button" variant="tertiary" onClick={()=>insertBlock("SEPARATOR")}>Separator</Button><span className="bp-editor-toolbar-spacer"/><Button type="button" variant="tertiary" onClick={undoEditor} disabled={!historyState.canUndo}>Undo</Button><Button type="button" variant="tertiary" onClick={redoEditor} disabled={!historyState.canRedo}>Redo</Button></div><div className="bp-block-list">{model.blocks.map((block,index)=><BlockEditor key={block.block_id} siteKey={site.site_key} block={block} index={index} count={model.blocks.length} onChange={next=>replaceBlock(index,next)} onMove={delta=>moveBlock(index,delta)} onRemove={()=>update("blocks",model.blocks.filter((_,i)=>i!==index))} onSplit={offset=>splitBlock(index,offset)} onMergePrevious={()=>mergePrevious(index)} onFocus={()=>setActiveBlockId(block.block_id)}/>)}</div><details className="bp-block-inserter"><summary>More content types</summary><div className="bp-block-palette">{ARTICLE_BLOCK_TYPES.filter(type=>!["PARAGRAPH","HEADING","LIST","MEDIA","QUOTE","TABLE","SEPARATOR"].includes(type)).map(type=><button type="button" key={type} onClick={()=>insertBlock(type)}>{BLOCK_LABELS[type]}</button>)}</div></details></section>
-    <aside className="bp-editor-rail" aria-label="Post settings"><FormSection title="Article details"><SelectField label="Author" value={model.author} onChange={e=>update("author",e.target.value)} disabled={!permissions.includes("authors.view")}><option value="">Choose author</option>{asRecords(asRecord(authorsQuery.data).items).map(author=><option key={stringValue(author,"author_id")} value={stringValue(author,"author_id")}>{stringValue(author,"display_name")}</option>)}</SelectField><SelectField label="Categories" multiple value={ids(model.categories)} onChange={e=>update("categories",Array.from(e.target.selectedOptions,option=>option.value).join(", "))} disabled={!permissions.includes("categories.view")} size={Math.min(6,Math.max(3,asRecords(asRecord(categoriesQuery.data).items).length))}>{asRecords(asRecord(categoriesQuery.data).items).map(category=><option key={stringValue(category,"category_id")} value={stringValue(category,"category_id")}>{stringValue(category,"name")}</option>)}</SelectField>{permissions.includes("media.view")?<MediaPicker siteKey={site.site_key} value={model.featuredMedia} onSelect={mediaId=>update("featuredMedia",mediaId)} label="Choose featured image"/>:null}</FormSection>{permissions.includes("posts.edit")&&permissions.includes("search.view")?<><RelatedCandidatePanel siteKey={site.site_key} {...(mode==="edit"&&postId !== undefined ? { postId } : {})} relatedIds={ids(model.related)} onChange={values=>update("related",values.join(", "))}/><InternalLinkSearchPanel siteKey={site.site_key} onUse={candidate=>{const kind=stringValue(candidate,"kind","ARTICLE");const resourceId=stringValue(candidate,"resource_id","");const staticPageKey=stringValue(candidate,"static_page_key","");if(kind==="STATIC"){if(!STATIC_PAGE_KEYS.includes(staticPageKey as typeof STATIC_PAGE_KEYS[number]))return;const block={...newBlock("CTA"),label:stringValue(candidate,"label","Open link"),destination:{kind:"INTERNAL",target_type:"STATIC",static_page_key:staticPageKey}} as Block;update("blocks",[...model.blocks,block]);return;}if(!resourceId)return;const block={...newBlock("CTA"),label:stringValue(candidate,"label","Open link"),destination:{kind:"INTERNAL",target_type:kind,target_id:resourceId}} as Block;update("blocks",[...model.blocks,block])}}/></>:null}{mode==="edit"&&postId?<UrlHistoryPanel siteKey={site.site_key} postId={postId}/>:null}<FormSection title="Search appearance"><TextField label="SEO title" value={model.seoTitle} onChange={e=>update("seoTitle",e.target.value)} disabled={!permissions.includes("seo.edit")}/><TextArea label="Meta description" value={model.metaDescription} onChange={e=>update("metaDescription",e.target.value)} disabled={!permissions.includes("seo.edit")}/><TextField label="URL slug" value={model.slug} onChange={e=>update("slug",e.target.value)}/><div className="bp-card"><span className="bp-table-secondary">Search preview</span><strong className="bp-table-primary">{model.seoTitle||model.title||"Your article title"}</strong><p>{model.metaDescription||model.excerpt||"Add a short description for search results."}</p></div>{permissions.includes("media.view")?<MediaPicker siteKey={site.site_key} value={model.ogImage} onSelect={mediaId=>update("ogImage",mediaId)} label="Choose social image"/>:null}</FormSection>
-      {mode==="edit"?<section className="bp-editor-lifecycle"><h3>Lifecycle</h3><div className="bp-editor-lifecycle-actions">{permissions.includes("posts.publish")&&status!=="TRASH"?<Button variant="primary" onClick={()=>void versionCommand(publishMutation,status==="PUBLISHED"?"Published article confirmed":"Post published")} loading={publishMutation.isPending}>{status==="PUBLISHED"?"Publish current version":"Publish"}</Button>:null}{permissions.includes("posts.schedule")&&status!=="TRASH"?<Button onClick={()=>setScheduleOpen(true)}>Schedule</Button>:null}{permissions.includes("posts.schedule")&&status==="SCHEDULED"?<Button onClick={()=>void versionCommand(unscheduleMutation,"Schedule removed")}>Unschedule</Button>:null}{permissions.includes("posts.archive")&&status!=="ARCHIVED"&&status!=="TRASH"?<Button onClick={()=>setConfirmAction("archive")}>Archive</Button>:null}{permissions.includes("posts.trash")&&status!=="TRASH"?<Button variant="destructive" onClick={()=>setConfirmAction("trash")}>Move to Trash</Button>:null}{permissions.includes("posts.restore")&&status==="TRASH"?<Button onClick={()=>setConfirmAction("restore")}>Restore</Button>:null}{permissions.includes("posts.duplicate")?<Button onClick={()=>void duplicateMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{}}).then(result=>{const p=asRecord(asRecord(result).post);navigate(`/site/${site.site_key}/posts/${stringValue(p,"post_id")}`)})}>Duplicate</Button>:null}{permissions.includes("posts.delete")&&status==="TRASH"?<Button variant="destructive" onClick={()=>setConfirmAction("delete")}>Permanent delete</Button>:null}</div>{permissions.includes("posts.revisions.view")?<p><Link to={`/site/${site.site_key}/posts/${postId}/revisions`}>Open formal revision history</Link></p>:null}</section>:null}</aside></div>
-    <Modal open={scheduleOpen} title="Schedule publication" description={`Choose the publication time in ${scheduleTz}, this website's configured timezone.`} onClose={()=>setScheduleOpen(false)} footer={<><Button onClick={()=>setScheduleOpen(false)}>Cancel</Button><Button variant="primary" onClick={()=>void schedule()} loading={scheduleMutation.isPending} disabled={!scheduleLocal}>Schedule</Button></>}><div className="bp-form-stack"><TextField label={`Date and time (${scheduleTz})`} type="datetime-local" value={scheduleLocal} onChange={e=>setScheduleLocal(e.target.value)} required/></div></Modal>
+    {anyError&&!conflict?<Alert tone="danger">{anyError instanceof AdminRequestError&&anyError.failure.uiState==="VALIDATION"?"Server validation rejected the current working copy. Review the highlighted publishing requirements.":"The requested editor action was not accepted."}</Alert>:null}
+
+    <div className="bp-editor-layout">
+      <section className="bp-editor-canvas" aria-label="Article editor canvas">
+        <TextField className="bp-editor-title" label="Article title" placeholder="Add title" value={model.title} onChange={e=>update("title",e.target.value)}/>
+        <div className="bp-editor-toolbar" role="toolbar" aria-label="Writing toolbar">
+          <span className="bp-editor-toolbar-label">Insert</span>
+          <Button type="button" variant="tertiary" onClick={()=>insertBlock("HEADING",{level:2})}>H2</Button>
+          <Button type="button" variant="tertiary" onClick={()=>insertBlock("HEADING",{level:3})}>H3</Button>
+          <Button type="button" variant="tertiary" onClick={()=>insertBlock("LIST",{style:"UNORDERED",items:[rich("")]})}>Bulleted list</Button>
+          <Button type="button" variant="tertiary" onClick={()=>insertBlock("LIST",{style:"ORDERED",items:[rich("")]})}>Numbered list</Button>
+          <Button type="button" variant="tertiary" onClick={()=>insertBlock("QUOTE")}>Quote</Button>
+          <Button type="button" variant="tertiary" onClick={()=>insertBlock("MEDIA")}>Image</Button>
+          <Button type="button" variant="tertiary" onClick={()=>insertBlock("TABLE",{rows:[[rich(""),rich("")],[rich(""),rich("")]]})}>Table</Button>
+          <Button type="button" variant="tertiary" onClick={()=>insertBlock("SEPARATOR")}>Divider</Button>
+          <span className="bp-editor-toolbar-spacer"/>
+          <Button type="button" variant="tertiary" onClick={undoEditor} disabled={!historyState.canUndo} title="Undo (⌘/Ctrl+Z)">Undo</Button>
+          <Button type="button" variant="tertiary" onClick={redoEditor} disabled={!historyState.canRedo} title="Redo (⌘/Ctrl+Shift+Z)">Redo</Button>
+        </div>
+        <p className="bp-writer-hint">Write naturally. Press Enter for a new paragraph, or type /h2, /h3, /list, /number, /quote, /image, /table or /divider and press Enter.</p>
+        <div className="bp-block-list">{model.blocks.map((block,index)=><BlockEditor key={block.block_id} siteKey={site.site_key} block={block} index={index} count={model.blocks.length} onChange={next=>replaceBlock(block.block_id,next)} onMove={delta=>moveBlock(block.block_id,delta)} onRemove={()=>removeBlock(block.block_id)} onSplit={offset=>splitBlock(block.block_id,offset)} onMergePrevious={()=>mergePrevious(block.block_id)} onFocus={()=>setActiveBlockId(block.block_id)} onUndo={undoEditor} onRedo={redoEditor} onSlashCommand={command=>slashCommand(block.block_id,command)}/>)}</div>
+        <details className="bp-block-inserter"><summary>+ More content types</summary><div className="bp-block-palette">{ARTICLE_BLOCK_TYPES.filter(type=>!["PARAGRAPH","HEADING","LIST","MEDIA","QUOTE","TABLE","SEPARATOR"].includes(type)).map(type=><button type="button" key={type} onClick={()=>insertBlock(type)}>{BLOCK_LABELS[type]}</button>)}</div></details>
+      </section>
+
+      <aside className="bp-editor-rail" aria-label="Post settings">
+        <FormSection title="Post settings">
+          <div className="bp-editor-status-row"><span>Status</span><StatusBadge value={status}/></div>
+          <TextArea label="Short summary" value={model.excerpt} onChange={e=>update("excerpt",e.target.value)} placeholder="A short description of this article."/>
+          <SelectField label="Author" value={model.author} onChange={e=>update("author",e.target.value)} disabled={!permissions.includes("authors.view")}><option value="">Choose author</option>{authors.map(author=><option key={stringValue(author,"author_id")} value={stringValue(author,"author_id")}>{stringValue(author,"display_name")}</option>)}</SelectField>
+          <div className="bp-field"><span className="bp-label">Categories</span><div className="bp-category-checklist">{categories.length?categories.map(category=>{const id=stringValue(category,"category_id");return <Checkbox key={id} label={stringValue(category,"name","Unnamed category")} checked={ids(model.categories).includes(id)} onChange={e=>toggleCategory(id,e.target.checked)} disabled={!permissions.includes("categories.view")}/>}):<span className="bp-field-hint">No categories are available for this website.</span>}</div></div>
+        </FormSection>
+
+        {permissions.includes("media.view")?<FormSection title="Featured image"><MediaPicker siteKey={site.site_key} value={model.featuredMedia} onSelect={mediaId=>update("featuredMedia",mediaId)} label="Choose featured image"/></FormSection>:null}
+
+        {permissions.includes("search.view")&&(permissions.includes("posts.edit")||permissions.includes("posts.create"))?<RelatedCandidatePanel siteKey={site.site_key} {...(mode==="edit"&&postId?{postId}:{})} relatedIds={ids(model.related)} onChange={values=>update("related",values.join(", "))}/>:null}
+
+        <FormSection title="Search appearance">
+          <TextField label="SEO title" value={model.seoTitle} onChange={e=>update("seoTitle",e.target.value)} disabled={!permissions.includes("seo.edit")} placeholder={model.title||"Article title"}/>
+          <TextArea label="Meta description" value={model.metaDescription} onChange={e=>update("metaDescription",e.target.value)} disabled={!permissions.includes("seo.edit")} placeholder={model.excerpt||"Short search description"}/>
+          <TextField label="URL slug" value={model.slug} onChange={e=>update("slug",e.target.value)} placeholder="Generated from title when published"/>
+          <div className="bp-search-preview"><span>Search preview</span><strong>{model.seoTitle||model.title||"Your article title"}</strong><p>{model.metaDescription||model.excerpt||"Add a short description for search results."}</p></div>
+          {permissions.includes("media.view")?<MediaPicker siteKey={site.site_key} value={model.ogImage} onSelect={mediaId=>update("ogImage",mediaId)} label="Choose social image"/>:null}
+        </FormSection>
+
+        {mode==="edit"&&postId?<details className="bp-advanced-settings"><summary>Advanced URL history</summary><UrlHistoryPanel siteKey={site.site_key} postId={postId}/></details>:null}
+
+        {mode==="edit"?<section className="bp-editor-lifecycle"><h3>Publish</h3><div className="bp-editor-lifecycle-actions">
+          {permissions.includes("posts.publish")&&status!=="PUBLISHED"&&status!=="TRASH"&&status!=="ARCHIVED"?<Button variant="primary" onClick={()=>setPublishReviewOpen(true)}>Publish…</Button>:null}
+          {permissions.includes("posts.schedule")&&status!=="PUBLISHED"&&status!=="TRASH"&&status!=="ARCHIVED"?<Button onClick={()=>setScheduleOpen(true)}>{status==="SCHEDULED"?"Reschedule":"Schedule"}</Button>:null}
+          {permissions.includes("posts.schedule")&&status==="SCHEDULED"?<Button onClick={()=>void unschedule()} loading={unscheduleMutation.isPending}>Unschedule</Button>:null}
+          {permissions.includes("posts.archive")&&status!=="ARCHIVED"&&status!=="TRASH"?<Button onClick={()=>setConfirmAction("archive")}>Archive</Button>:null}
+          {permissions.includes("posts.trash")&&status!=="TRASH"?<Button variant="destructive" onClick={()=>setConfirmAction("trash")}>Move to Trash</Button>:null}
+          {permissions.includes("posts.restore")&&status==="TRASH"?<Button onClick={()=>setConfirmAction("restore")}>Restore</Button>:null}
+          {permissions.includes("posts.duplicate")?<Button onClick={()=>void duplicateMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{}}).then(result=>{const p=asRecord(asRecord(result).post);navigate(`/site/${site.site_key}/posts/${stringValue(p,"post_id")}`)})}>Duplicate</Button>:null}
+          {permissions.includes("posts.delete")&&status==="TRASH"?<Button variant="destructive" onClick={()=>setConfirmAction("delete")}>Permanent delete</Button>:null}
+        </div>{permissions.includes("posts.revisions.view")?<p><Link to={`/site/${site.site_key}/posts/${postId}/revisions`}>Revision history</Link></p>:null}</section>:null}
+      </aside>
+    </div>
+
+    <Modal open={publishReviewOpen} title="Ready to publish?" description="Review the essentials. Publishing will save the current editor content first, then publish that exact server version." onClose={()=>setPublishReviewOpen(false)} footer={<><Button onClick={()=>setPublishReviewOpen(false)}>Cancel</Button><Button variant="primary" onClick={()=>void publishCurrent()} loading={publishMutation.isPending||saveMutation.isPending} disabled={publishProblems.length>0}>Publish now</Button></>}>
+      <div className="bp-publish-review">
+        <div><strong>Title</strong><span>{model.title||"Missing"}</span></div>
+        <div><strong>Author</strong><span>{authors.find(author=>stringValue(author,"author_id")===model.author)?stringValue(authors.find(author=>stringValue(author,"author_id")===model.author)!,"display_name"):"Missing"}</span></div>
+        <div><strong>Categories</strong><span>{ids(model.categories).length||"None"}</span></div>
+        <div><strong>Featured image</strong><span>{model.featuredMedia?"Selected":"Not selected"}</span></div>
+        <div><strong>URL</strong><span>{model.slug||"Will be generated from the title"}</span></div>
+      </div>
+      {publishProblems.length?<Alert tone="danger"><strong>Required before publishing:</strong><ul>{publishProblems.map(problem=><li key={problem}>{problem}</li>)}</ul></Alert>:null}
+      {publishWarnings.length?<Alert tone="warning"><strong>Optional improvements:</strong><ul>{publishWarnings.map(warning=><li key={warning}>{warning}</li>)}</ul></Alert>:null}
+    </Modal>
+
+    <Modal open={scheduleOpen} title={status==="SCHEDULED"?"Reschedule publication":"Schedule publication"} description={`Choose the publication time in ${scheduleTz}. Current editor changes will be saved before scheduling.`} onClose={()=>setScheduleOpen(false)} footer={<><Button onClick={()=>setScheduleOpen(false)}>Cancel</Button><Button variant="primary" onClick={()=>void schedule()} loading={scheduleMutation.isPending||saveMutation.isPending} disabled={!scheduleLocal||publishProblems.length>0}>{status==="SCHEDULED"?"Reschedule":"Schedule"}</Button></>}>
+      <div className="bp-form-stack"><TextField label={`Date and time (${scheduleTz})`} type="datetime-local" value={scheduleLocal} onChange={e=>setScheduleLocal(e.target.value)} required/>{publishProblems.length?<Alert tone="danger">Add a title, article content and author before scheduling.</Alert>:null}</div>
+    </Modal>
+
     <Modal open={recoverOpen} title="Newer autosave available" description="Autosave is private recovery state, not a formal revision or publication." onClose={()=>setRecoverOpen(false)} footer={<><Button onClick={()=>setRecoverOpen(false)}>Keep server version</Button><Button variant="primary" onClick={recover}>Load autosave into editor</Button></>}><Alert tone="warning">Loading this autosave changes only the browser working copy. An explicit durable save is still required.</Alert></Modal>
+
     <Modal open={Boolean(confirmAction)} title={confirmAction==="delete"?"Permanently delete post?":`${confirmAction??"Change"} post?`} description={confirmAction==="restore"?"Restore returns a trashed Post to a non-public working state; it never silently republishes.":"This lifecycle action is server-authorized and version-checked. A stale write will be rejected."} onClose={()=>setConfirmAction(undefined)} footer={<><Button onClick={()=>setConfirmAction(undefined)}>Cancel</Button>{confirmAction==="delete"?<Link className="bp-button bp-button--secondary" to="/step-up">Reauthenticate first</Link>:null}<Button variant="destructive" onClick={()=>void confirmLifecycle()}>{confirmAction==="delete"?"Permanent delete":"Confirm"}</Button></>}><Alert tone={confirmAction==="delete"?"danger":"warning"}>The browser cannot bypass permission, lifecycle, target ownership, version, or required step-up checks.</Alert></Modal>
   </PageFrame>;
 }
+
