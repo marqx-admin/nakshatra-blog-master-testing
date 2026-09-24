@@ -49,7 +49,7 @@ function editorTransport(post=makePost(),handler?:(id:AdminOperationId,input?:Ad
   });
 }
 function renderEditor({mode="edit",post=makePost(),transport=editorTransport(post)}:{mode?:"create"|"edit";post?:Record<string,unknown>;transport?:AdminTransport}={}){
-  const site={site_key:"SITE-01",display_name:"Fixture Site",lifecycle_state:"ACTIVE",timezone_id:"Asia/Kolkata",effective_permissions:permissions,access_level:"FULL_WEBSITE_MANAGER"} as const;
+  const site={site_key:"SITE-01",display_name:"Fixture Site",lifecycle_state:"ACTIVE" as const,timezone_id:"Asia/Kolkata",effective_permissions:permissions,access_level:"FULL_WEBSITE_MANAGER" as const};
   const element=(editorMode:"create"|"edit")=><DirtyStateProvider><SiteContextValue value={site}><PostEditorPage mode={editorMode}/></SiteContextValue></DirtyStateProvider>;
   const router=createMemoryRouter([
     {path:"/site/:siteKey/posts/new",element:element("create")},
@@ -133,7 +133,7 @@ test("H2, H3, Quote, editable Table, bullet list, numbered list and natural list
   await waitFor(()=>expect(screen.queryByRole("textbox",{name:"List item 2"})).not.toBeInTheDocument());
   expect(screen.getByText("First item")).toBeInTheDocument();
 
-  await user.click(screen.getByRole("button",{name:"Numbered list"}));expect(await screen.findByText("Numbered list")).toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"Numbered list"}));expect(screen.getAllByText("Numbered list").length).toBeGreaterThan(1);
 });
 
 test("Bold and Italic toggle ON/OFF without losing selected text",async()=>{
@@ -214,7 +214,7 @@ test("Related Articles reload by title, exclude the current post, and add anothe
   expect(await screen.findByText("Saved Related")).toBeInTheDocument();
   await userEvent.type(screen.getByLabelText("Find an article"),"related");
   expect(await screen.findByText("New Related")).toBeInTheDocument();expect(screen.queryByText("Current Article")).not.toBeInTheDocument();
-  await userEvent.click(screen.getByRole("button",{name:"Add"}));expect(await screen.findByText("New Related")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button",{name:"Add"}));await waitFor(()=>expect(screen.getAllByText("New Related").length).toBeGreaterThan(1));
 });
 
 test("initial draft creation persists edits made while the create request is in flight",async()=>{
