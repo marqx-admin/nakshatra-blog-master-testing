@@ -55,7 +55,9 @@ test("editor covers URL history plus editorial link and related-candidate helper
   assert.ok(editorAssist.includes("API15-S-061"));
   assert.ok(editorAssist.includes("BOLD"));
   assert.ok(editorAssist.includes("ITALIC"));
-  assert.ok(editorAssist.includes("transformSelection"));
+  assert.ok(editorAssist.includes("transformRichSelection"));
+  assert.ok(editorAssist.includes("normalizedInternalCandidate"));
+  assert.ok(editorAssist.includes("data-bp-link-kind"));
 });
 
 test("the exact 13 DOC-10 execution states are frozen in source", () => {
