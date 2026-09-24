@@ -98,21 +98,20 @@ export function InternalLinkSearchPanel({ siteKey, onUse }: { siteKey: string; o
   </FormSection>;
 }
 
+function SelectedRelatedArticle({ siteKey, postId, onRemove }: { siteKey: string; postId: string; onRemove(): void }) {
+  const query = useAdminQuery<UnknownRecord>("API15-S-012", { path: { site_key: siteKey, post_id: postId } }, Boolean(postId));
+  const post = asRecord(asRecord(query.data).post);
+  return <span className="bp-related-chip"><span>{query.isLoading ? "Loading article…" : query.isError ? "Selected article" : stringValue(post, "title", "Selected article")}</span><Button type="button" variant="tertiary" onClick={onRemove}>Remove</Button></span>;
+}
+
 export function RelatedCandidatePanel({ siteKey, postId, relatedIds, onChange }: { siteKey: string; postId?: string; relatedIds: string[]; onChange(ids: string[]): void }) {
   const [search, setSearch] = useState("");
   const enabled = search.trim().length > 0;
   const query = useAdminQuery<UnknownRecord>("API15-S-092", { path: { site_key: siteKey }, query: { post_id: postId || undefined, q: search.trim() || undefined, page: 1, page_size: 20 } }, enabled);
-  const selectedPostsQuery = useAdminQuery<UnknownRecord>("API15-S-010", { path: { site_key: siteKey }, query: { page: 1, page_size: 100, sort: "UPDATED_DESC" } }, relatedIds.length > 0);
   const items = listItems(query.data);
-  const selectedPosts = listItems(selectedPostsQuery.data);
   const selected = useMemo(() => new Set(relatedIds.filter(Boolean)), [relatedIds.join("|")]);
-  const titleFor = (id: string) => {
-    const item = selectedPosts.find((candidate) => stringValue(candidate, "post_id", "") === id)
-      ?? items.find((candidate) => stringValue(candidate, "post_id", "") === id);
-    return item ? stringValue(item, "title", "Selected article") : "Selected article";
-  };
   return <FormSection title="Related articles" description="Search and choose articles from this website only.">
-    {relatedIds.length ? <div className="bp-related-selected" aria-label="Selected related articles">{relatedIds.map((id) => <span className="bp-related-chip" key={id}><span>{titleFor(id)}</span><Button type="button" variant="tertiary" onClick={() => onChange(relatedIds.filter((candidate) => candidate !== id))}>Remove</Button></span>)}</div> : <p className="bp-field-hint">No related articles selected.</p>}
+    {relatedIds.length ? <div className="bp-related-selected" aria-label="Selected related articles">{relatedIds.map((id) => <SelectedRelatedArticle key={id} siteKey={siteKey} postId={id} onRemove={() => onChange(relatedIds.filter((candidate) => candidate !== id))}/>)}</div> : <p className="bp-field-hint">No related articles selected.</p>}
     <TextField label="Find an article" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by title" />
     {query.isLoading ? <p role="status">Searching…</p> : null}
     {query.isError ? <Alert tone="warning">Related article suggestions could not be loaded.</Alert> : null}
