@@ -290,7 +290,7 @@ export function RichTextRunsEditor({
   onFocus?(): void;
 }) {
   const editorRef = useRef<HTMLDivElement>(null);
-  const localSignature = useRef<string>();
+  const localSignature = useRef<string | undefined>(undefined);
   const signature = runSignature(value);
 
   useEffect(() => {
