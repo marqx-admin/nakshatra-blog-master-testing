@@ -30,7 +30,7 @@ function withOverrides(handler:(id:AdminOperationId,input?:AdminRequestInput)=>A
   }};
 }
 function rich(text:string,marks:string[]=[]){return {runs:[{text,marks}]}}
-function makePost(overrides:Record<string,unknown>={}){
+function makePost(overrides:Record<string,unknown>={}):Record<string,unknown>{
   return {
     post_id:postId,status:"DRAFT",version:1,title:"Fixture Post",excerpt:"",
     body:{content_schema_version:"1",blocks:[{block_id:"b1",type:"PARAGRAPH",content:rich("First paragraph")}]},
@@ -39,7 +39,7 @@ function makePost(overrides:Record<string,unknown>={}){
     ...overrides,
   };
 }
-function editorTransport(post=makePost(),handler?:(id:AdminOperationId,input?:AdminRequestInput)=>AdminResponse<unknown>|Promise<AdminResponse<unknown>|undefined>|undefined):AdminTransport{
+function editorTransport(post:Record<string,unknown>=makePost(),handler?:(id:AdminOperationId,input?:AdminRequestInput)=>AdminResponse<unknown>|Promise<AdminResponse<unknown>|undefined>|undefined):AdminTransport{
   return withOverrides(async(id,input)=>{
     const custom=await handler?.(id,input);if(custom)return custom;
     if(id==="API15-S-012")return ok({post});
