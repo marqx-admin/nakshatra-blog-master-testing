@@ -330,7 +330,7 @@ export function RichTextRunsEditor({
 }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const localSignature = useRef<string | undefined>(undefined);
-  const linkRangeRef = useRef<{ start: number; end: number }>();
+  const linkRangeRef = useRef<{ start: number; end: number } | undefined>(undefined);
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkSearch, setLinkSearch] = useState("");
