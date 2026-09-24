@@ -133,11 +133,11 @@ function richHtml(value: unknown): string {
   return normalizeRuns(value).map(run => {
     let html = escapeHtml(String(run.text ?? "")).replaceAll("\n", "<br>");
     const marks = Array.isArray(run.marks) ? run.marks.map(String) : [];
-    if (marks.includes("BOLD")) html = \`<strong>\${html}</strong>\`;
-    if (marks.includes("ITALIC")) html = \`<em>\${html}</em>\`;
+    if (marks.includes("BOLD")) html = `<strong>${html}</strong>`;
+    if (marks.includes("ITALIC")) html = `<em>${html}</em>`;
     const link = asRecord(run.link);
     const href = stringValue(link, "url", "");
-    if (href && href !== "—") html = \`<a href="\${escapeHtml(href)}">\${html}</a>\`;
+    if (href && href !== "—") html = `<a href="${escapeHtml(href)}">${html}</a>`;
     return html;
   }).join("");
 }
@@ -357,8 +357,8 @@ export function RichTextRunsEditor({
     }
   }
 
-  return <div className={\`bp-rich-text-editor bp-rich-text-editor--writer bp-rich-text-editor--\${variant}\`}>
-    <div className="bp-format-toolbar" role="toolbar" aria-label={\`\${label} formatting\`}>
+  return <div className={`bp-rich-text-editor bp-rich-text-editor--writer bp-rich-text-editor--${variant}`}>
+    <div className="bp-format-toolbar" role="toolbar" aria-label={`${label} formatting`}>
       <Button type="button" variant="tertiary" onClick={() => applyMark("BOLD")}><strong>Bold</strong></Button>
       <Button type="button" variant="tertiary" onClick={() => applyMark("ITALIC")}><em>Italic</em></Button>
       <Button type="button" variant="tertiary" onClick={applyLink}>Link</Button>
