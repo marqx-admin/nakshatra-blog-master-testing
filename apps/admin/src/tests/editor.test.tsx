@@ -123,7 +123,8 @@ test("Enter splits paragraphs, Backspace merges them, and Undo/Redo restore actu
 
 test("H2, H3, Quote, editable Table, bullet list, numbered list and natural list exit work",async()=>{
   renderEditor();await screen.findByRole("heading",{name:"Edit Post"});const user=userEvent.setup();
-  await user.click(screen.getByRole("button",{name:"H2"}));expect(await screen.findByRole("textbox",{name:"Heading H2"})).toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"H2"}));const h2=await screen.findByRole("textbox",{name:"Heading H2"});await user.type(h2,"Heading converted to paragraph");
+  await user.click(screen.getByRole("button",{name:"Paragraph"}));await waitFor(()=>expect(screen.queryByRole("textbox",{name:"Heading H2"})).not.toBeInTheDocument());expect(screen.getAllByRole("textbox",{name:"Paragraph"}).some(node=>node.textContent==="Heading converted to paragraph")).toBe(true);
   await user.click(screen.getByRole("button",{name:"H3"}));expect(await screen.findByRole("textbox",{name:"Heading H3"})).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Quote"}));const quote=await screen.findByRole("textbox",{name:"Quote"});await user.type(quote,"A simple quote");expect(quote).toHaveTextContent("A simple quote");
   await user.click(screen.getByRole("button",{name:"Table"}));const cell=await screen.findByRole("textbox",{name:"Row 1, column 1"});await user.type(cell,"Cell value");expect(cell).toHaveValue("Cell value");
