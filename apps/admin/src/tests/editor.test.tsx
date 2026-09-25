@@ -131,8 +131,8 @@ test("contextual transforms, slash blocks, inserter blocks and natural list exit
   await waitFor(()=>expect(screen.queryByRole("textbox",{name:"Heading H2"})).not.toBeInTheDocument());
   expect(screen.getByRole("textbox",{name:"Paragraph"})).toHaveTextContent("Heading converted");
 
-  const activeParagraph=screen.getByRole("textbox",{name:"Paragraph"});activeParagraph.focus();setSelection(activeParagraph,activeParagraph.textContent?.length??0);
-  fireEvent.input(activeParagraph,{target:{textContent:"/h3"}});await waitFor(()=>expect(screen.getByRole("listbox",{name:"Block suggestions"})).toBeInTheDocument());
+  const activeParagraph=screen.getByRole("textbox",{name:"Paragraph"});activeParagraph.focus();activeParagraph.textContent="/h3";setSelection(activeParagraph,3);
+  fireEvent.input(activeParagraph);await waitFor(()=>expect(screen.getByRole("listbox",{name:"Block suggestions"})).toBeInTheDocument());
   await user.click(within(screen.getByRole("listbox",{name:"Block suggestions"})).getByRole("option",{name:/Heading 3/}));
   expect(await screen.findByRole("textbox",{name:"Heading H3"})).toBeInTheDocument();
 
