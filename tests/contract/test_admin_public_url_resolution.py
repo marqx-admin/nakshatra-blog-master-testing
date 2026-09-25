@@ -21,7 +21,7 @@ def test_staging_admin_uses_matching_active_temporary_alias():
     ]
     assert _preferred_public_url(
         "ecst95lbadgfzh4dyga1tczv.187.127.169.228.sslip.io", domains
-    ) == "http://yz6xuvrpj3v7nzamccow2pek.187.127.169.228.sslip.io"
+    ) == "https://yz6xuvrpj3v7nzamccow2pek.187.127.169.228.sslip.io"
 
 
 def test_production_admin_uses_current_canonical_domain():

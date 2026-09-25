@@ -150,7 +150,7 @@ def _preferred_public_url(request_host: str, domains: list[tuple[str, bool]]) ->
                 for host, is_canonical in normalized:
                     host_normalized = host.lower().rstrip(".")
                     if not is_canonical and host_normalized.endswith(f".{environment_suffix}"):
-                        return f"http://{host}"
+                        return f"https://{host}"
             break
 
     return f"https://{canonical}" if canonical else None
