@@ -159,3 +159,23 @@ def test_wave2_api_registration_is_canonical_without_duplicate_routes():
         if isinstance(op, dict) and op.get("operationId")
     }
     assert generated_operation_ids == set(canonical)
+
+
+def test_run1_public_delivery_repairs_are_applied_to_all_fourteen_site_apps():
+    site_dirs = sorted(p for p in (ROOT / "apps/sites").iterdir() if p.is_dir())
+    assert len(site_dirs) == 14
+    for site_dir in site_dirs:
+        destination_link = (site_dir / "src/site/components/destination-link.tsx").read_text()
+        mobile_nav = (site_dir / "src/site/shell/navigation/mobile-navigation.tsx").read_text()
+        ssr = (site_dir / "src/site/lib/ssr.ts").read_text()
+
+        assert "destinationPath(destination)" in destination_link
+        assert 'destination.kind === "MAILTO"' in destination_link
+        assert "href={destinationPath(item.destination)}" in mobile_nav
+        assert "ctx.query.handoff" in ssr
+        assert 'response.headers.get("set-cookie")' in ssr
+        assert 'ctx.res.setHeader("Set-Cookie", setCookie)' in ssr
+        assert "statusCode: 302" in ssr
+        assert "sslip.io" not in destination_link
+        assert "sslip.io" not in mobile_nav
+        assert "sslip.io" not in ssr

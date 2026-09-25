@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { NavigationItem } from "./navigation-types";
 import { DestinationLink } from "../../components/destination-link";
-import { isCurrentDestination } from "../../lib/destination";
+import { destinationPath, isCurrentDestination } from "../../lib/destination";
 
 export function MobileNavigation({ items, requestPath, searchDestination }: { items: NavigationItem[]; requestPath: string; searchDestination?: NavigationItem["destination"] | undefined }) {
   const [open, setOpen] = useState(false);
@@ -34,7 +34,7 @@ export function MobileNavigation({ items, requestPath, searchDestination }: { it
             <ul>
               {items.map((item, index) => (
                 <li key={`${item.label}-${item.destination.url}`}>
-                  <a ref={index === 0 ? firstLinkRef : undefined} href={item.destination.url} aria-current={isCurrentDestination(item.destination, requestPath) ? "page" : undefined}>{item.label}</a>
+                  <a ref={index === 0 ? firstLinkRef : undefined} href={destinationPath(item.destination)} aria-current={isCurrentDestination(item.destination, requestPath) ? "page" : undefined}>{item.label}</a>
                 </li>
               ))}
             </ul>

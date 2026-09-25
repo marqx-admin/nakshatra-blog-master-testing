@@ -15,7 +15,9 @@ from bp_adapters.postgres.repositories.audit import append_site_audit_event
 from bp_adapters.postgres.repositories.concurrency import PostVersionConflict
 from bp_adapters.postgres.repositories.context import SiteRepositoryContext
 from bp_adapters.postgres.repositories.posts import update_post_with_expected_version
+from bp_adapters.postgres.runtime import PostgresPublicPageAdapter
 from bp_adapters.postgres.site_transaction import _trusted_uuid
+from bp_domain.context import ContextKind, ContextSource, SiteContext
 
 SITE1 = UUID("10000000-0000-4000-8000-000000000001")
 POST1 = UUID("34000000-0000-4000-8000-000000000001")
@@ -206,3 +208,60 @@ def test_site_audit_insert_binds_site_from_database_context_and_serializes_detai
     assert "'SITE', app.current_site_id()" in normalized
     assert "CAST(:details_json AS jsonb)" in normalized
     assert params["details_json"] == '{"changed_field_names":["title"]}'
+
+
+def test_public_article_body_projects_persisted_editor_blocks_to_rc8_payload_shape():
+    adapter = PostgresPublicPageAdapter(None, media_cdn_origin="https://media.example.test")
+    context = SiteContext(
+        kind=ContextKind.PUBLIC_SITE,
+        site_id=str(SITE1),
+        site_key="SITE-01",
+        site_status="ACTIVE",
+        canonical_domain="whatsyourrashi.in",
+        context_source=ContextSource.PUBLIC_HOST,
+        request_id="req-public-body",
+        request_host="site01-staging.sslip.io",
+    )
+    persisted = {
+        "content_schema_version": "1",
+        "blocks": [
+            {
+                "block_id": "block-1",
+                "type": "PARAGRAPH",
+                "content": {
+                    "runs": [
+                        {
+                            "text": "Published body",
+                            "marks": ["BOLD"],
+                            "link": {"kind": "EXTERNAL", "url": "https://example.test/source"},
+                        }
+                    ]
+                },
+            },
+            {"block_id": "block-2", "type": "SEPARATOR"},
+        ],
+    }
+
+    projected = adapter._public_article_body(object(), context, persisted, 1)
+
+    assert projected["content_schema_version"] == "1"
+    assert projected["blocks"][0] == {
+        "block_id": "block-1",
+        "type": "PARAGRAPH",
+        "payload": {
+            "content": {
+                "runs": [
+                    {
+                        "text": "Published body",
+                        "marks": ["BOLD"],
+                        "link": {
+                            "kind": "EXTERNAL",
+                            "url": "https://example.test/source",
+                            "is_external": True,
+                        },
+                    }
+                ]
+            }
+        },
+    }
+    assert projected["blocks"][1] == {"block_id": "block-2", "type": "SEPARATOR", "payload": {}}

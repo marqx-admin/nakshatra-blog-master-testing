@@ -11,7 +11,7 @@ from bp_domain.errors import NotFound, Unauthenticated, ValidationFault
 from bp_domain.context import RequestContext
 
 from ..contract import operation_index, validate_response
-from ..dependencies.security import PREVIEW_COOKIE
+from ..dependencies.security import PREVIEW_COOKIE, set_preview_cookie
 from ..rate_limits import enforce_transport_quota, safe_subject_hash, source_network_key
 
 router = APIRouter()
@@ -155,17 +155,29 @@ async def preview_page(request: Request, post_id: UUID):
         operation_id,
         site=context,
     )
+    handoff = request.query_params.get("handoff")
     raw = request.cookies.get(PREVIEW_COOKIE)
-    if not raw:
+    validator = request.app.state.services.preview_authority
+    if validator is None:
+        raise Unauthenticated("preview authority unavailable")
+    credential = handoff or raw
+    if not credential or len(credential) > 512:
         raise Unauthenticated("preview authority required")
     await enforce_transport_quota(
         request,
         class_id="PREVIEW_READ",
-        actor_key=f"{safe_subject_hash(raw)}:{context.site_id}",
+        actor_key=f"{safe_subject_hash(credential)}:{context.site_id}",
     )
-    validator = request.app.state.services.preview_authority
-    if validator is None:
-        raise Unauthenticated("preview authority unavailable")
+    exchanged = False
+    if handoff:
+        raw, _ = await validator.exchange_handoff(
+            handoff,
+            site_id=context.site_id,
+            post_id=str(post_id),
+            request_host=context.request_host or "",
+        )
+        exchanged = True
+    assert raw is not None
     source_snapshot = await validator.validate(
         raw,
         site_id=context.site_id,
@@ -176,8 +188,11 @@ async def preview_page(request: Request, post_id: UUID):
         context, post_id=str(post_id), source_snapshot=source_snapshot
     )
     validate_response(request.app.state.canonical_openapi, _contract(request, operation_id), 200, body)
-    return JSONResponse(
+    response = JSONResponse(
         body,
         status_code=200,
         headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"},
     )
+    if exchanged:
+        set_preview_cookie(response, preview_session=raw)
+    return response

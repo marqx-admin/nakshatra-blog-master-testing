@@ -294,6 +294,8 @@ class _Eligibility:
 async def test_preview_handoff_is_single_use_host_site_target_bound_and_revalidated():
     state = InMemorySecurityStateStore()
     sites = FakeSites()
+    staging_host = "site01-staging.sslip.io"
+    sites.by_host[staging_host] = sites.by_host["whatsyourrashi.in"]
     eligibility = _Eligibility()
     audit = FakeAudit()
     preview = PreviewAuthorityService(state, sites, eligibility, audit)
@@ -303,15 +305,27 @@ async def test_preview_handoff_is_single_use_host_site_target_bound_and_revalida
     handoff, _ = await preview.issue_handoff(context, post_id="post-1", initiating_admin_id="admin-1", source_snapshot="v7")
     with pytest.raises(Unauthenticated):
         await preview.exchange_handoff(handoff, site_id="site-uuid-01", post_id="post-1", request_host="other.example")
-
-    session, _ = await preview.exchange_handoff(handoff, site_id="site-uuid-01", post_id="post-1", request_host="whatsyourrashi.in")
     with pytest.raises(Unauthenticated):
-        await preview.exchange_handoff(handoff, site_id="site-uuid-01", post_id="post-1", request_host="whatsyourrashi.in")
-    selected = await preview.validate(session, site_id="site-uuid-01", post_id="post-1", request_host="whatsyourrashi.in")
+        await preview.exchange_handoff(handoff, site_id="site-uuid-01", post_id="post-1", request_host="apkirashi.com")
+
+    session, _ = await preview.exchange_handoff(handoff, site_id="site-uuid-01", post_id="post-1", request_host=staging_host)
+    with pytest.raises(Unauthenticated):
+        await preview.exchange_handoff(handoff, site_id="site-uuid-01", post_id="post-1", request_host=staging_host)
+    selected = await preview.validate(session, site_id="site-uuid-01", post_id="post-1", request_host=staging_host)
     assert selected == "v7"
     assert eligibility.snapshots[-1] == "v7"
+    with pytest.raises(Unauthenticated):
+        await preview.validate(session, site_id="site-uuid-01", post_id="post-1", request_host="whatsyourrashi.in")
+
+    canonical_handoff, _ = await preview.issue_handoff(context, post_id="post-1", initiating_admin_id="admin-1", source_snapshot="v8")
+    canonical_session, _ = await preview.exchange_handoff(
+        canonical_handoff, site_id="site-uuid-01", post_id="post-1", request_host="whatsyourrashi.in"
+    )
+    assert await preview.validate(
+        canonical_session, site_id="site-uuid-01", post_id="post-1", request_host="whatsyourrashi.in"
+    ) == "v8"
 
     eligibility.allowed = False
     with pytest.raises(Unauthenticated):
-        await preview.validate(session, site_id="site-uuid-01", post_id="post-1", request_host="whatsyourrashi.in")
+        await preview.validate(session, site_id="site-uuid-01", post_id="post-1", request_host=staging_host)
     assert "SEC.PREVIEW.DENIED" in [event for event, _ in audit.events]

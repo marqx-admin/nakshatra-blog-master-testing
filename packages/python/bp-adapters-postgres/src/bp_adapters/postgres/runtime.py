@@ -20,6 +20,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 
 from bp_domain.context import SiteContext, SiteRecord
+from bp_domain.editorial import decode_working_copy_preview_snapshot
 from bp_domain.errors import NotFound, ValidationFault
 from bp_domain.search import PublicSearchDocument
 from bp_domain.security import AccountState, AdminPrincipal
@@ -462,6 +463,161 @@ class PostgresPublicPageAdapter:
     def _external_destination(url: str) -> dict[str, Any]:
         return {"kind": "EXTERNAL", "url": url, "is_external": True}
 
+    def _public_editor_destination(self, connection: Any, context: SiteContext, value: Any) -> dict[str, Any] | None:
+        """Resolve persisted editor link semantics into one site-scoped PublicDestination."""
+        if not isinstance(value, dict):
+            return None
+        kind = str(value.get("kind") or "")
+        if kind == "EXTERNAL":
+            raw_url = str(value.get("url") or "").strip()
+            parsed = urlsplit(raw_url)
+            if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+                return None
+            return self._external_destination(raw_url)
+        if kind != "INTERNAL":
+            return None
+
+        target_type = str(value.get("target_type") or "")
+        if target_type == "STATIC":
+            static_key = str(value.get("static_page_key") or "")
+            static = STATIC_ROUTES.get(static_key)
+            if static is None:
+                return None
+            page_id, path, _ = static
+            return self._destination(context, "STATIC", path, page_id)
+
+        target_id = value.get("target_id")
+        mapping = {
+            "ARTICLE": ("posts", "post_id", "slug", "status='PUBLISHED'", "ARTICLE", "/article/", "PUB-ARTICLE-01"),
+            "CATEGORY": ("categories", "category_id", "slug", "status='ACTIVE'", "CATEGORY", "/category/", "PUB-CATEGORY-01"),
+            "TAG": ("tags", "tag_id", "slug", "status='ACTIVE'", "TAG", "/tag/", "PUB-TAG-01"),
+            "AUTHOR": ("author_site_profiles", "author_profile_id", "slug", "status='ACTIVE'", "AUTHOR", "/author/", "PUB-AUTHOR-01"),
+        }.get(target_type)
+        if target_id is None or mapping is None:
+            return None
+        table, id_column, slug_column, eligibility, public_kind, prefix, page_id = mapping
+        row = connection.execute(
+            text(f"SELECT {slug_column} AS slug FROM {table} WHERE site_id=:site_id AND {id_column}=:target_id AND {eligibility}"),
+            {"site_id": context.site_id, "target_id": target_id},
+        ).fetchone()
+        if row is None:
+            return None
+        return self._destination(context, public_kind, prefix + str(_m(row)["slug"]), page_id)
+
+    def _public_rich_text(self, connection: Any, context: SiteContext, value: Any) -> dict[str, Any]:
+        source = value if isinstance(value, dict) else {}
+        raw_runs = source.get("runs") if isinstance(source.get("runs"), list) else []
+        runs: list[dict[str, Any]] = []
+        for raw in raw_runs:
+            if not isinstance(raw, dict) or not isinstance(raw.get("text"), str):
+                continue
+            item: dict[str, Any] = {
+                "text": raw["text"],
+                "marks": [mark for mark in (raw.get("marks") or []) if mark in {"BOLD", "ITALIC"}],
+            }
+            if raw.get("link") is not None:
+                destination = self._public_editor_destination(connection, context, raw.get("link"))
+                if destination is not None:
+                    item["link"] = destination
+            runs.append(item)
+        if not runs:
+            runs.append({"text": "", "marks": []})
+        return {"runs": runs}
+
+    def _public_article_body(
+        self,
+        connection: Any,
+        context: SiteContext,
+        value: Any,
+        content_schema_version: Any,
+    ) -> dict[str, Any]:
+        """Project canonical persisted ArticleBody into the DOC-13/RC8 public block contract."""
+        source = value if isinstance(value, dict) else _json_object(value)
+        version = str(source.get("content_schema_version") or content_schema_version or 1)
+        blocks: list[dict[str, Any]] = []
+        for raw in source.get("blocks") or []:
+            if not isinstance(raw, dict):
+                continue
+            block_id = str(raw.get("block_id") or "").strip()
+            block_type = str(raw.get("type") or "")
+            if not block_id:
+                continue
+            payload: dict[str, Any] | None = None
+            if block_type == "PARAGRAPH":
+                payload = {"content": self._public_rich_text(connection, context, raw.get("content"))}
+            elif block_type == "HEADING":
+                payload = {
+                    "level": int(raw.get("level") or 2),
+                    "content": self._public_rich_text(connection, context, raw.get("content")),
+                }
+            elif block_type == "LIST":
+                payload = {
+                    "style": str(raw.get("style") or "UNORDERED"),
+                    "items": [self._public_rich_text(connection, context, item) for item in (raw.get("items") or [])],
+                }
+            elif block_type == "QUOTE":
+                payload = {"quote": self._public_rich_text(connection, context, raw.get("quote"))}
+                if isinstance(raw.get("attribution"), str) and raw["attribution"]:
+                    payload["attribution"] = raw["attribution"]
+                if isinstance(raw.get("source"), str) and raw["source"]:
+                    payload["source"] = raw["source"]
+            elif block_type == "SEPARATOR":
+                payload = {}
+            elif block_type == "MEDIA":
+                media = self._media(connection, context, str(raw.get("media_id") or ""))
+                payload = {"resolution_state": "READY" if media is not None else "MISSING"}
+                if media is not None:
+                    payload["media"] = media
+                if isinstance(raw.get("alt_override"), str) and raw["alt_override"]:
+                    payload["alt_override"] = raw["alt_override"]
+                if isinstance(raw.get("caption"), str) and raw["caption"]:
+                    payload["caption"] = raw["caption"]
+            elif block_type == "TABLE":
+                payload = {
+                    "header_row": bool(raw.get("header_row")),
+                    "rows": [
+                        [self._public_rich_text(connection, context, cell) for cell in row]
+                        for row in (raw.get("rows") or [])
+                        if isinstance(row, list)
+                    ],
+                }
+            elif block_type == "EMBED":
+                payload = {
+                    "provider_key": str(raw.get("provider_key") or ""),
+                    "source_url_or_id": str(raw.get("source_url_or_id") or ""),
+                }
+                if isinstance(raw.get("caption"), str) and raw["caption"]:
+                    payload["caption"] = raw["caption"]
+            elif block_type == "CALLOUT":
+                payload = {"body": self._public_rich_text(connection, context, raw.get("body"))}
+                if isinstance(raw.get("label"), str) and raw["label"]:
+                    payload["label"] = raw["label"]
+            elif block_type == "CTA":
+                destination = self._public_editor_destination(connection, context, raw.get("destination"))
+                if destination is None:
+                    continue
+                payload = {"label": str(raw.get("label") or ""), "destination": destination}
+                if isinstance(raw.get("supporting_text"), str) and raw["supporting_text"]:
+                    payload["supporting_text"] = raw["supporting_text"]
+            elif block_type == "DISCLAIMER":
+                payload = {"body": self._public_rich_text(connection, context, raw.get("body"))}
+                if isinstance(raw.get("label"), str) and raw["label"]:
+                    payload["label"] = raw["label"]
+            elif block_type == "SOURCES_REFERENCES":
+                entries: list[dict[str, Any]] = []
+                for raw_entry in raw.get("entries") or []:
+                    if not isinstance(raw_entry, dict) or not str(raw_entry.get("title") or "").strip():
+                        continue
+                    entry: dict[str, Any] = {"title": str(raw_entry["title"])}
+                    for key in ("url", "publisher", "note"):
+                        if isinstance(raw_entry.get(key), str) and raw_entry[key]:
+                            entry[key] = raw_entry[key]
+                    entries.append(entry)
+                payload = {"entries": entries}
+            if payload is not None:
+                blocks.append({"block_id": block_id, "type": block_type, "payload": payload})
+        return {"content_schema_version": version, "blocks": blocks}
+
     def _site_identity(self, context: SiteContext, site: dict[str, Any], settings: dict[str, Any], logo: dict[str, Any] | None, favicon: dict[str, Any] | None) -> dict[str, Any]:
         out: dict[str, Any] = {
             "site_key": context.site_key,
@@ -627,18 +783,64 @@ class PostgresPublicPageAdapter:
             out["updated_at"] = _iso(data["updated_at"])
         return out
 
-    def _article_detail(self, connection: Any, context: SiteContext, row: Any, *, preview: bool = False) -> dict[str, Any]:
+    def _taxonomy_summaries_by_ids(
+        self,
+        connection: Any,
+        context: SiteContext,
+        *,
+        kind: str,
+        identifiers: list[Any],
+    ) -> list[dict[str, Any]]:
+        if kind == "CATEGORY":
+            table, id_column, page_id, prefix = "categories", "category_id", "PUB-CATEGORY-01", "/category/"
+        elif kind == "TAG":
+            table, id_column, page_id, prefix = "tags", "tag_id", "PUB-TAG-01", "/tag/"
+        else:
+            return []
+        out: list[dict[str, Any]] = []
+        for identifier in identifiers:
+            row = connection.execute(
+                text(f"SELECT {id_column},name,slug FROM {table} WHERE site_id=:site_id AND {id_column}=:id AND status='ACTIVE'"),
+                {"site_id": context.site_id, "id": identifier},
+            ).fetchone()
+            if row is None:
+                continue
+            data = _m(row)
+            out.append(
+                {
+                    "kind": kind,
+                    "name": data["name"],
+                    "destination": self._destination(context, kind, prefix + str(data["slug"]), page_id),
+                }
+            )
+        return sorted(out, key=lambda item: (str(item["name"]).casefold(), item["destination"]["url"]))
+
+    def _article_detail(
+        self,
+        connection: Any,
+        context: SiteContext,
+        row: Any,
+        *,
+        preview: bool = False,
+        overrides: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         data = _m(row)
+        preview_overrides = dict(overrides or {})
+        data.update(preview_overrides)
         post_id = str(data["post_id"])
         cats, tags = self._taxonomy_summaries(connection, context, post_id)
-        body = data.get("body") if isinstance(data.get("body"), dict) else _json_object(data.get("body"))
-        body = dict(body or {})
-        body.setdefault("content_schema_version", str(data.get("content_schema_version") or 1))
-        body.setdefault("blocks", [])
-        body["content_schema_version"] = str(body["content_schema_version"])
+        if "category_ids" in preview_overrides:
+            cats = self._taxonomy_summaries_by_ids(
+                connection, context, kind="CATEGORY", identifiers=list(preview_overrides.get("category_ids") or [])
+            )
+        if "tag_ids" in preview_overrides:
+            tags = self._taxonomy_summaries_by_ids(
+                connection, context, kind="TAG", identifiers=list(preview_overrides.get("tag_ids") or [])
+            )
+        body = self._public_article_body(connection, context, data.get("body"), data.get("content_schema_version"))
         author = self._author_summary(connection, context, str(data["author_site_profile_id"]) if data.get("author_site_profile_id") else None)
         if not preview and author is None:
-            # DOC-07 publish eligibility requires one active same-site author.  A
+            # DOC-07 publish eligibility requires one active same-site author. A
             # corrupted published row fails closed instead of fabricating public data.
             raise RuntimeError("published article is missing its required same-site author")
         if preview:
@@ -649,7 +851,7 @@ class PostgresPublicPageAdapter:
                 "categories": cats,
                 "tags": tags,
             }
-            if data.get("slug"):
+            if data.get("slug") and data.get("status") == "PUBLISHED":
                 out["public_destination"] = self._destination(context, "ARTICLE", f"/article/{data['slug']}", "PUB-ARTICLE-01")
         else:
             out = {
@@ -966,7 +1168,7 @@ class PostgresPublicPageAdapter:
         if data["destination_kind"] == "INTERNAL_PATH":
             if not value.startswith("/"):
                 return None
-            location = self._canonical(context, value)
+            location = value
         else:
             parsed = urlsplit(value)
             if parsed.scheme != "https" or not parsed.hostname:
@@ -1011,7 +1213,7 @@ class PostgresPublicPageAdapter:
         if normalized != "/" and normalized.endswith("/"):
             normalized = normalized.rstrip("/")
         if normalized != path:
-            return 308, {}, {"Location": self._canonical(context, normalized)}
+            return 308, {}, {"Location": normalized}
 
         async with self.site_transactions.transaction(context) as connection:
             site, settings = self._base_rows(connection, context)
@@ -1268,27 +1470,73 @@ class PostgresPublicPageAdapter:
             return 404, self._system_page(context, code=404, site=site, settings=settings, navigation=navigation), {}
 
     async def resolve_preview(self, context: SiteContext, *, post_id: str, source_snapshot: str) -> dict[str, Any]:
-        # Preview authority has already validated the site/post/source snapshot before this call.
+        # Preview authority has already validated site/post/snapshot. Re-read the
+        # selected source here so PageData renders that exact private source.
         async with self.site_transactions.transaction(context) as connection:
             site, settings = self._base_rows(connection, context)
-            row = connection.execute(text("SELECT * FROM posts WHERE site_id=:site_id AND post_id=:post_id"), {"site_id": context.site_id, "post_id": post_id}).fetchone()
+            row = connection.execute(
+                text("SELECT * FROM posts WHERE site_id=:site_id AND post_id=:post_id"),
+                {"site_id": context.site_id, "post_id": post_id},
+            ).fetchone()
             if row is None:
                 raise NotFound("resource not found")
             data = _m(row)
+            overrides: dict[str, Any] = {}
+            source_kind = "COMMITTED"
+
+            if source_snapshot.startswith("WORKING_COPY:"):
+                decoded = decode_working_copy_preview_snapshot(source_snapshot)
+                if decoded is None or decoded[0] != int(data["version"]):
+                    raise NotFound("resource not found")
+                overrides = dict(decoded[1])
+                source_kind = "WORKING_COPY"
+            elif source_snapshot.startswith("AUTOSAVE:"):
+                parts = source_snapshot.split(":", 2)
+                if len(parts) != 3:
+                    raise NotFound("resource not found")
+                try:
+                    base_version = int(parts[2])
+                except ValueError as exc:
+                    raise NotFound("resource not found") from exc
+                autosave_row = connection.execute(
+                    text(
+                        "SELECT base_post_version,working_copy FROM post_autosaves "
+                        "WHERE site_id=:site_id AND post_id=:post_id AND autosave_id=:autosave_id"
+                    ),
+                    {"site_id": context.site_id, "post_id": post_id, "autosave_id": parts[1]},
+                ).fetchone()
+                if autosave_row is None:
+                    raise NotFound("resource not found")
+                autosave = _m(autosave_row)
+                if int(autosave["base_post_version"]) != base_version:
+                    raise NotFound("resource not found")
+                raw_working_copy = autosave.get("working_copy")
+                overrides = dict(raw_working_copy) if isinstance(raw_working_copy, dict) else _json_object(raw_working_copy)
+                source_kind = "AUTOSAVE"
+            elif source_snapshot.startswith("COMMITTED:"):
+                try:
+                    committed_version = int(source_snapshot.split(":", 1)[1])
+                except ValueError as exc:
+                    raise NotFound("resource not found") from exc
+                if committed_version != int(data["version"]):
+                    raise NotFound("resource not found")
+            elif source_snapshot not in {"COMMITTED", "CANONICAL"}:
+                raise NotFound("resource not found")
+
             logo = self._media(connection, context, str(settings["logo_media_id"]) if settings.get("logo_media_id") else None)
             favicon = self._media(connection, context, str(settings["favicon_media_id"]) if settings.get("favicon_media_id") else None)
             default_social = self._media(connection, context, str(settings["default_social_image_media_id"]) if settings.get("default_social_image_media_id") else None)
             navigation = self._navigation(connection, context)
-            article = self._article_detail(connection, context, row, preview=True)
+            article = self._article_detail(connection, context, row, preview=True, overrides=overrides)
             seo = {
                 "baseline_indexability": "NOINDEX",
-                "title": str(data.get("title") or "Preview"),
+                "title": str(article.get("title") or "Preview"),
                 "robots": {"index": False, "follow": False},
                 "structured_data": [],
             }
             preview = {
                 "lifecycle_status": str(data["status"]),
-                "source_kind": "COMMITTED" if source_snapshot in {"CANONICAL", "COMMITTED"} else ("AUTOSAVE" if str(source_snapshot).startswith("AUTOSAVE") else "WORKING_COPY"),
+                "source_kind": source_kind,
                 "notice_text": "Private preview",
             }
             payload: dict[str, Any] = {
@@ -1300,15 +1548,27 @@ class PostgresPublicPageAdapter:
                 "article": article,
                 "seo": seo,
             }
-            related_rows = connection.execute(
-                text(
-                    "SELECT p.* FROM post_related_posts r JOIN posts p ON p.site_id=r.site_id AND p.post_id=r.related_post_id "
-                    "WHERE r.site_id=:site_id AND r.post_id=:post_id AND p.status='PUBLISHED' ORDER BY r.position,p.post_id"
-                ),
-                {"site_id": context.site_id, "post_id": post_id},
-            ).fetchall()
-            related = [self._article_summary(connection, context, item) for item in related_rows]
-            if related: payload["related_content"] = {"articles": related}
+
+            related: list[dict[str, Any]] = []
+            if "manual_related_post_ids" in overrides:
+                for related_id in overrides.get("manual_related_post_ids") or []:
+                    related_row = connection.execute(
+                        text("SELECT * FROM posts WHERE site_id=:site_id AND post_id=:post_id AND status='PUBLISHED'"),
+                        {"site_id": context.site_id, "post_id": related_id},
+                    ).fetchone()
+                    if related_row is not None:
+                        related.append(self._article_summary(connection, context, related_row))
+            else:
+                related_rows = connection.execute(
+                    text(
+                        "SELECT p.* FROM post_related_posts r JOIN posts p ON p.site_id=r.site_id AND p.post_id=r.related_post_id "
+                        "WHERE r.site_id=:site_id AND r.post_id=:post_id AND p.status='PUBLISHED' ORDER BY r.position,p.post_id"
+                    ),
+                    {"site_id": context.site_id, "post_id": post_id},
+                ).fetchall()
+                related = [self._article_summary(connection, context, item) for item in related_rows]
+            if related:
+                payload["related_content"] = {"articles": related}
             return payload
 
 

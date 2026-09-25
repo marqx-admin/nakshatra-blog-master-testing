@@ -77,9 +77,26 @@ export function createPreviewGetServerSideProps() {
         const fixtureResponse = resolvePreviewFixture(host);
         response = { status: fixtureResponse.status, data: fixtureResponse.data, headers: new Headers({ "Cache-Control": "no-store" }) };
       } else {
+        const handoff = first(ctx.query.handoff);
         const cookie = first(ctx.req.headers.cookie as string | string[] | undefined) ?? "";
-        const client = createPublicApiClient({ baseUrl: apiOrigin(ctx), defaultInit: { cache: "no-store", headers: { "X-BP-Public-Host": host, ...(cookie ? { Cookie: cookie } : {}) } } });
+        const exchangeFetch: typeof globalThis.fetch | undefined = handoff ? async (input, init) => {
+          const rawUrl = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+          const target = new URL(rawUrl);
+          target.searchParams.set("handoff", handoff);
+          return globalThis.fetch(target, init);
+        } : undefined;
+        const client = createPublicApiClient({
+          baseUrl: apiOrigin(ctx),
+          ...(exchangeFetch ? { fetch: exchangeFetch } : {}),
+          defaultInit: { cache: "no-store", headers: { "X-BP-Public-Host": host, ...(!handoff && cookie ? { Cookie: cookie } : {}) } },
+        });
         response = await client.request("API15-PUB-002", { path: { post_id: postId } });
+        if (handoff && response.status === 200) {
+          const setCookie = response.headers.get("set-cookie");
+          if (!setCookie) throw new Error("Preview handoff exchange did not return a preview session cookie");
+          ctx.res.setHeader("Set-Cookie", setCookie);
+          return { redirect: { destination: path, statusCode: 302 } };
+        }
       }
       if (response.status === 200) {
         const data = response.data as AnyRenderablePageData;

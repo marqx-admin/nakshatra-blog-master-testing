@@ -961,18 +961,13 @@ class PreviewAuthorityService:
         if record is None or record.site_id != site_id or record.post_id != post_id:
             await self.audit.append("SEC.PREVIEW.DENIED", actor_admin_id=None, site_id=site_id, details={})
             raise Unauthenticated("preview authority required")
-        expected_host = record.metadata.get("canonical_domain")
         try:
             observed_host = normalize_host(request_host)
-            canonical_host = normalize_host(expected_host or "")
         except Exception:
             await self.audit.append("SEC.PREVIEW.DENIED", actor_admin_id=None, site_id=site_id, details={})
             raise Unauthenticated("preview authority required")
-        if observed_host != canonical_host:
-            await self.audit.append("SEC.PREVIEW.DENIED", actor_admin_id=None, site_id=site_id, details={})
-            raise Unauthenticated("preview authority required")
-        site = await self.sites.get_site_by_id(site_id)
-        if site is None or not site.public_eligible:
+        site = await self.sites.resolve_host(observed_host)
+        if site is None or site.site_id != site_id or not site.public_eligible:
             await self.audit.append("SEC.PREVIEW.DENIED", actor_admin_id=None, site_id=site_id, details={})
             raise Unauthenticated("preview authority required")
         context = SiteContext(
@@ -1012,7 +1007,8 @@ class PreviewAuthorityService:
                 site_id=site_id,
                 post_id=post_id,
                 metadata={
-                    "canonical_domain": canonical_host,
+                    "canonical_domain": site.canonical_domain,
+                    "preview_host": observed_host,
                     "source_snapshot": record.metadata.get("source_snapshot", ""),
                 },
             )
@@ -1034,16 +1030,17 @@ class PreviewAuthorityService:
         except Exception:
             await self.audit.append("SEC.PREVIEW.DENIED", actor_admin_id=None, site_id=site_id, details={})
             raise Unauthenticated("preview authority required")
+        bound_host = "" if record is None else (record.metadata.get("preview_host") or record.metadata.get("canonical_domain", ""))
         if (
             record is None
             or record.site_id != site_id
             or record.post_id != post_id
-            or record.metadata.get("canonical_domain", "") != observed_host
+            or bound_host != observed_host
         ):
             await self.audit.append("SEC.PREVIEW.DENIED", actor_admin_id=None, site_id=site_id, details={})
             raise Unauthenticated("preview authority required")
-        site = await self.sites.get_site_by_id(site_id)
-        if site is None or not site.public_eligible:
+        site = await self.sites.resolve_host(observed_host)
+        if site is None or site.site_id != site_id or not site.public_eligible:
             await self.audit.append("SEC.PREVIEW.DENIED", actor_admin_id=None, site_id=site_id, details={})
             raise Unauthenticated("preview authority required")
         from bp_domain.context import ContextKind, ContextSource
