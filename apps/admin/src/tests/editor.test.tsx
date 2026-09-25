@@ -74,16 +74,16 @@ function setSelection(editor:HTMLElement,start:number,end=start){
 }
 afterEach(()=>{vi.useRealTimers();vi.restoreAllMocks()});
 
-test("editor exposes the frozen writer controls and 12 ArticleBody types",async()=>{
+test("editor exposes a clean WordPress-style command bar while preserving all 12 ArticleBody types",async()=>{
   renderEditor();
   expect(await screen.findByRole("heading",{name:"Edit Post"})).toBeInTheDocument();
   expect(ARTICLE_BLOCK_TYPES).toEqual(["PARAGRAPH","HEADING","LIST","QUOTE","SEPARATOR","MEDIA","TABLE","EMBED","CALLOUT","CTA","DISCLAIMER","SOURCES_REFERENCES"]);
-  for(const label of ["Paragraph","H2","H3","Bulleted list","Numbered list","Quote","Image","Table","Divider","Undo","Redo","Preview","Schedule"]){
+  for(const label of ["+ Add block","Undo","Redo","Hide settings","Preview","Schedule"]){
     expect(screen.getByRole("button",{name:label})).toBeInTheDocument();
   }
   expect(screen.getByRole("button",{name:/Publish/})).toBeInTheDocument();
   expect(screen.getByRole("heading",{name:"Featured image"})).toBeInTheDocument();
-  expect(screen.queryByText("Unordered")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button",{name:"H2"})).not.toBeInTheDocument();
   expect(screen.queryByText("RC8 editorial helper")).not.toBeInTheDocument();
 });
 
@@ -122,20 +122,36 @@ test("Enter splits paragraphs, Backspace merges them, and Undo/Redo restore actu
   await waitFor(()=>expect(screen.getAllByRole("textbox",{name:"Paragraph"})).toHaveLength(2));
 });
 
-test("H2, H3, Quote, editable Table, bullet list, numbered list and natural list exit work",async()=>{
+test("contextual transforms, slash blocks, inserter blocks and natural list exit work",async()=>{
   renderEditor();await screen.findByRole("heading",{name:"Edit Post"});const user=userEvent.setup();
-  await user.click(screen.getByRole("button",{name:"H2"}));const h2=await screen.findByRole("textbox",{name:"Heading H2"});await user.type(h2,"Heading converted to paragraph");
-  await user.click(screen.getByRole("button",{name:"Paragraph"}));await waitFor(()=>expect(screen.queryByRole("textbox",{name:"Heading H2"})).not.toBeInTheDocument());expect(screen.getAllByRole("textbox",{name:"Paragraph"}).some(node=>node.textContent==="Heading converted to paragraph")).toBe(true);
-  await user.click(screen.getByRole("button",{name:"H3"}));expect(await screen.findByRole("textbox",{name:"Heading H3"})).toBeInTheDocument();
-  await user.click(screen.getByRole("button",{name:"Quote"}));const quote=await screen.findByRole("textbox",{name:"Quote"});await user.type(quote,"A simple quote");expect(quote).toHaveTextContent("A simple quote");
-  await user.click(screen.getByRole("button",{name:"Table"}));const cell=await screen.findByRole("textbox",{name:"Row 1, column 1"});await user.type(cell,"Cell value");expect(cell).toHaveValue("Cell value");
+  const paragraph=screen.getByRole("textbox",{name:"Paragraph"});paragraph.focus();
+  const transform=await screen.findByRole("combobox",{name:"Block type"});
+  await user.selectOptions(transform,"H2");const h2=await screen.findByRole("textbox",{name:"Heading H2"});await user.type(h2,"Heading converted");
+  await user.selectOptions(screen.getByRole("combobox",{name:"Block type"}),"PARAGRAPH");
+  await waitFor(()=>expect(screen.queryByRole("textbox",{name:"Heading H2"})).not.toBeInTheDocument());
+  expect(screen.getByRole("textbox",{name:"Paragraph"})).toHaveTextContent("Heading converted");
 
-  await user.click(screen.getByRole("button",{name:"Bulleted list"}));const item1=await screen.findByRole("textbox",{name:"List item 1"});await user.type(item1,"First item");fireEvent.keyDown(item1,{key:"Enter"});
+  const activeParagraph=screen.getByRole("textbox",{name:"Paragraph"});activeParagraph.focus();setSelection(activeParagraph,activeParagraph.textContent?.length??0);
+  fireEvent.input(activeParagraph,{target:{textContent:"/h3"}});await waitFor(()=>expect(screen.getByRole("listbox",{name:"Block suggestions"})).toBeInTheDocument());
+  await user.click(within(screen.getByRole("listbox",{name:"Block suggestions"})).getByRole("option",{name:/Heading 3/}));
+  expect(await screen.findByRole("textbox",{name:"Heading H3"})).toBeInTheDocument();
+
+  await user.click(screen.getByRole("button",{name:"+ Add block"}));let dialog=screen.getByRole("dialog",{name:"Add block"});
+  await user.type(within(dialog).getByLabelText("Search blocks"),"Quote");await user.click(within(dialog).getByRole("button",{name:/Quote/}));
+  const quote=await screen.findByRole("textbox",{name:"Quote"});await user.type(quote,"A simple quote");expect(quote).toHaveTextContent("A simple quote");
+
+  await user.click(screen.getByRole("button",{name:"+ Add block"}));dialog=screen.getByRole("dialog",{name:"Add block"});
+  await user.type(within(dialog).getByLabelText("Search blocks"),"Table");await user.click(within(dialog).getByRole("button",{name:/Table/}));
+  const cell=await screen.findByRole("textbox",{name:"Row 1, column 1"});await user.type(cell,"Cell value");expect(cell).toHaveValue("Cell value");
+
+  await user.click(screen.getByRole("button",{name:"+ Add block"}));dialog=screen.getByRole("dialog",{name:"Add block"});
+  await user.type(within(dialog).getByLabelText("Search blocks"),"List");await user.click(within(dialog).getByRole("button",{name:/List/}));
+  const listStyle=await screen.findByRole("group",{name:"List style"});await user.click(within(listStyle).getByRole("button",{name:"Bullets"}));
+  const item1=await screen.findByRole("textbox",{name:"List item 1"});await user.type(item1,"First item");fireEvent.keyDown(item1,{key:"Enter"});
   const item2=await screen.findByRole("textbox",{name:"List item 2"});setSelection(item2,0);fireEvent.keyDown(item2,{key:"Enter"});
   await waitFor(()=>expect(screen.queryByRole("textbox",{name:"List item 2"})).not.toBeInTheDocument());
   expect(screen.getByText("First item")).toBeInTheDocument();
-
-  await user.click(screen.getByRole("button",{name:"Numbered list"}));expect(screen.getAllByText("Numbered list").length).toBeGreaterThan(1);
+  await user.click(within(listStyle).getByRole("button",{name:"Numbers"}));
 });
 
 test("Bold and Italic toggle ON/OFF without losing selected text",async()=>{
