@@ -44,6 +44,9 @@ export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSe
   const items = listItems(query.data);
   const selectedDetail = asRecord(asRecord(selectedQuery.data).media);
   const selected = Object.keys(selectedDetail).length ? selectedDetail : items.find((media) => stringValue(media, "media_id", "") === effectiveValue);
+  function prepareFile(next:File|undefined){
+    setFile(next);const problem=next?mediaFileValidationError(next):undefined;setValidationError(problem);if(next)setOpen(true);
+  }
   async function uploadAndSelect(event: FormEvent) {
     event.preventDefault();
     if (!file) return;
@@ -58,8 +61,8 @@ export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSe
     setOpen(false);
   }
   return <>
-    <div className="bp-media-picker-selection">
-      {selected && typeof selected.public_url === "string" ? <img className={preview === "article" ? "bp-media-picker-selected-thumb bp-media-picker-selected-thumb--article" : "bp-media-picker-selected-thumb"} src={selected.public_url} alt={stringValue(selected, "alt_text", "")} /> : null}
+    <div className={`bp-media-picker-selection${preview==="article"?" bp-media-picker-selection--article":""}`} onDragOver={event=>{if(!disabled)event.preventDefault()}} onDrop={event=>{if(disabled)return;event.preventDefault();prepareFile(event.dataTransfer.files?.[0])}}>
+      {selected && typeof selected.public_url === "string" ? <img className={preview === "article" ? "bp-media-picker-selected-thumb bp-media-picker-selected-thumb--article" : "bp-media-picker-selected-thumb"} src={selected.public_url} alt={stringValue(selected, "alt_text", "")} /> : preview==="article"?<div className="bp-media-drop-hint"><strong>Drop an image here</strong><span>or choose from this website's media library</span></div>:null}
       <div><div className="bp-inline-actions">
         <Button type="button" variant="secondary" onClick={() => setOpen(true)} disabled={disabled}>{value ? "Change media" : fallbackValue ? "Choose social image" : label}</Button>
         {value ? <Button type="button" variant="tertiary" onClick={() => onSelect("")} disabled={disabled}>Remove</Button> : null}
@@ -69,7 +72,7 @@ export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSe
       <div className="bp-form-stack">
         <form className="bp-media-picker-upload" onSubmit={uploadAndSelect}>
           <strong>Upload new</strong>
-          <TextField label="File" type="file" accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif" onChange={(event) => {const next=event.target.files?.[0];setFile(next);setValidationError(next?mediaFileValidationError(next):undefined)}} />
+          <TextField label="File" type="file" accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif" onChange={(event) => prepareFile(event.target.files?.[0])} />
           <TextField label="Alt text" value={altText} onChange={(event) => setAltText(event.target.value)} hint="Describe the image for readers who cannot see it." />
           {validationError ? <Alert tone="warning">{validationError}</Alert> : null}
           {upload.isError ? <Alert tone="danger">The file could not be uploaded. Check the file and try again.</Alert> : null}
@@ -384,6 +387,18 @@ export function RichTextRunsEditor({
   const caretFormatRef=useRef<{active:boolean;marks:string[];link?:UnknownRecord}>({active:false,marks:[]});
   const [,setCaretFormatTick]=useState(0);
   const signature = runSignature(value);
+  const slashText=plainRichText(value).trim().toLowerCase();
+  const slashChoices=[
+    {command:"/paragraph",label:"Paragraph",hint:"Start a text paragraph"},
+    {command:"/h2",label:"Heading 2",hint:"Section heading"},
+    {command:"/h3",label:"Heading 3",hint:"Subsection heading"},
+    {command:"/list",label:"Bulleted list",hint:"Create a bullet list"},
+    {command:"/number",label:"Numbered list",hint:"Create a numbered list"},
+    {command:"/quote",label:"Quote",hint:"Insert a quotation"},
+    {command:"/image",label:"Image",hint:"Upload or choose media"},
+    {command:"/table",label:"Table",hint:"Insert a table"},
+    {command:"/divider",label:"Divider",hint:"Separate sections"},
+  ].filter(choice=>slashText==="/"||choice.command.includes(slashText)||choice.label.toLowerCase().includes(slashText.slice(1)));
   const internalLinkQuery = useAdminQuery<UnknownRecord>(
     "API15-S-091",
     { path: { site_key: siteKey || "" }, query: { q: linkSearch.trim() || undefined, page: 1, page_size: 12 } },
@@ -529,6 +544,7 @@ export function RichTextRunsEditor({
       onMouseUp={()=>{const range=selectedRange();if(range&&range.start===range.end){const base=formattingAtOffset(value,range.start);caretFormatRef.current={active:false,marks:base.marks,...(base.link?{link:base.link}:{})}}}}
       onFocus={onFocus}
     />
+    {onSlashCommand&&slashText.startsWith("/")&&slashChoices.length?<div className="bp-slash-menu" role="listbox" aria-label="Block suggestions">{slashChoices.map(choice=><button key={choice.command} type="button" role="option" onMouseDown={event=>event.preventDefault()} onClick={()=>onSlashCommand(choice.command)}><span>{choice.label}</span><small>{choice.hint}</small></button>)}</div>:null}
     <Modal open={linkOpen} title="Add or edit link" description="Paste a web address or choose content from this website." onClose={() => setLinkOpen(false)} footer={<><Button type="button" onClick={() => setLinkOpen(false)}>Cancel</Button><Button type="button" variant="tertiary" onClick={removeLink}>Remove link</Button><Button type="button" variant="primary" disabled={!linkUrl.trim()} onClick={() => applyLinkDestination({ kind: "EXTERNAL", url: linkUrl.trim() })}>Apply URL</Button></>}>
       <div className="bp-form-stack">
         <TextField label="Web address" type="url" value={linkUrl} onChange={(event) => setLinkUrl(event.target.value)} placeholder="https://example.com" />

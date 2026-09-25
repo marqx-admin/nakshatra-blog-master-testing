@@ -54,6 +54,22 @@ function mergeRich(leftValue:unknown,rightValue:unknown):UnknownRecord{
 function newBlock(type:BlockType):Block{const base={block_id:newBlockId(),type};switch(type){case"PARAGRAPH":return {...base,content:rich()};case"HEADING":return {...base,level:2,content:rich()};case"LIST":return {...base,style:"UNORDERED",items:[]};case"QUOTE":return {...base,quote:rich(),attribution:"",source:""};case"SEPARATOR":return base;case"MEDIA":return {...base,media_id:"",alt_override:"",caption:""};case"TABLE":return {...base,header_row:true,rows:[]};case"EMBED":return {...base,provider_key:"",source_url_or_id:"",caption:""};case"CALLOUT":return {...base,label:"",body:rich()};case"CTA":return {...base,label:"",supporting_text:"",destination:{kind:"EXTERNAL",url:""}};case"DISCLAIMER":return {...base,label:"",body:rich()};case"SOURCES_REFERENCES":return {...base,entries:[]};}}
 function safeBlocks(value:unknown):Block[]{return Array.isArray(value)?value.filter((b):b is Block=>Boolean(b&&typeof b==="object"&&ARTICLE_BLOCK_TYPES.includes((b as Block).type))):[]}
 function stripEmpty<T extends UnknownRecord>(record:T):T{const out:UnknownRecord={};for(const [k,v] of Object.entries(record)){if(v!==undefined&&v!==null&&v!=="")out[k]=v}return out as T}
+function blockDefaults(type:BlockType):UnknownRecord{
+  if(type==="LIST")return {style:"UNORDERED",items:[rich("")]};
+  if(type==="TABLE")return {rows:[[rich(""),rich("")],[rich(""),rich("")]]};
+  return {};
+}
+function BlockInsertMenu({label="+",onInsert}:{label?:string;onInsert(type:BlockType,overrides?:UnknownRecord):void}){
+  const [open,setOpen]=useState(false);const [query,setQuery]=useState("");
+  const choices=ARTICLE_BLOCK_TYPES.filter(type=>BLOCK_LABELS[type].toLowerCase().includes(query.trim().toLowerCase()));
+  return <div className="bp-wp-inserter">
+    <Button type="button" variant="tertiary" onClick={()=>setOpen(value=>!value)} aria-expanded={open} aria-label={label==="+"?"Add block":label}>{label}</Button>
+    {open?<div className="bp-wp-inserter-popover" role="dialog" aria-label="Add block">
+      <input className="bp-input" aria-label="Search blocks" placeholder="Search blocks" value={query} onChange={event=>setQuery(event.target.value)} autoFocus/>
+      <div className="bp-wp-inserter-grid">{choices.map(type=><button type="button" key={type} onClick={()=>{onInsert(type,blockDefaults(type));setOpen(false);setQuery("")}}><strong>{BLOCK_LABELS[type]}</strong><span>{type==="PARAGRAPH"?"Start writing":type==="HEADING"?"Heading H2/H3/H4":type==="LIST"?"Bulleted or numbered list":type==="MEDIA"?"Upload or choose an image":type==="CTA"?"Call-to-action button":"Insert content block"}</span></button>)}</div>
+    </div>:null}
+  </div>;
+}
 
 function tableRows(block:Block):UnknownRecord[][]{
   const rows=Array.isArray(block.rows)?block.rows.filter(Array.isArray).map(row=>(row as unknown[]).map(cell=>asRecord(cell))):[];
@@ -62,10 +78,10 @@ function tableRows(block:Block):UnknownRecord[][]{
 function listRichItems(block:Block):UnknownRecord[]{const items=Array.isArray(block.items)?block.items.map(item=>asRecord(item)):[];return items.length?items:[rich("")]}
 
 function BlockEditor({
-  siteKey,block,index,count,onChange,onMove,onRemove,onSplit,onMergePrevious,onExitList,onFocus,onUndo,onRedo,onSlashCommand,
+  siteKey,block,index,count,active,onChange,onMove,onRemove,onDuplicate,onTransform,onSplit,onMergePrevious,onExitList,onFocus,onUndo,onRedo,onSlashCommand,onDragStart,onDrop,
 }:{
-  siteKey:string;block:Block;index:number;count:number;onChange(block:Block):void;onMove(delta:number):void;onRemove():void;
-  onSplit(offset:number):void;onMergePrevious():boolean;onExitList(itemIndex:number):void;onFocus():void;onUndo():void;onRedo():void;onSlashCommand(command:string):boolean;
+  siteKey:string;block:Block;index:number;count:number;active:boolean;onChange(block:Block):void;onMove(delta:number):void;onRemove():void;onDuplicate():void;
+  onTransform(target:"PARAGRAPH"|"H2"|"H3"|"H4"):void;onSplit(offset:number):void;onMergePrevious():boolean;onExitList(itemIndex:number):void;onFocus():void;onUndo():void;onRedo():void;onSlashCommand(command:string):boolean;onDragStart():void;onDrop():void;
 }){
   const field=(key:string,value:string)=>onChange({...block,[key]:value});
   const type=block.type;
@@ -90,20 +106,27 @@ function BlockEditor({
   const removeRow=()=>{if(rows.length<=1)return;onChange({...block,rows:rows.slice(0,-1)})};
   const removeColumn=()=>{if(columnCount<=1)return;onChange({...block,rows:rows.map(row=>row.slice(0,-1))})};
 
-  return <article className={`bp-block-frame${naturalWriting?" bp-writing-block":" bp-content-block"} bp-block-${type.toLowerCase()}`} data-block-id={block.block_id} aria-label={`${BLOCK_LABELS[type]} block ${index+1}`} onFocus={onFocus}>
-    <header className={`bp-block-header${naturalWriting?" bp-block-header--writing":""}`}><span className="bp-block-type">{BLOCK_LABELS[type]}</span><div className="bp-block-actions"><Button variant="tertiary" type="button" onClick={()=>onMove(-1)} disabled={index===0} aria-label={`Move ${BLOCK_LABELS[type]} up`}>↑</Button><Button variant="tertiary" type="button" onClick={()=>onMove(1)} disabled={index===count-1} aria-label={`Move ${BLOCK_LABELS[type]} down`}>↓</Button><Button variant="tertiary" type="button" onClick={onRemove} aria-label={`Remove ${BLOCK_LABELS[type]}`}>Remove</Button></div></header>
-    {type==="PARAGRAPH"?<RichTextRunsEditor siteKey={siteKey} editorId={`bp-writer-${block.block_id}`} label="Paragraph" variant="paragraph" placeholder="Start writing or type / for a quick block…" value={block.content} onChange={value=>onChange({...block,content:value})} multiline onEnter={onSplit} onBackspaceAtStart={onMergePrevious} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo} onSlashCommand={onSlashCommand}/>:null}
-    {type==="HEADING"?<><select className="bp-select bp-heading-level-select" aria-label="Heading level" value={String(headingLevel)} onChange={e=>onChange({...block,level:Number(e.target.value)})}><option value="2">H2</option><option value="3">H3</option><option value="4">H4</option></select><RichTextRunsEditor siteKey={siteKey} editorId={`bp-writer-${block.block_id}`} label={`Heading H${headingLevel}`} variant={headingLevel===3?"heading3":headingLevel===4?"heading4":"heading2"} placeholder="Add heading" value={block.content} onChange={value=>onChange({...block,content:value})} onEnter={onSplit} onBackspaceAtStart={onMergePrevious} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo}/></>:null}
-    {type==="LIST"?<div className="bp-list-editor"><div className="bp-list-style-label">{String(block.style??"UNORDERED")==="ORDERED"?"Numbered list":"Bulleted list"}</div>{String(block.style??"UNORDERED")==="ORDERED"?<ol>{items.map((item,itemIndex)=><li key={itemIndex}><RichTextRunsEditor editorId={`bp-list-${block.block_id}-${itemIndex}`} label={`List item ${itemIndex+1}`} value={item} onChange={value=>updateListItem(itemIndex,value)} placeholder="List item" showToolbar={false} onUndo={onUndo} onRedo={onRedo} onEnter={()=>{if(!richText(item).trim()&&itemIndex===items.length-1){onExitList(itemIndex)}else addListItemAfter(itemIndex)}} onBackspaceAtStart={()=>{if(!richText(item).trim()){removeListItem(itemIndex);return true}return false}}/></li>)}</ol>:<ul>{items.map((item,itemIndex)=><li key={itemIndex}><RichTextRunsEditor editorId={`bp-list-${block.block_id}-${itemIndex}`} label={`List item ${itemIndex+1}`} value={item} onChange={value=>updateListItem(itemIndex,value)} placeholder="List item" showToolbar={false} onUndo={onUndo} onRedo={onRedo} onEnter={()=>{if(!richText(item).trim()&&itemIndex===items.length-1){onExitList(itemIndex)}else addListItemAfter(itemIndex)}} onBackspaceAtStart={()=>{if(!richText(item).trim()){removeListItem(itemIndex);return true}return false}}/></li>)}</ul>}</div>:null}
-    {type==="QUOTE"?<div className="bp-quote-editor"><RichTextRunsEditor siteKey={siteKey} label="Quote" variant="quote" placeholder="Write the quote…" value={block.quote} onChange={value=>onChange({...block,quote:value})} multiline onUndo={onUndo} onRedo={onRedo}/><details className="bp-inline-details"><summary>Add citation</summary><div className="bp-form-stack"><TextField label="Attribution" value={String(block.attribution??"")} onChange={e=>field("attribution",e.target.value)}/><TextField label="Source" value={String(block.source??"")} onChange={e=>field("source",e.target.value)}/></div></details></div>:null}
+  const textTransform=type==="PARAGRAPH"?"PARAGRAPH":type==="HEADING"?(`H${headingLevel}` as "H2"|"H3"|"H4"):undefined;
+  return <article className={`bp-block-frame${naturalWriting?" bp-writing-block":" bp-content-block"} bp-block-${type.toLowerCase()}${active?" is-active":""}`} data-block-id={block.block_id} aria-label={`${BLOCK_LABELS[type]} block ${index+1}`} onFocus={onFocus} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();onDrop()}}>
+    <header className={`bp-block-header${naturalWriting?" bp-block-header--writing":""}`} aria-label={`${BLOCK_LABELS[type]} block toolbar`}>
+      <div className="bp-block-context">
+        <button className="bp-drag-handle" type="button" draggable onDragStart={event=>{event.dataTransfer.effectAllowed="move";onDragStart()}} aria-label={`Drag ${BLOCK_LABELS[type]}`}>⋮⋮</button>
+        {textTransform?<select className="bp-select bp-block-transform" aria-label="Block type" value={textTransform} onChange={event=>onTransform(event.target.value as "PARAGRAPH"|"H2"|"H3"|"H4")}><option value="PARAGRAPH">Paragraph</option><option value="H2">Heading 2</option><option value="H3">Heading 3</option><option value="H4">Heading 4</option></select>:type==="LIST"?<div className="bp-list-toggle" role="group" aria-label="List style"><Button type="button" variant={String(block.style??"UNORDERED")==="UNORDERED"?"secondary":"tertiary"} onClick={()=>onChange({...block,style:"UNORDERED"})}>Bullets</Button><Button type="button" variant={String(block.style??"UNORDERED")==="ORDERED"?"secondary":"tertiary"} onClick={()=>onChange({...block,style:"ORDERED"})}>Numbers</Button></div>:<span className="bp-block-type">{BLOCK_LABELS[type]}</span>}
+      </div>
+      <div className="bp-block-actions"><Button variant="tertiary" type="button" onClick={()=>onMove(-1)} disabled={index===0} aria-label={`Move ${BLOCK_LABELS[type]} up`}>↑</Button><Button variant="tertiary" type="button" onClick={()=>onMove(1)} disabled={index===count-1} aria-label={`Move ${BLOCK_LABELS[type]} down`}>↓</Button><Button variant="tertiary" type="button" onClick={onDuplicate}>Duplicate</Button><Button variant="tertiary" type="button" onClick={onRemove} aria-label={`Remove ${BLOCK_LABELS[type]}`}>Remove</Button></div>
+    </header>
+    {type==="PARAGRAPH"?<RichTextRunsEditor siteKey={siteKey} editorId={`bp-writer-${block.block_id}`} label="Paragraph" variant="paragraph" placeholder="Start writing or type / for a quick block…" value={block.content} onChange={value=>onChange({...block,content:value})} multiline showToolbar={active} onEnter={onSplit} onBackspaceAtStart={onMergePrevious} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo} onSlashCommand={onSlashCommand}/>:null}
+    {type==="HEADING"?<RichTextRunsEditor siteKey={siteKey} editorId={`bp-writer-${block.block_id}`} label={`Heading H${headingLevel}`} variant={headingLevel===3?"heading3":headingLevel===4?"heading4":"heading2"} placeholder="Add heading" value={block.content} onChange={value=>onChange({...block,content:value})} showToolbar={active} onEnter={onSplit} onBackspaceAtStart={onMergePrevious} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo}/>:null}
+    {type==="LIST"?<div className="bp-list-editor"><div className="bp-list-style-label">{String(block.style??"UNORDERED")==="ORDERED"?"Numbered list":"Bulleted list"}</div>{String(block.style??"UNORDERED")==="ORDERED"?<ol>{items.map((item,itemIndex)=><li key={itemIndex}><RichTextRunsEditor siteKey={siteKey} editorId={`bp-list-${block.block_id}-${itemIndex}`} label={`List item ${itemIndex+1}`} value={item} onChange={value=>updateListItem(itemIndex,value)} placeholder="List item" showToolbar={active} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo} onEnter={()=>{if(!richText(item).trim()&&itemIndex===items.length-1){onExitList(itemIndex)}else addListItemAfter(itemIndex)}} onBackspaceAtStart={()=>{if(!richText(item).trim()){removeListItem(itemIndex);return true}return false}}/></li>)}</ol>:<ul>{items.map((item,itemIndex)=><li key={itemIndex}><RichTextRunsEditor siteKey={siteKey} editorId={`bp-list-${block.block_id}-${itemIndex}`} label={`List item ${itemIndex+1}`} value={item} onChange={value=>updateListItem(itemIndex,value)} placeholder="List item" showToolbar={active} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo} onEnter={()=>{if(!richText(item).trim()&&itemIndex===items.length-1){onExitList(itemIndex)}else addListItemAfter(itemIndex)}} onBackspaceAtStart={()=>{if(!richText(item).trim()){removeListItem(itemIndex);return true}return false}}/></li>)}</ul>}</div>:null}
+    {type==="QUOTE"?<div className="bp-quote-editor"><RichTextRunsEditor siteKey={siteKey} label="Quote" variant="quote" placeholder="Write the quote…" value={block.quote} onChange={value=>onChange({...block,quote:value})} multiline showToolbar={active} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo}/><details className="bp-inline-details"><summary>Add citation</summary><div className="bp-form-stack"><TextField label="Attribution" value={String(block.attribution??"")} onChange={e=>field("attribution",e.target.value)}/><TextField label="Source" value={String(block.source??"")} onChange={e=>field("source",e.target.value)}/></div></details></div>:null}
     {type==="SEPARATOR"?<div className="bp-separator-preview" aria-label="Divider"><hr/></div>:null}
     {type==="MEDIA"?<div className="bp-article-image-editor"><MediaPicker siteKey={siteKey} value={String(block.media_id??"")} onSelect={mediaId=>field("media_id",mediaId)} label="Upload or choose image" preview="article"/><details className="bp-inline-details"><summary>Image details</summary><div className="bp-form-stack"><TextField label="Alternative text" value={String(block.alt_override??"")} onChange={e=>field("alt_override",e.target.value)} hint="Describe the image for readers who cannot see it."/><TextArea label="Caption" value={String(block.caption??"")} onChange={e=>field("caption",e.target.value)}/></div></details></div>:null}
     {type==="TABLE"?<div className="bp-table-editor"><div className="bp-table-editor-grid">{rows.map((row,rowIndex)=><div className="bp-table-editor-row" key={rowIndex}>{Array.from({length:columnCount},(_,columnIndex)=><input key={columnIndex} className="bp-table-editor-cell" aria-label={`Row ${rowIndex+1}, column ${columnIndex+1}`} value={richText(row[columnIndex]??rich(""))} onChange={e=>updateCell(rowIndex,columnIndex,e.target.value)}/>)}</div>)}</div><div className="bp-inline-actions"><Button type="button" variant="tertiary" onClick={addRow}>Add row</Button><Button type="button" variant="tertiary" onClick={addColumn}>Add column</Button><Button type="button" variant="tertiary" onClick={removeRow} disabled={rows.length<=1}>Remove row</Button><Button type="button" variant="tertiary" onClick={removeColumn} disabled={columnCount<=1}>Remove column</Button></div><Checkbox label="First row is a heading row" checked={Boolean(block.header_row)} onChange={e=>onChange({...block,header_row:e.target.checked})}/></div>:null}
-    {type==="EMBED"?<><TextField label="Provider key" value={String(block.provider_key??"")} onChange={e=>field("provider_key",e.target.value)} required/><TextField label="Source URL or ID" value={String(block.source_url_or_id??"")} onChange={e=>field("source_url_or_id",e.target.value)} required/><TextField label="Caption" value={String(block.caption??"")} onChange={e=>field("caption",e.target.value)}/></>:null}
-    {type==="CALLOUT"?<><TextField label="Label" value={String(block.label??"")} onChange={e=>field("label",e.target.value)}/><RichTextRunsEditor siteKey={siteKey} label="Body" value={block.body} onChange={value=>onChange({...block,body:value})} multiline onUndo={onUndo} onRedo={onRedo}/></>:null}
-    {type==="CTA"?<><TextField label="Button label" value={String(block.label??"")} onChange={e=>field("label",e.target.value)} required/><TextField label="Supporting text" value={String(block.supporting_text??"")} onChange={e=>field("supporting_text",e.target.value)}/><SelectField label="Link type" value={destinationKind} onChange={e=>onChange({...block,destination:e.target.value==="EXTERNAL"?{kind:"EXTERNAL",url:""}:{kind:"INTERNAL",target_type:"ARTICLE",target_id:""}})}><option value="EXTERNAL">Web address</option><option value="INTERNAL">This website</option></SelectField>{destinationKind==="EXTERNAL"?<TextField label="Web address" type="url" value={stringValue(destination,"url","")==="—"?"":stringValue(destination,"url","")} onChange={e=>onChange({...block,destination:{kind:"EXTERNAL",url:e.target.value}})} required/>:<><p className="bp-field-hint">{destinationTargetType==="STATIC"?"A website page is selected.":stringValue(destination,"target_id","")&&stringValue(destination,"target_id","")!=="—"?"An internal destination is selected.":"Search and choose an internal destination below."}</p><InternalLinkSearchPanel siteKey={siteKey} onUse={candidate=>{const kind=stringValue(candidate,"kind","ARTICLE");if(kind==="STATIC"){const staticPageKey=stringValue(candidate,"static_page_key","");if(staticPageKey&&STATIC_PAGE_KEYS.includes(staticPageKey as typeof STATIC_PAGE_KEYS[number]))onChange({...block,destination:{kind:"INTERNAL",target_type:"STATIC",static_page_key:staticPageKey}});return;}const resourceId=stringValue(candidate,"resource_id","");if(resourceId)onChange({...block,destination:{kind:"INTERNAL",target_type:kind,target_id:resourceId}})}}/></>}</>:null}
-    {type==="DISCLAIMER"?<><TextField label="Label" value={String(block.label??"")} onChange={e=>field("label",e.target.value)}/><RichTextRunsEditor siteKey={siteKey} label="Body" value={block.body} onChange={value=>onChange({...block,body:value})} multiline onUndo={onUndo} onRedo={onRedo}/></>:null}
-    {type==="SOURCES_REFERENCES"?<TextArea label="Sources / References" hint="One entry per line: Title | URL | Publisher | Note" value={(Array.isArray(block.entries)?block.entries:[]).map((entry)=>{const r=asRecord(entry);return [r.title,r.url,r.publisher,r.note].map(v=>String(v??"")).join(" | ")}).join("\n")} onChange={e=>onChange({...block,entries:e.target.value.split("\n").filter(Boolean).map(line=>{const [title,url,publisher,note]=line.split("|").map(v=>v.trim());return stripEmpty({title:title??"",url,publisher,note})})})}/>:null}
+    {type==="EMBED"?<div className="bp-embed-editor"><TextField label="Embed URL or ID" value={String(block.source_url_or_id??"")} onChange={e=>field("source_url_or_id",e.target.value)} placeholder="Paste the approved embed URL"/><TextField label="Caption" value={String(block.caption??"")} onChange={e=>field("caption",e.target.value)}/><details className="bp-inline-details"><summary>Advanced provider settings</summary><TextField label="Provider key" value={String(block.provider_key??"")} onChange={e=>field("provider_key",e.target.value)} hint="Only approved providers can be published."/></details></div>:null}
+    {type==="CALLOUT"?<div className="bp-editorial-callout"><TextField label="Callout label" value={String(block.label??"")} onChange={e=>field("label",e.target.value)} placeholder="Optional label"/><RichTextRunsEditor siteKey={siteKey} label="Callout body" value={block.body} onChange={value=>onChange({...block,body:value})} multiline showToolbar={active} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo}/></div>:null}
+    {type==="CTA"?<div className="bp-cta-editor"><TextField label="Supporting text" value={String(block.supporting_text??"")} onChange={e=>field("supporting_text",e.target.value)} placeholder="Optional supporting text"/><div className="bp-cta-button-preview">{String(block.label??"")||"Button text"}</div><TextField label="Button label" value={String(block.label??"")} onChange={e=>field("label",e.target.value)} required/><details className="bp-inline-details"><summary>Button link</summary><div className="bp-form-stack"><SelectField label="Link type" value={destinationKind} onChange={e=>onChange({...block,destination:e.target.value==="EXTERNAL"?{kind:"EXTERNAL",url:""}:{kind:"INTERNAL",target_type:"ARTICLE",target_id:""}})}><option value="EXTERNAL">Web address</option><option value="INTERNAL">This website</option></SelectField>{destinationKind==="EXTERNAL"?<TextField label="Web address" type="url" value={stringValue(destination,"url","")==="—"?"":stringValue(destination,"url","")} onChange={e=>onChange({...block,destination:{kind:"EXTERNAL",url:e.target.value}})} required/>:<><p className="bp-field-hint">{destinationTargetType==="STATIC"?"A website page is selected.":stringValue(destination,"target_id","")&&stringValue(destination,"target_id","")!=="—"?"An internal destination is selected.":"Search and choose an internal destination below."}</p><InternalLinkSearchPanel siteKey={siteKey} onUse={candidate=>{const kind=stringValue(candidate,"kind","ARTICLE");if(kind==="STATIC"){const staticPageKey=stringValue(candidate,"static_page_key","");if(staticPageKey&&STATIC_PAGE_KEYS.includes(staticPageKey as typeof STATIC_PAGE_KEYS[number]))onChange({...block,destination:{kind:"INTERNAL",target_type:"STATIC",static_page_key:staticPageKey}});return;}const resourceId=stringValue(candidate,"resource_id","");if(resourceId)onChange({...block,destination:{kind:"INTERNAL",target_type:kind,target_id:resourceId}})}}/></>}</div></details></div>:null}
+    {type==="DISCLAIMER"?<div className="bp-editorial-disclaimer"><TextField label="Disclaimer label" value={String(block.label??"")} onChange={e=>field("label",e.target.value)} placeholder="Disclaimer"/><RichTextRunsEditor siteKey={siteKey} label="Disclaimer body" value={block.body} onChange={value=>onChange({...block,body:value})} multiline showToolbar={active} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo}/></div>:null}
+    {type==="SOURCES_REFERENCES"?<div className="bp-sources-editor"><strong>Sources & References</strong><TextArea label="Sources / References" hint="One source per line: Title | URL | Publisher | Note" value={(Array.isArray(block.entries)?block.entries:[]).map((entry)=>{const r=asRecord(entry);return [r.title,r.url,r.publisher,r.note].map(v=>String(v??"")).join(" | ")}).join("\n")} onChange={e=>onChange({...block,entries:e.target.value.split("\n").filter(Boolean).map(line=>{const [title,url,publisher,note]=line.split("|").map(v=>v.trim());return stripEmpty({title:title??"",url,publisher,note})})})}/></div>:null}
   </article>
 }
 
@@ -180,6 +203,9 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
   const historyRef=useRef<{past:EditorModel[];future:EditorModel[]}>({past:[],future:[]});
   const [historyState,setHistoryState]=useState({canUndo:false,canRedo:false});
   const [activeBlockId,setActiveBlockId]=useState<string>();
+  const [draggedBlockId,setDraggedBlockId]=useState<string>();
+  const [settingsOpen,setSettingsOpen]=useState(true);
+  const [settingsTab,setSettingsTab]=useState<"post"|"block">("post");
   const createMutation=useAdminMutation<UnknownRecord>("API15-S-011");
   const saveMutation=useAdminMutation<UnknownRecord>("API15-S-013");
   const autosaveMutation=useAdminMutation<UnknownRecord>("API15-S-014");
@@ -273,17 +299,37 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
     });
   }
   function replaceBlock(blockId:string,next:Block){commitModel(current=>({...current,blocks:current.blocks.map(block=>block.block_id===blockId?next:block)}))}
+  function transformTextBlock(blockId:string,target:"PARAGRAPH"|"H2"|"H3"|"H4"){
+    commitModel(current=>({...current,blocks:current.blocks.map(block=>{
+      if(block.block_id!==blockId||(block.type!=="PARAGRAPH"&&block.type!=="HEADING"))return block;
+      if(target==="PARAGRAPH")return {...newBlock("PARAGRAPH"),block_id:block.block_id,content:block.content} as Block;
+      return {...newBlock("HEADING"),block_id:block.block_id,level:Number(target.slice(1)),content:block.content} as Block;
+    })}));
+    setActiveBlockId(blockId);focusWriter(blockId);
+  }
+  function duplicateBlock(blockId:string){
+    const copyId=newBlockId();
+    commitModel(current=>{const index=current.blocks.findIndex(block=>block.block_id===blockId);if(index<0)return current;const source=current.blocks[index]!;const copy={...source,block_id:copyId} as Block;const next=[...current.blocks];next.splice(index+1,0,copy);return {...current,blocks:next}});
+    setActiveBlockId(copyId);
+  }
+  function reorderBlock(sourceId:string,targetId:string){
+    if(sourceId===targetId)return;
+    commitModel(current=>{const next=[...current.blocks];const sourceIndex=next.findIndex(block=>block.block_id===sourceId);const targetIndex=next.findIndex(block=>block.block_id===targetId);if(sourceIndex<0||targetIndex<0)return current;const [source]=next.splice(sourceIndex,1);if(!source)return current;const insertAt=sourceIndex<targetIndex?targetIndex-1:targetIndex;next.splice(insertAt,0,source);return {...current,blocks:next}});
+    setActiveBlockId(sourceId);
+  }
   function focusWriter(blockId:string,atEnd=false){requestAnimationFrame(()=>{const el=document.getElementById(`bp-writer-${blockId}`);if(!(el instanceof HTMLElement))return;el.focus();const range=document.createRange();range.selectNodeContents(el);range.collapse(!atEnd);const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range)})}
   function moveBlock(blockId:string,delta:number){
     commitModel(current=>{const next=[...current.blocks];const index=next.findIndex(block=>block.block_id===blockId);const target=index+delta;if(index<0||target<0||target>=next.length)return current;[next[index],next[target]]=[next[target]!,next[index]!];return {...current,blocks:next}});
   }
   function removeBlock(blockId:string){commitModel(current=>{const next=current.blocks.filter(block=>block.block_id!==blockId);return {...current,blocks:next.length?next:[newBlock("PARAGRAPH")]}})}
+  function insertBlockAt(insertAt:number,type:BlockType,overrides:UnknownRecord={}){
+    const block={...newBlock(type),...blockDefaults(type),...overrides} as Block;
+    commitModel(current=>{const next=[...current.blocks];next.splice(Math.max(0,Math.min(insertAt,next.length)),0,block);return {...current,blocks:next}});
+    setActiveBlockId(block.block_id);if(type==="PARAGRAPH"||type==="HEADING")focusWriter(block.block_id);
+  }
   function insertBlock(type:BlockType,overrides:UnknownRecord={}){
-    const defaults=type==="LIST"?{items:[rich("")]}:type==="TABLE"?{rows:[[rich(""),rich("")],[rich(""),rich("")]]}:{};
-    const block={...newBlock(type),...defaults,...overrides} as Block;
-    commitModel(current=>{const activeIndex=current.blocks.findIndex(item=>item.block_id===activeBlockId);const insertAt=activeIndex>=0?activeIndex+1:current.blocks.length;const next=[...current.blocks];next.splice(insertAt,0,block);return {...current,blocks:next}});
-    setActiveBlockId(block.block_id);
-    if(type==="PARAGRAPH"||type==="HEADING")focusWriter(block.block_id);
+    const activeIndex=modelRef.current.blocks.findIndex(item=>item.block_id===activeBlockId);
+    insertBlockAt(activeIndex>=0?activeIndex+1:modelRef.current.blocks.length,type,overrides);
   }
   function splitBlock(blockId:string,offset:number){
     const source=model.blocks.find(block=>block.block_id===blockId);
@@ -323,7 +369,7 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
   function slashCommand(blockId:string,command:string):boolean{
     const normalized=command.trim().toLowerCase();
     const spec:Record<string,{type:BlockType;overrides?:UnknownRecord}>={
-      "/h2":{type:"HEADING",overrides:{level:2}},"/h3":{type:"HEADING",overrides:{level:3}},
+      "/paragraph":{type:"PARAGRAPH"},"/p":{type:"PARAGRAPH"},"/h2":{type:"HEADING",overrides:{level:2}},"/h3":{type:"HEADING",overrides:{level:3}},
       "/list":{type:"LIST",overrides:{style:"UNORDERED",items:[rich("")]}},"/bullet":{type:"LIST",overrides:{style:"UNORDERED",items:[rich("")]}},
       "/number":{type:"LIST",overrides:{style:"ORDERED",items:[rich("")]}},"/quote":{type:"QUOTE"},"/image":{type:"MEDIA"},
       "/table":{type:"TABLE",overrides:{rows:[[rich(""),rich("")],[rich(""),rich("")]]}},"/divider":{type:"SEPARATOR"},"/separator":{type:"SEPARATOR"},
@@ -472,59 +518,56 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
     {success?<SuccessState>{success}. The visible status/version is refreshed from the server response.</SuccessState>:null}
     {anyError&&!conflict?<Alert tone="danger">{anyError instanceof AdminRequestError&&anyError.failure.uiState==="VALIDATION"?"Server validation rejected the current working copy. Review the highlighted publishing requirements.":"The requested editor action was not accepted."}</Alert>:null}
 
-    <div className="bp-editor-layout">
+    <div className={`bp-editor-layout${settingsOpen?"":" bp-editor-layout--wide"}`}>
       <section className="bp-editor-canvas" aria-label="Article editor canvas">
         <TextField className="bp-editor-title" label="Article title" placeholder="Add title" value={model.title} onChange={e=>update("title",e.target.value)}/>
-        <div className="bp-editor-toolbar" role="toolbar" aria-label="Writing toolbar">
-          <span className="bp-editor-toolbar-label">Insert</span>
-          <Button type="button" variant="tertiary" onClick={insertParagraphOrConvert}>Paragraph</Button>
-          <Button type="button" variant="tertiary" onClick={()=>insertBlock("HEADING",{level:2})}>H2</Button>
-          <Button type="button" variant="tertiary" onClick={()=>insertBlock("HEADING",{level:3})}>H3</Button>
-          <Button type="button" variant="tertiary" onClick={()=>insertBlock("LIST",{style:"UNORDERED",items:[rich("")]})}>Bulleted list</Button>
-          <Button type="button" variant="tertiary" onClick={()=>insertBlock("LIST",{style:"ORDERED",items:[rich("")]})}>Numbered list</Button>
-          <Button type="button" variant="tertiary" onClick={()=>insertBlock("QUOTE")}>Quote</Button>
-          <Button type="button" variant="tertiary" onClick={()=>insertBlock("MEDIA")}>Image</Button>
-          <Button type="button" variant="tertiary" onClick={()=>insertBlock("TABLE",{rows:[[rich(""),rich("")],[rich(""),rich("")]]})}>Table</Button>
-          <Button type="button" variant="tertiary" onClick={()=>insertBlock("SEPARATOR")}>Divider</Button>
-          <span className="bp-editor-toolbar-spacer"/>
+        <div className="bp-editor-commandbar" role="toolbar" aria-label="Editor toolbar">
+          <BlockInsertMenu label="+ Add block" onInsert={(type,overrides)=>insertBlock(type,overrides)}/>
           <Button type="button" variant="tertiary" onClick={undoEditor} disabled={!historyState.canUndo} title="Undo (⌘/Ctrl+Z)">Undo</Button>
           <Button type="button" variant="tertiary" onClick={redoEditor} disabled={!historyState.canRedo} title="Redo (⌘/Ctrl+Shift+Z)">Redo</Button>
+          <span className="bp-editor-toolbar-spacer"/>
+          <Button type="button" variant="tertiary" onClick={()=>setSettingsOpen(value=>!value)}>{settingsOpen?"Hide settings":"Settings"}</Button>
         </div>
-        <p className="bp-writer-hint">Write naturally. Press Enter for a new paragraph, or type /h2, /h3, /list, /number, /quote, /image, /table or /divider and press Enter.</p>
-        <div className="bp-block-list">{model.blocks.map((block,index)=><BlockEditor key={block.block_id} siteKey={site.site_key} block={block} index={index} count={model.blocks.length} onChange={next=>replaceBlock(block.block_id,next)} onMove={delta=>moveBlock(block.block_id,delta)} onRemove={()=>removeBlock(block.block_id)} onSplit={offset=>splitBlock(block.block_id,offset)} onMergePrevious={()=>mergePrevious(block.block_id)} onExitList={itemIndex=>exitList(block.block_id,itemIndex)} onFocus={()=>setActiveBlockId(block.block_id)} onUndo={undoEditor} onRedo={redoEditor} onSlashCommand={command=>slashCommand(block.block_id,command)}/>)}</div>
-        <details className="bp-block-inserter"><summary>+ More content types</summary><div className="bp-block-palette">{ARTICLE_BLOCK_TYPES.filter(type=>!["PARAGRAPH","HEADING","LIST","MEDIA","QUOTE","TABLE","SEPARATOR"].includes(type)).map(type=><button type="button" key={type} onClick={()=>insertBlock(type)}>{BLOCK_LABELS[type]}</button>)}</div></details>
+        <p className="bp-writer-hint">Start writing below. Press Enter for a new paragraph. Type <strong>/</strong> to choose a block.</p>
+        <div className="bp-block-list">
+          {model.blocks.map((block,index)=><div className="bp-block-stack" key={block.block_id}>
+            <BlockEditor siteKey={site.site_key} block={block} index={index} count={model.blocks.length} active={activeBlockId===block.block_id} onChange={next=>replaceBlock(block.block_id,next)} onMove={delta=>moveBlock(block.block_id,delta)} onRemove={()=>removeBlock(block.block_id)} onDuplicate={()=>duplicateBlock(block.block_id)} onTransform={target=>transformTextBlock(block.block_id,target)} onSplit={offset=>splitBlock(block.block_id,offset)} onMergePrevious={()=>mergePrevious(block.block_id)} onExitList={itemIndex=>exitList(block.block_id,itemIndex)} onFocus={()=>setActiveBlockId(block.block_id)} onUndo={undoEditor} onRedo={redoEditor} onSlashCommand={command=>slashCommand(block.block_id,command)} onDragStart={()=>setDraggedBlockId(block.block_id)} onDrop={()=>{if(draggedBlockId)reorderBlock(draggedBlockId,block.block_id);setDraggedBlockId(undefined)}}/>
+            <div className="bp-inline-inserter"><BlockInsertMenu onInsert={(type,overrides)=>insertBlockAt(index+1,type,overrides)}/></div>
+          </div>)}
+        </div>
       </section>
 
-      <aside className="bp-editor-rail" aria-label="Post settings">
-        <FormSection title="Post settings">
-          <div className="bp-editor-status-row"><span>Status</span><StatusBadge value={status}/></div>
-          <TextArea label="Short summary" value={model.excerpt} onChange={e=>update("excerpt",e.target.value)} placeholder="A short description of this article."/>
-          <SelectField label="Author" value={model.author} onChange={e=>update("author",e.target.value)} disabled={!permissions.includes("authors.view")}><option value="">Choose author</option>{authors.map(author=><option key={stringValue(author,"author_id")} value={stringValue(author,"author_id")}>{stringValue(author,"display_name")}</option>)}</SelectField>
-          <div className="bp-field"><span className="bp-label">Categories</span><div className="bp-category-checklist">{categories.length?categories.map(category=>{const id=stringValue(category,"category_id");return <Checkbox key={id} label={stringValue(category,"name","Unnamed category")} checked={ids(model.categories).includes(id)} onChange={e=>toggleCategory(id,e.target.checked)} disabled={!permissions.includes("categories.view")}/>}):<span className="bp-field-hint">No categories are available for this website.</span>}</div></div>
-        </FormSection>
-
-        {permissions.includes("media.view")?<FormSection title="Featured image"><MediaPicker siteKey={site.site_key} value={model.featuredMedia} onSelect={mediaId=>update("featuredMedia",mediaId)} label="Choose featured image"/></FormSection>:null}
-
-        {permissions.includes("search.view")&&(permissions.includes("posts.edit")||permissions.includes("posts.create"))?<RelatedCandidatePanel siteKey={site.site_key} {...(mode==="edit"&&postId?{postId}:{})} relatedIds={ids(model.related)} onChange={values=>update("related",values.join(", "))}/>:null}
-
-        <FormSection title="Search appearance">
-          <TextField label="SEO title" value={model.seoTitle} onChange={e=>update("seoTitle",e.target.value)} disabled={!permissions.includes("seo.edit")} placeholder={model.title||"Article title"}/>
-          <TextArea label="Meta description" value={model.metaDescription} onChange={e=>update("metaDescription",e.target.value)} disabled={!permissions.includes("seo.edit")} placeholder={model.excerpt||"Short search description"}/>
-          <TextField label="URL slug" value={model.slug} onChange={e=>update("slug",e.target.value)} placeholder="Generated from title when published"/>
-          <div className="bp-search-preview"><span>Search preview</span><strong>{model.seoTitle||model.title||"Your article title"}</strong><p>{model.metaDescription||model.excerpt||"Add a short description for search results."}</p></div>
-          {permissions.includes("media.view")?<MediaPicker siteKey={site.site_key} value={model.ogImage} fallbackValue={model.featuredMedia} fallbackLabel="Using Featured Image" onSelect={mediaId=>update("ogImage",mediaId)} label="Choose social image"/>:null}
-        </FormSection>
-
-        {mode==="edit"&&postId?<details className="bp-advanced-settings"><summary>Advanced URL history</summary><UrlHistoryPanel siteKey={site.site_key} postId={postId}/></details>:null}
-
-        {mode==="edit"?<section className="bp-editor-lifecycle"><h3>Post actions</h3><div className="bp-editor-lifecycle-actions">
-          {permissions.includes("posts.archive")&&status!=="ARCHIVED"&&status!=="TRASH"?<Button onClick={()=>setConfirmAction("archive")}>Archive</Button>:null}
-          {permissions.includes("posts.trash")&&status!=="TRASH"?<Button variant="destructive" onClick={()=>setConfirmAction("trash")}>Move to Trash</Button>:null}
-          {permissions.includes("posts.restore")&&status==="TRASH"?<Button onClick={()=>setConfirmAction("restore")}>Restore</Button>:null}
-          {permissions.includes("posts.duplicate")?<Button onClick={()=>void duplicateMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{}}).then(result=>{const p=asRecord(asRecord(result).post);navigate(`/site/${site.site_key}/posts/${stringValue(p,"post_id")}`)})}>Duplicate</Button>:null}
-          {permissions.includes("posts.delete")&&status==="TRASH"?<Button variant="destructive" onClick={()=>setConfirmAction("delete")}>Permanent delete</Button>:null}
-        </div>{permissions.includes("posts.revisions.view")?<p><Link to={`/site/${site.site_key}/posts/${postId}/revisions`}>Revision history</Link></p>:null}</section>:null}
-      </aside>
+      {settingsOpen?<aside className="bp-editor-rail" aria-label="Post settings">
+        <div className="bp-editor-settings-tabs" role="tablist" aria-label="Editor settings">
+          <button type="button" role="tab" aria-selected={settingsTab==="post"} className={settingsTab==="post"?"is-active":""} onClick={()=>setSettingsTab("post")}>Post</button>
+          <button type="button" role="tab" aria-selected={settingsTab==="block"} className={settingsTab==="block"?"is-active":""} onClick={()=>setSettingsTab("block")} disabled={!activeBlockId}>Block</button>
+        </div>
+        {settingsTab==="post"?<>
+          <FormSection title="Post settings">
+            <div className="bp-editor-status-row"><span>Status</span><StatusBadge value={status}/></div>
+            <TextArea label="Short summary" value={model.excerpt} onChange={e=>update("excerpt",e.target.value)} placeholder="A short description of this article."/>
+            <SelectField label="Author" value={model.author} onChange={e=>update("author",e.target.value)} disabled={!permissions.includes("authors.view")}><option value="">Choose author</option>{authors.map(author=><option key={stringValue(author,"author_id")} value={stringValue(author,"author_id")}>{stringValue(author,"display_name")}</option>)}</SelectField>
+            <div className="bp-field"><span className="bp-label">Categories</span><div className="bp-category-checklist">{categories.length?categories.map(category=>{const id=stringValue(category,"category_id");return <Checkbox key={id} label={stringValue(category,"name","Unnamed category")} checked={ids(model.categories).includes(id)} onChange={e=>toggleCategory(id,e.target.checked)} disabled={!permissions.includes("categories.view")}/>}):<span className="bp-field-hint">No categories are available for this website.</span>}</div></div>
+          </FormSection>
+          {permissions.includes("media.view")?<FormSection title="Featured image"><MediaPicker siteKey={site.site_key} value={model.featuredMedia} onSelect={mediaId=>update("featuredMedia",mediaId)} label="Choose featured image"/></FormSection>:null}
+          {permissions.includes("search.view")&&(permissions.includes("posts.edit")||permissions.includes("posts.create"))?<RelatedCandidatePanel siteKey={site.site_key} {...(mode==="edit"&&postId?{postId}:{})} relatedIds={ids(model.related)} onChange={values=>update("related",values.join(", "))}/>:null}
+          <FormSection title="Search appearance">
+            <TextField label="SEO title" value={model.seoTitle} onChange={e=>update("seoTitle",e.target.value)} disabled={!permissions.includes("seo.edit")} placeholder={model.title||"Article title"}/>
+            <TextArea label="Meta description" value={model.metaDescription} onChange={e=>update("metaDescription",e.target.value)} disabled={!permissions.includes("seo.edit")} placeholder={model.excerpt||"Short search description"}/>
+            <TextField label="URL slug" value={model.slug} onChange={e=>update("slug",e.target.value)} placeholder="Generated from title when published"/>
+            <div className="bp-search-preview"><span>Search preview</span><strong>{model.seoTitle||model.title||"Your article title"}</strong><p>{model.metaDescription||model.excerpt||"Add a short description for search results."}</p></div>
+            {permissions.includes("media.view")?<MediaPicker siteKey={site.site_key} value={model.ogImage} fallbackValue={model.featuredMedia} fallbackLabel="Using Featured Image" onSelect={mediaId=>update("ogImage",mediaId)} label="Choose social image"/>:null}
+          </FormSection>
+          {mode==="edit"&&postId?<details className="bp-advanced-settings"><summary>Advanced URL history</summary><UrlHistoryPanel siteKey={site.site_key} postId={postId}/></details>:null}
+          {mode==="edit"?<section className="bp-editor-lifecycle"><h3>Post actions</h3><div className="bp-editor-lifecycle-actions">
+            {permissions.includes("posts.archive")&&status!=="ARCHIVED"&&status!=="TRASH"?<Button onClick={()=>setConfirmAction("archive")}>Archive</Button>:null}
+            {permissions.includes("posts.trash")&&status!=="TRASH"?<Button variant="destructive" onClick={()=>setConfirmAction("trash")}>Move to Trash</Button>:null}
+            {permissions.includes("posts.restore")&&status==="TRASH"?<Button onClick={()=>setConfirmAction("restore")}>Restore</Button>:null}
+            {permissions.includes("posts.duplicate")?<Button onClick={()=>void duplicateMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{}}).then(result=>{const p=asRecord(asRecord(result).post);navigate(`/site/${site.site_key}/posts/${stringValue(p,"post_id")}`)})}>Duplicate</Button>:null}
+            {permissions.includes("posts.delete")&&status==="TRASH"?<Button variant="destructive" onClick={()=>setConfirmAction("delete")}>Permanent delete</Button>:null}
+          </div>{permissions.includes("posts.revisions.view")?<p><Link to={`/site/${site.site_key}/posts/${postId}/revisions`}>Revision history</Link></p>:null}</section>:null}
+        </>:activeBlockId?(()=>{const selected=model.blocks.find(block=>block.block_id===activeBlockId);if(!selected)return <p className="bp-field-hint">Select a block to edit its settings.</p>;return <section className="bp-selected-block-settings"><h3>{BLOCK_LABELS[selected.type]}</h3><p className="bp-field-hint">Block controls stay contextual so the writing canvas remains clean.</p>{selected.type==="PARAGRAPH"||selected.type==="HEADING"?<SelectField label="Block type" value={selected.type==="PARAGRAPH"?"PARAGRAPH":`H${Number(selected.level??2)}`} onChange={event=>transformTextBlock(selected.block_id,event.target.value as "PARAGRAPH"|"H2"|"H3"|"H4")}><option value="PARAGRAPH">Paragraph</option><option value="H2">Heading 2</option><option value="H3">Heading 3</option><option value="H4">Heading 4</option></SelectField>:null}{selected.type==="LIST"?<SelectField label="List style" value={String(selected.style??"UNORDERED")} onChange={event=>replaceBlock(selected.block_id,{...selected,style:event.target.value})}><option value="UNORDERED">Bulleted list</option><option value="ORDERED">Numbered list</option></SelectField>:null}<div className="bp-inline-actions"><Button type="button" onClick={()=>moveBlock(selected.block_id,-1)}>Move up</Button><Button type="button" onClick={()=>moveBlock(selected.block_id,1)}>Move down</Button><Button type="button" onClick={()=>duplicateBlock(selected.block_id)}>Duplicate</Button><Button type="button" variant="destructive" onClick={()=>removeBlock(selected.block_id)}>Remove</Button></div></section>})():<p className="bp-field-hint">Select a block to edit its settings.</p>}
+      </aside>:null}
     </div>
 
     <Modal open={publishReviewOpen} title="Ready to publish?" description="Review the essentials. Publishing will save the current editor content first, then publish that exact server version." onClose={()=>setPublishReviewOpen(false)} footer={<><Button onClick={()=>setPublishReviewOpen(false)}>Cancel</Button><Button variant="primary" onClick={()=>void publishCurrent()} loading={publishMutation.isPending||saveMutation.isPending} disabled={publishProblems.length>0}>Publish now</Button></>}>
