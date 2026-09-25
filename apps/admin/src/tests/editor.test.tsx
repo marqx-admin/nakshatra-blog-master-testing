@@ -154,6 +154,33 @@ test("contextual transforms, slash blocks, inserter blocks and natural list exit
   await user.click(within(listStyle).getByRole("button",{name:"Numbers"}));
 });
 
+test("settings rail toggles cleanly and selected block controls stay contextual",async()=>{
+  renderEditor();await screen.findByRole("heading",{name:"Edit Post"});const user=userEvent.setup();
+  expect(screen.getByRole("complementary",{name:"Post settings"})).toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"Hide settings"}));
+  expect(screen.queryByRole("complementary",{name:"Post settings"})).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"Settings"}));
+  const paragraph=screen.getByRole("textbox",{name:"Paragraph"});paragraph.focus();
+  await user.click(screen.getByRole("tab",{name:"Block"}));
+  expect(await screen.findByText("Block controls stay contextual so the writing canvas remains clean.")).toBeInTheDocument();
+});
+
+test("duplicate and drag-drop block controls reorder the writing document without changing content",async()=>{
+  const post=makePost({body:{content_schema_version:"1",blocks:[
+    {block_id:"b1",type:"PARAGRAPH",content:rich("First")},
+    {block_id:"b2",type:"PARAGRAPH",content:rich("Second")},
+  ]}});
+  renderEditor({post,transport:editorTransport(post)});await screen.findByRole("heading",{name:"Edit Post"});
+  const first=screen.getAllByRole("textbox",{name:"Paragraph"})[0]!;first.focus();
+  await userEvent.click(screen.getByRole("button",{name:"Duplicate"}));
+  await waitFor(()=>expect(screen.getAllByRole("textbox",{name:"Paragraph"})).toHaveLength(3));
+  const blocks=screen.getAllByLabelText(/Paragraph block/);
+  const drag=within(blocks[0]!).getByRole("button",{name:"Drag Paragraph"});
+  fireEvent.dragStart(drag,{dataTransfer:{effectAllowed:"move"}});
+  fireEvent.drop(blocks[2]!);
+  expect(screen.getAllByRole("textbox",{name:"Paragraph"}).map(node=>node.textContent)).toContain("First");
+});
+
 test("Bold and Italic toggle ON/OFF without losing selected text",async()=>{
   function Harness(){const [value,setValue]=useState({runs:[{text:"second paragraph",marks:[] as string[]}]});return <RichTextRunsEditor label="Paragraph" value={value} onChange={next=>setValue(next as typeof value)}/>;}
   render(<AdminApiProvider transport={fixtureTransport()}><Harness/></AdminApiProvider>);const user=userEvent.setup();const editor=screen.getByRole("textbox",{name:"Paragraph"});
@@ -219,6 +246,17 @@ test("MediaPicker validates type/size, selects site media, and Social Image retu
   await userEvent.click(screen.getByRole("button",{name:"Choose social image"}));const dialog=screen.getByRole("dialog");await within(dialog).findByText("Social Override");await userEvent.click(within(dialog).getByRole("button",{name:"Select"}));
   await waitFor(()=>expect(screen.getByRole("button",{name:"Remove"})).toBeInTheDocument());
   await userEvent.click(screen.getByRole("button",{name:"Remove"}));expect(await screen.findByText(/Using Featured Image/)).toBeInTheDocument();
+});
+
+test("article image picker accepts drag-drop files into the existing validated media workflow",async()=>{
+  const transport=withOverrides(()=>undefined);
+  function Harness(){const [value,setValue]=useState("");return <MediaPicker siteKey="SITE-01" value={value} onSelect={setValue} label="Upload or choose image" preview="article"/>;}
+  render(<AdminApiProvider transport={transport}><Harness/></AdminApiProvider>);
+  const drop=screen.getByText("Drop an image here").closest(".bp-media-picker-selection--article");expect(drop).toBeTruthy();
+  const file=new File(["image"],"article.png",{type:"image/png"});
+  fireEvent.drop(drop as HTMLElement,{dataTransfer:{files:[file]}});
+  const dialog=await screen.findByRole("dialog",{name:"Choose media"});
+  expect(within(dialog).getByLabelText("File")).toBeInTheDocument();
 });
 
 test("Featured Image loads by site media identity and can be removed without exposing an ID",async()=>{
