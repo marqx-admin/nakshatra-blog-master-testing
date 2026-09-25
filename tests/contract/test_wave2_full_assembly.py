@@ -171,7 +171,8 @@ def test_run1_public_delivery_repairs_are_applied_to_all_fourteen_site_apps():
 
         assert "destinationPath(destination)" in destination_link
         assert 'destination.kind === "MAILTO"' in destination_link
-        assert "href={destinationPath(item.destination)}" in mobile_nav
+        assert "destinationPath(item.destination)" in mobile_nav
+        assert 'item.destination.kind === "MAILTO"' in mobile_nav
         assert "ctx.query.handoff" in ssr
         assert 'response.headers.get("set-cookie")' in ssr
         assert 'ctx.res.setHeader("Set-Cookie", setCookie)' in ssr

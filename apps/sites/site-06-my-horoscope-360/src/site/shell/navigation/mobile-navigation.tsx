@@ -34,7 +34,7 @@ export function MobileNavigation({ items, requestPath, searchDestination }: { it
             <ul>
               {items.map((item, index) => (
                 <li key={`${item.label}-${item.destination.url}`}>
-                  <a ref={index === 0 ? firstLinkRef : undefined} href={destinationPath(item.destination)} aria-current={isCurrentDestination(item.destination, requestPath) ? "page" : undefined}>{item.label}</a>
+                  <a ref={index === 0 ? firstLinkRef : undefined} href={item.destination.is_external || item.destination.kind === "MAILTO" || item.destination.kind === "TEL" ? item.destination.url : destinationPath(item.destination)} aria-current={isCurrentDestination(item.destination, requestPath) ? "page" : undefined}>{item.label}</a>
                 </li>
               ))}
             </ul>
