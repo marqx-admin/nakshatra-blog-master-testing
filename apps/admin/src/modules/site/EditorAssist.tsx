@@ -44,6 +44,9 @@ export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSe
   const items = listItems(query.data);
   const selectedDetail = asRecord(asRecord(selectedQuery.data).media);
   const selected = Object.keys(selectedDetail).length ? selectedDetail : items.find((media) => stringValue(media, "media_id", "") === effectiveValue);
+  function prepareFile(next:File|undefined){
+    setFile(next);const problem=next?mediaFileValidationError(next):undefined;setValidationError(problem);if(next)setOpen(true);
+  }
   async function uploadAndSelect(event: FormEvent) {
     event.preventDefault();
     if (!file) return;
@@ -58,8 +61,8 @@ export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSe
     setOpen(false);
   }
   return <>
-    <div className="bp-media-picker-selection">
-      {selected && typeof selected.public_url === "string" ? <img className={preview === "article" ? "bp-media-picker-selected-thumb bp-media-picker-selected-thumb--article" : "bp-media-picker-selected-thumb"} src={selected.public_url} alt={stringValue(selected, "alt_text", "")} /> : null}
+    <div className={`bp-media-picker-selection${preview==="article"?" bp-media-picker-selection--article":""}`} onDragOver={event=>{if(!disabled)event.preventDefault()}} onDrop={event=>{if(disabled)return;event.preventDefault();prepareFile(event.dataTransfer.files?.[0])}}>
+      {selected && typeof selected.public_url === "string" ? <img className={preview === "article" ? "bp-media-picker-selected-thumb bp-media-picker-selected-thumb--article" : "bp-media-picker-selected-thumb"} src={selected.public_url} alt={stringValue(selected, "alt_text", "")} /> : preview==="article"?<div className="bp-media-drop-hint"><strong>Drop an image here</strong><span>or choose from this website's media library</span></div>:null}
       <div><div className="bp-inline-actions">
         <Button type="button" variant="secondary" onClick={() => setOpen(true)} disabled={disabled}>{value ? "Change media" : fallbackValue ? "Choose social image" : label}</Button>
         {value ? <Button type="button" variant="tertiary" onClick={() => onSelect("")} disabled={disabled}>Remove</Button> : null}
@@ -69,7 +72,7 @@ export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSe
       <div className="bp-form-stack">
         <form className="bp-media-picker-upload" onSubmit={uploadAndSelect}>
           <strong>Upload new</strong>
-          <TextField label="File" type="file" accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif" onChange={(event) => {const next=event.target.files?.[0];setFile(next);setValidationError(next?mediaFileValidationError(next):undefined)}} />
+          <TextField label="File" type="file" accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif" onChange={(event) => prepareFile(event.target.files?.[0])} />
           <TextField label="Alt text" value={altText} onChange={(event) => setAltText(event.target.value)} hint="Describe the image for readers who cannot see it." />
           {validationError ? <Alert tone="warning">{validationError}</Alert> : null}
           {upload.isError ? <Alert tone="danger">The file could not be uploaded. Check the file and try again.</Alert> : null}
