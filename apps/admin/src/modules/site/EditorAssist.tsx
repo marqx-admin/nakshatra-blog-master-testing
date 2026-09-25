@@ -384,6 +384,18 @@ export function RichTextRunsEditor({
   const caretFormatRef=useRef<{active:boolean;marks:string[];link?:UnknownRecord}>({active:false,marks:[]});
   const [,setCaretFormatTick]=useState(0);
   const signature = runSignature(value);
+  const slashText=plainRichText(value).trim().toLowerCase();
+  const slashChoices=[
+    {command:"/paragraph",label:"Paragraph",hint:"Start a text paragraph"},
+    {command:"/h2",label:"Heading 2",hint:"Section heading"},
+    {command:"/h3",label:"Heading 3",hint:"Subsection heading"},
+    {command:"/list",label:"Bulleted list",hint:"Create a bullet list"},
+    {command:"/number",label:"Numbered list",hint:"Create a numbered list"},
+    {command:"/quote",label:"Quote",hint:"Insert a quotation"},
+    {command:"/image",label:"Image",hint:"Upload or choose media"},
+    {command:"/table",label:"Table",hint:"Insert a table"},
+    {command:"/divider",label:"Divider",hint:"Separate sections"},
+  ].filter(choice=>slashText==="/"||choice.command.includes(slashText)||choice.label.toLowerCase().includes(slashText.slice(1)));
   const internalLinkQuery = useAdminQuery<UnknownRecord>(
     "API15-S-091",
     { path: { site_key: siteKey || "" }, query: { q: linkSearch.trim() || undefined, page: 1, page_size: 12 } },
@@ -529,6 +541,7 @@ export function RichTextRunsEditor({
       onMouseUp={()=>{const range=selectedRange();if(range&&range.start===range.end){const base=formattingAtOffset(value,range.start);caretFormatRef.current={active:false,marks:base.marks,...(base.link?{link:base.link}:{})}}}}
       onFocus={onFocus}
     />
+    {onSlashCommand&&slashText.startsWith("/")&&slashChoices.length?<div className="bp-slash-menu" role="listbox" aria-label="Block suggestions">{slashChoices.map(choice=><button key={choice.command} type="button" role="option" onMouseDown={event=>event.preventDefault()} onClick={()=>onSlashCommand(choice.command)}><span>{choice.label}</span><small>{choice.hint}</small></button>)}</div>:null}
     <Modal open={linkOpen} title="Add or edit link" description="Paste a web address or choose content from this website." onClose={() => setLinkOpen(false)} footer={<><Button type="button" onClick={() => setLinkOpen(false)}>Cancel</Button><Button type="button" variant="tertiary" onClick={removeLink}>Remove link</Button><Button type="button" variant="primary" disabled={!linkUrl.trim()} onClick={() => applyLinkDestination({ kind: "EXTERNAL", url: linkUrl.trim() })}>Apply URL</Button></>}>
       <div className="bp-form-stack">
         <TextField label="Web address" type="url" value={linkUrl} onChange={(event) => setLinkUrl(event.target.value)} placeholder="https://example.com" />
