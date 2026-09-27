@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import type { AdminOperationId } from "@bp/api-client-admin";
@@ -72,11 +72,11 @@ function setSelection(editor:HTMLElement,start:number,end=start){
   const range=document.createRange();range.setStart(startNode,startOffset);range.setEnd(endNode,endOffset);
   const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);
 }
-afterEach(()=>{vi.useRealTimers();vi.restoreAllMocks()});
+afterEach(()=>{cleanup();vi.useRealTimers();vi.restoreAllMocks()});
 
 test("editor exposes a clean WordPress-style command bar while preserving all 12 ArticleBody types",async()=>{
   renderEditor();
-  expect(await screen.findByRole("heading",{name:"Edit Post"})).toBeInTheDocument();
+  expect(await screen.findByRole("toolbar",{name:"Editor toolbar"})).toBeInTheDocument();
   expect(ARTICLE_BLOCK_TYPES).toEqual(["PARAGRAPH","HEADING","LIST","QUOTE","SEPARATOR","MEDIA","TABLE","EMBED","CALLOUT","CTA","DISCLAIMER","SOURCES_REFERENCES"]);
   for(const label of ["+ Add block","Add Media","Bold","Italic","Link","Bullets","Numbers","Quote","Table","Divider","More","Undo","Redo","Hide settings","Preview","Schedule"]){
     expect(screen.getByRole("button",{name:label})).toBeInTheDocument();
@@ -88,7 +88,7 @@ test("editor exposes a clean WordPress-style command bar while preserving all 12
 });
 
 test("unified toolbar formats the active writer and More exposes only advanced blocks",async()=>{
-  renderEditor();await screen.findByRole("heading",{name:"Edit Post"});const user=userEvent.setup();
+  renderEditor();await screen.findByRole("toolbar",{name:"Editor toolbar"});const user=userEvent.setup();
   const paragraph=screen.getByRole("textbox",{name:"Paragraph"});paragraph.focus();setSelection(paragraph,0,5);
   await user.click(screen.getByRole("button",{name:"Bold"}));
   expect(paragraph.querySelector("strong")?.textContent).toBe("First");
@@ -101,7 +101,7 @@ test("unified toolbar formats the active writer and More exposes only advanced b
 });
 
 test("Add Media immediately opens the portal media picker above the editor",async()=>{
-  renderEditor();await screen.findByRole("heading",{name:"Edit Post"});
+  renderEditor();await screen.findByRole("toolbar",{name:"Editor toolbar"});
   fireEvent.click(screen.getByRole("button",{name:"Add Media"}));
   const dialog=await screen.findByRole("dialog",{name:"Choose media"});
   const backdrop=dialog.closest(".bp-modal-backdrop");
@@ -133,7 +133,7 @@ test("Enter splits paragraphs, Backspace merges them, and Undo/Redo restore actu
     {block_id:"b2",type:"PARAGRAPH",content:rich("Two")},
   ]}});
   renderEditor({post,transport:editorTransport(post)});
-  await screen.findByRole("heading",{name:"Edit Post"});
+  await screen.findByRole("toolbar",{name:"Editor toolbar"});
   let paragraphs=screen.getAllByRole("textbox",{name:"Paragraph"});
   setSelection(paragraphs[1]!,0);fireEvent.keyDown(paragraphs[1]!,{key:"Backspace"});
   await waitFor(()=>expect(screen.getAllByRole("textbox",{name:"Paragraph"})).toHaveLength(1));
@@ -149,7 +149,7 @@ test("Enter splits paragraphs, Backspace merges them, and Undo/Redo restore actu
 });
 
 test("contextual transforms, slash blocks, inserter blocks and natural list exit work",async()=>{
-  renderEditor();await screen.findByRole("heading",{name:"Edit Post"});const user=userEvent.setup();
+  renderEditor();await screen.findByRole("toolbar",{name:"Editor toolbar"});const user=userEvent.setup();
   const paragraph=screen.getByRole("textbox",{name:"Paragraph"});paragraph.focus();
   const transform=await screen.findByRole("combobox",{name:"Block type"});
   await user.selectOptions(transform,"H2");const h2=await screen.findByRole("textbox",{name:"Heading H2"});await user.type(h2,"Heading converted");
@@ -181,7 +181,7 @@ test("contextual transforms, slash blocks, inserter blocks and natural list exit
 });
 
 test("settings rail toggles cleanly and selected block controls stay contextual",async()=>{
-  renderEditor();await screen.findByRole("heading",{name:"Edit Post"});const user=userEvent.setup();
+  renderEditor();await screen.findByRole("toolbar",{name:"Editor toolbar"});const user=userEvent.setup();
   expect(screen.getByRole("complementary",{name:"Post settings"})).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Hide settings"}));
   expect(screen.queryByRole("complementary",{name:"Post settings"})).not.toBeInTheDocument();
@@ -196,7 +196,7 @@ test("duplicate and drag-drop block controls reorder the writing document withou
     {block_id:"b1",type:"PARAGRAPH",content:rich("First")},
     {block_id:"b2",type:"PARAGRAPH",content:rich("Second")},
   ]}});
-  renderEditor({post,transport:editorTransport(post)});await screen.findByRole("heading",{name:"Edit Post"});
+  renderEditor({post,transport:editorTransport(post)});await screen.findByRole("toolbar",{name:"Editor toolbar"});
   const first=screen.getAllByRole("textbox",{name:"Paragraph"})[0]!;first.focus();
   await userEvent.click(screen.getByRole("button",{name:"Duplicate"}));
   await waitFor(()=>expect(screen.getAllByRole("textbox",{name:"Paragraph"})).toHaveLength(3));
@@ -292,7 +292,7 @@ test("Featured Image loads by site media identity and can be removed without exp
     if(id==="API15-S-062"&&input?.path?.media_id==="m1")return ok({media:featured});
     return undefined;
   });
-  renderEditor({post,transport});await screen.findByRole("heading",{name:"Edit Post"});
+  renderEditor({post,transport});await screen.findByRole("toolbar",{name:"Editor toolbar"});
   const heading=screen.getByRole("heading",{name:"Featured image"});const section=heading.closest("section");expect(section).toBeTruthy();
   expect(await within(section as HTMLElement).findByAltText("Featured cover")).toBeInTheDocument();
   expect(within(section as HTMLElement).getByRole("button",{name:"Change media"})).toBeInTheDocument();
@@ -345,7 +345,7 @@ test("stale autosave responses never mark newer edits Saved, and Retry recovers 
     }
     return undefined;
   });
-  renderEditor({post,transport});await screen.findByRole("heading",{name:"Edit Post"});vi.useFakeTimers();
+  renderEditor({post,transport});await screen.findByRole("toolbar",{name:"Editor toolbar"});vi.useFakeTimers();
   const summary=screen.getByLabelText("Short summary");fireEvent.change(summary,{target:{value:"Edit A"}});
   await act(async()=>{await vi.advanceTimersByTimeAsync(4100)});
   expect(autosaveCount).toBe(1);
@@ -371,7 +371,7 @@ test("manual Save waits for an in-flight autosave so the editor cannot conflict 
     if(id==="API15-S-013"){calls.push(id);return ok({post:{...post,...(input?.body as object),version:2,status:"DRAFT"}})}
     return undefined;
   });
-  renderEditor({post,transport});await screen.findByRole("heading",{name:"Edit Post"});vi.useFakeTimers();
+  renderEditor({post,transport});await screen.findByRole("toolbar",{name:"Editor toolbar"});vi.useFakeTimers();
   fireEvent.change(screen.getByLabelText("Short summary"),{target:{value:"Serialize me"}});
   await act(async()=>{await vi.advanceTimersByTimeAsync(4100)});
   expect(calls).toEqual(["API15-S-014"]);
@@ -402,7 +402,7 @@ test("dirty content is saved before Schedule and Publish",async()=>{
     if(id==="API15-S-019"){version+=1;status="PUBLISHED";return ok({post:{...post,version,status,slug:"fixture-post"}})}
     return undefined;
   });
-  renderEditor({post,transport});await screen.findByRole("heading",{name:"Edit Post"});
+  renderEditor({post,transport});await screen.findByRole("toolbar",{name:"Editor toolbar"});
   fireEvent.change(screen.getByLabelText("Short summary"),{target:{value:"Schedule change"}});
   fireEvent.click(screen.getByRole("button",{name:"Schedule"}));let dialog=screen.getByRole("dialog");fireEvent.change(within(dialog).getByLabelText(/Date and time/),{target:{value:"2026-10-01T10:30"}});fireEvent.click(within(dialog).getByRole("button",{name:"Schedule"}));
   await waitFor(()=>expect(calls).toEqual(["API15-S-013","API15-S-017"]));
@@ -422,7 +422,7 @@ test.each([
     if(id===lifecycleOp){calls.push(id);return ok({post:{...post,version:3,status:lifecycleOp==="API15-S-020"?"ARCHIVED":"TRASH"}})}
     return undefined;
   });
-  renderEditor({post,transport});await screen.findByRole("heading",{name:"Edit Post"});
+  renderEditor({post,transport});await screen.findByRole("toolbar",{name:"Editor toolbar"});
   fireEvent.change(screen.getByLabelText("Short summary"),{target:{value:"Keep this local edit"}});
   fireEvent.click(screen.getByRole("button",{name:actionLabel}));const dialog=screen.getByRole("dialog");fireEvent.click(within(dialog).getByRole("button",{name:"Confirm"}));
   await waitFor(()=>expect(calls).toEqual(["API15-S-013",lifecycleOp]));
@@ -435,7 +435,7 @@ test("Preview uses the dynamic current-site origin without publishing",async()=>
     if(id==="API15-S-001")return ok({site_key:"SITE-01"},{"X-BP-Public-Url":"https://site01-staging.example"});
     return undefined;
   });
-  renderEditor({transport});await screen.findByRole("heading",{name:"Edit Post"});fireEvent.click(screen.getByRole("button",{name:"Preview"}));
+  renderEditor({transport});await screen.findByRole("toolbar",{name:"Editor toolbar"});fireEvent.click(screen.getByRole("button",{name:"Preview"}));
   await waitFor(()=>expect(open).toHaveBeenCalledWith("https://site01-staging.example/_preview/private-token?x=1","_blank","noopener,noreferrer"));
   expect(calls).toEqual(["API15-S-016"]);
 });
@@ -447,7 +447,7 @@ test("published posts update through the versioned save and View Live Post uses 
     if(id==="API15-S-001")return ok({site_key:"SITE-01"},{"X-BP-Public-Url":"https://current-site.example"});
     return undefined;
   });
-  renderEditor({post,transport});await screen.findByRole("heading",{name:"Edit Post"});
+  renderEditor({post,transport});await screen.findByRole("toolbar",{name:"Editor toolbar"});
   fireEvent.change(screen.getByLabelText("Article title"),{target:{value:"Updated published title"}});fireEvent.click(screen.getByRole("button",{name:"Update"}));
   await waitFor(()=>expect(calls).toEqual(["API15-S-013"]));
   fireEvent.click(screen.getByRole("button",{name:"View Live Post"}));
