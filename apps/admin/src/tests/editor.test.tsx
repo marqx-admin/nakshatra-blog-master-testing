@@ -78,13 +78,39 @@ test("editor exposes a clean WordPress-style command bar while preserving all 12
   renderEditor();
   expect(await screen.findByRole("heading",{name:"Edit Post"})).toBeInTheDocument();
   expect(ARTICLE_BLOCK_TYPES).toEqual(["PARAGRAPH","HEADING","LIST","QUOTE","SEPARATOR","MEDIA","TABLE","EMBED","CALLOUT","CTA","DISCLAIMER","SOURCES_REFERENCES"]);
-  for(const label of ["+ Add block","Undo","Redo","Hide settings","Preview","Schedule"]){
+  for(const label of ["+ Add block","Add Media","Bold","Italic","Link","Bullets","Numbers","Quote","Table","Divider","More","Undo","Redo","Hide settings","Preview","Schedule"]){
     expect(screen.getByRole("button",{name:label})).toBeInTheDocument();
   }
   expect(screen.getByRole("button",{name:/Publish/})).toBeInTheDocument();
   expect(screen.getByRole("heading",{name:"Featured image"})).toBeInTheDocument();
   expect(screen.queryByRole("button",{name:"H2"})).not.toBeInTheDocument();
   expect(screen.queryByText("RC8 editorial helper")).not.toBeInTheDocument();
+});
+
+test("unified toolbar formats the active writer and More exposes only advanced blocks",async()=>{
+  renderEditor();await screen.findByRole("heading",{name:"Edit Post"});const user=userEvent.setup();
+  const paragraph=screen.getByRole("textbox",{name:"Paragraph"});paragraph.focus();setSelection(paragraph,0,5);
+  await user.click(screen.getByRole("button",{name:"Bold"}));
+  expect(paragraph.querySelector("strong")?.textContent).toBe("First");
+  await user.click(screen.getByRole("button",{name:"More"}));
+  const more=screen.getByRole("dialog",{name:"More blocks"});
+  for(const name of ["Embed","Callout","Button","Disclaimer","Sources and references"])expect(within(more).getByRole("button",{name:new RegExp(name,"i")})).toBeInTheDocument();
+  expect(within(more).queryByRole("button",{name:/Paragraph/i})).not.toBeInTheDocument();
+  await user.click(within(more).getByRole("button",{name:/Callout/i}));
+  expect(await screen.findByLabelText("Callout label")).toBeInTheDocument();
+});
+
+test("Add Media immediately opens the portal media picker above the editor",async()=>{
+  renderEditor();await screen.findByRole("heading",{name:"Edit Post"});
+  fireEvent.click(screen.getByRole("button",{name:"Add Media"}));
+  const dialog=await screen.findByRole("dialog",{name:"Choose media"});
+  const backdrop=dialog.closest(".bp-modal-backdrop");
+  expect(backdrop?.parentElement).toBe(document.body);
+  expect(document.body.style.overflow).toBe("hidden");
+  expect(screen.getByLabelText(/Image block/)).toBeInTheDocument();
+  fireEvent.click(within(dialog).getByRole("button",{name:"Close dialog"}));
+  await waitFor(()=>expect(screen.queryByRole("dialog",{name:"Choose media"})).not.toBeInTheDocument());
+  expect(document.body.style.overflow).toBe("");
 });
 
 test("transient empty writer blocks are omitted from persisted ArticleBody content",()=>{
@@ -335,6 +361,25 @@ test("stale autosave responses never mark newer edits Saved, and Retry recovers 
   fireEvent.click(screen.getByRole("button",{name:"Retry"}));
   await act(async()=>{await Promise.resolve();await Promise.resolve()});
   expect(screen.getByText(/^Saved/)).toBeInTheDocument();
+});
+
+test("manual Save waits for an in-flight autosave so the editor cannot conflict with its own stale base version",async()=>{
+  const post=makePost();const calls:AdminOperationId[]=[];let resolveAutosave!:(value:AdminResponse<unknown>)=>void;
+  const pendingAutosave=new Promise<AdminResponse<unknown>>(resolve=>{resolveAutosave=resolve});
+  const transport=editorTransport(post,(id,input)=>{
+    if(id==="API15-S-014"){calls.push(id);return pendingAutosave}
+    if(id==="API15-S-013"){calls.push(id);return ok({post:{...post,...(input?.body as object),version:2,status:"DRAFT"}})}
+    return undefined;
+  });
+  renderEditor({post,transport});await screen.findByRole("heading",{name:"Edit Post"});vi.useFakeTimers();
+  fireEvent.change(screen.getByLabelText("Short summary"),{target:{value:"Serialize me"}});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(4100)});
+  expect(calls).toEqual(["API15-S-014"]);
+  fireEvent.click(screen.getByRole("button",{name:"Save draft"}));
+  await act(async()=>{await Promise.resolve();await Promise.resolve()});
+  expect(calls).toEqual(["API15-S-014"]);
+  await act(async()=>{resolveAutosave(ok({saved_at:"2026-09-24T09:00:00Z"}));await Promise.resolve();await Promise.resolve()});
+  await waitFor(()=>expect(calls).toEqual(["API15-S-014","API15-S-013"]));
 });
 
 test("recovery with zero persisted blocks restores a usable paragraph placeholder",async()=>{

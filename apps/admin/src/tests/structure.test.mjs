@@ -88,6 +88,17 @@ test('Super Admin Open Website uses the same server-resolved public URL path',()
 });
 
 
+test('all 14 isolated public RichText renderers preserve soft line breaks',()=>{
+  const repoRoot=path.resolve(root,'../..');
+  const sitesRoot=path.join(repoRoot,'apps/sites');
+  const siteDirs=fs.readdirSync(sitesRoot,{withFileTypes:true}).filter(entry=>entry.isDirectory()&&/^site-\d{2}-/.test(entry.name));
+  assert.equal(siteDirs.length,14);
+  for(const siteDir of siteDirs){
+    const renderer=fs.readFileSync(path.join(sitesRoot,siteDir.name,'src/site/components/semantic-components.tsx'),'utf8');
+    assert.ok(renderer.includes('style={{ whiteSpace: "pre-wrap" }}'),`soft line break rendering missing in ${siteDir.name}`);
+  }
+});
+
 test('Post editor keeps natural writer-state controls out of browser execCommand',()=>{
   assert.equal(editor.includes('document.execCommand('),false);
   assert.ok(editor.includes('onEnter={onSplit}'));

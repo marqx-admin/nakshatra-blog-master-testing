@@ -31,7 +31,7 @@ function normalizedInternalCandidate(candidate: UnknownRecord): UnknownRecord | 
   return undefined;
 }
 
-export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSelect, label = "Choose media", disabled = false, preview = "compact" }: { siteKey: string; value?: string; fallbackValue?: string; fallbackLabel?: string; onSelect(mediaId: string): void; label?: string; disabled?: boolean; preview?: "compact" | "article" }) {
+export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSelect, label = "Choose media", disabled = false, preview = "compact", openOnMount = false }: { siteKey: string; value?: string; fallbackValue?: string; fallbackLabel?: string; onSelect(mediaId: string): void; label?: string; disabled?: boolean; preview?: "compact" | "article"; openOnMount?: boolean }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [file, setFile] = useState<File>();
@@ -44,6 +44,7 @@ export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSe
   const items = listItems(query.data);
   const selectedDetail = asRecord(asRecord(selectedQuery.data).media);
   const selected = Object.keys(selectedDetail).length ? selectedDetail : items.find((media) => stringValue(media, "media_id", "") === effectiveValue);
+  useEffect(()=>{if(openOnMount&&!disabled)setOpen(true)},[openOnMount,disabled]);
   function prepareFile(next:File|undefined){
     setFile(next);const problem=next?mediaFileValidationError(next):undefined;setValidationError(problem);if(next)setOpen(true);
   }

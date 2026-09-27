@@ -16,6 +16,7 @@ const BLOCK_LABELS:Record<BlockType,string>={PARAGRAPH:"Paragraph",HEADING:"Head
 const STATIC_PAGE_KEYS = ["ABOUT","CONTACT","PRIVACY","TERMS","DISCLAIMER"] as const;
 type BlockType = typeof ARTICLE_BLOCK_TYPES[number];
 type Block = UnknownRecord & { block_id:string; type:BlockType };
+const ADVANCED_BLOCK_TYPES:readonly BlockType[]=["EMBED","CALLOUT","CTA","DISCLAIMER","SOURCES_REFERENCES"];
 
 function newBlockId(){return globalThis.crypto?.randomUUID?.() ?? `block-${Date.now()}-${Math.random().toString(36).slice(2)}`}
 function editorInstanceIdFor(key:string){
@@ -59,13 +60,14 @@ function blockDefaults(type:BlockType):UnknownRecord{
   if(type==="TABLE")return {rows:[[rich(""),rich("")],[rich(""),rich("")]]};
   return {};
 }
-function BlockInsertMenu({label="+",onInsert}:{label?:string;onInsert(type:BlockType,overrides?:UnknownRecord):void}){
+function BlockInsertMenu({label="+",onInsert,types=ARTICLE_BLOCK_TYPES,searchable=true}:{label?:string;onInsert(type:BlockType,overrides?:UnknownRecord):void;types?:readonly BlockType[];searchable?:boolean}){
   const [open,setOpen]=useState(false);const [query,setQuery]=useState("");
-  const choices=ARTICLE_BLOCK_TYPES.filter(type=>BLOCK_LABELS[type].toLowerCase().includes(query.trim().toLowerCase()));
+  const choices=types.filter(type=>BLOCK_LABELS[type].toLowerCase().includes(query.trim().toLowerCase()));
+  const dialogLabel=label==="+"||label==="+ Add block"?"Add block":label==="More"?"More blocks":label;
   return <div className="bp-wp-inserter">
     <Button type="button" variant="tertiary" onClick={()=>setOpen(value=>!value)} aria-expanded={open} aria-label={label==="+"?"Add block":label}>{label}</Button>
-    {open?<div className="bp-wp-inserter-popover" role="dialog" aria-label="Add block">
-      <input className="bp-input" aria-label="Search blocks" placeholder="Search blocks" value={query} onChange={event=>setQuery(event.target.value)} autoFocus/>
+    {open?<div className="bp-wp-inserter-popover" role="dialog" aria-label={dialogLabel}>
+      {searchable?<input className="bp-input" aria-label="Search blocks" placeholder="Search blocks" value={query} onChange={event=>setQuery(event.target.value)} autoFocus/>:null}
       <div className="bp-wp-inserter-grid">{choices.map(type=><button type="button" key={type} onClick={()=>{onInsert(type,blockDefaults(type));setOpen(false);setQuery("")}}><strong>{BLOCK_LABELS[type]}</strong><span>{type==="PARAGRAPH"?"Start writing":type==="HEADING"?"Heading H2/H3/H4":type==="LIST"?"Bulleted or numbered list":type==="MEDIA"?"Upload or choose an image":type==="CTA"?"Call-to-action button":"Insert content block"}</span></button>)}</div>
     </div>:null}
   </div>;
@@ -78,9 +80,9 @@ function tableRows(block:Block):UnknownRecord[][]{
 function listRichItems(block:Block):UnknownRecord[]{const items=Array.isArray(block.items)?block.items.map(item=>asRecord(item)):[];return items.length?items:[rich("")]}
 
 function BlockEditor({
-  siteKey,block,index,count,active,onChange,onMove,onRemove,onDuplicate,onSplit,onMergePrevious,onExitList,onFocus,onUndo,onRedo,onSlashCommand,onDragStart,onDrop,
+  siteKey,block,index,count,active,autoOpenMedia,onChange,onMove,onRemove,onDuplicate,onSplit,onMergePrevious,onExitList,onFocus,onUndo,onRedo,onSlashCommand,onDragStart,onDrop,
 }:{
-  siteKey:string;block:Block;index:number;count:number;active:boolean;onChange(block:Block):void;onMove(delta:number):void;onRemove():void;onDuplicate():void;
+  siteKey:string;block:Block;index:number;count:number;active:boolean;autoOpenMedia?:boolean;onChange(block:Block):void;onMove(delta:number):void;onRemove():void;onDuplicate():void;
   onSplit(offset:number):void;onMergePrevious():boolean;onExitList(itemIndex:number):void;onFocus():void;onUndo():void;onRedo():void;onSlashCommand(command:string):boolean;onDragStart():void;onDrop():void;
 }){
   const field=(key:string,value:string)=>onChange({...block,[key]:value});
@@ -119,7 +121,7 @@ function BlockEditor({
     {type==="LIST"?<div className="bp-list-editor"><div className="bp-list-style-label">{String(block.style??"UNORDERED")==="ORDERED"?"Numbered list":"Bulleted list"}</div>{String(block.style??"UNORDERED")==="ORDERED"?<ol>{items.map((item,itemIndex)=><li key={itemIndex}><RichTextRunsEditor siteKey={siteKey} editorId={`bp-list-${block.block_id}-${itemIndex}`} label={`List item ${itemIndex+1}`} value={item} onChange={value=>updateListItem(itemIndex,value)} placeholder="List item" showToolbar={false} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo} onEnter={()=>{if(!richText(item).trim()&&itemIndex===items.length-1){onExitList(itemIndex)}else addListItemAfter(itemIndex)}} onBackspaceAtStart={()=>{if(!richText(item).trim()){removeListItem(itemIndex);return true}return false}}/></li>)}</ol>:<ul>{items.map((item,itemIndex)=><li key={itemIndex}><RichTextRunsEditor siteKey={siteKey} editorId={`bp-list-${block.block_id}-${itemIndex}`} label={`List item ${itemIndex+1}`} value={item} onChange={value=>updateListItem(itemIndex,value)} placeholder="List item" showToolbar={false} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo} onEnter={()=>{if(!richText(item).trim()&&itemIndex===items.length-1){onExitList(itemIndex)}else addListItemAfter(itemIndex)}} onBackspaceAtStart={()=>{if(!richText(item).trim()){removeListItem(itemIndex);return true}return false}}/></li>)}</ul>}</div>:null}
     {type==="QUOTE"?<div className="bp-quote-editor"><RichTextRunsEditor siteKey={siteKey} editorId={`bp-quote-${block.block_id}`} label="Quote" variant="quote" placeholder="Write the quote…" value={block.quote} onChange={value=>onChange({...block,quote:value})} multiline showToolbar={false} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo}/><details className="bp-inline-details"><summary>Add citation</summary><div className="bp-form-stack"><TextField label="Attribution" value={String(block.attribution??"")} onChange={e=>field("attribution",e.target.value)}/><TextField label="Source" value={String(block.source??"")} onChange={e=>field("source",e.target.value)}/></div></details></div>:null}
     {type==="SEPARATOR"?<div className="bp-separator-preview" aria-label="Divider"><hr/></div>:null}
-    {type==="MEDIA"?<div className="bp-article-image-editor"><MediaPicker siteKey={siteKey} value={String(block.media_id??"")} onSelect={mediaId=>field("media_id",mediaId)} label="Upload or choose image" preview="article"/><details className="bp-inline-details"><summary>Image details</summary><div className="bp-form-stack"><TextField label="Alternative text" value={String(block.alt_override??"")} onChange={e=>field("alt_override",e.target.value)} hint="Describe the image for readers who cannot see it."/><TextArea label="Caption" value={String(block.caption??"")} onChange={e=>field("caption",e.target.value)}/></div></details></div>:null}
+    {type==="MEDIA"?<div className="bp-article-image-editor"><MediaPicker siteKey={siteKey} value={String(block.media_id??"")} onSelect={mediaId=>field("media_id",mediaId)} label="Upload or choose image" preview="article" openOnMount={autoOpenMedia}/><details className="bp-inline-details"><summary>Image details</summary><div className="bp-form-stack"><TextField label="Alternative text" value={String(block.alt_override??"")} onChange={e=>field("alt_override",e.target.value)} hint="Describe the image for readers who cannot see it."/><TextArea label="Caption" value={String(block.caption??"")} onChange={e=>field("caption",e.target.value)}/></div></details></div>:null}
     {type==="TABLE"?<div className="bp-table-editor"><div className="bp-table-editor-grid">{rows.map((row,rowIndex)=><div className="bp-table-editor-row" key={rowIndex}>{Array.from({length:columnCount},(_,columnIndex)=><input key={columnIndex} className="bp-table-editor-cell" aria-label={`Row ${rowIndex+1}, column ${columnIndex+1}`} value={richText(row[columnIndex]??rich(""))} onChange={e=>updateCell(rowIndex,columnIndex,e.target.value)}/>)}</div>)}</div><div className="bp-inline-actions"><Button type="button" variant="tertiary" onClick={addRow}>Add row</Button><Button type="button" variant="tertiary" onClick={addColumn}>Add column</Button><Button type="button" variant="tertiary" onClick={removeRow} disabled={rows.length<=1}>Remove row</Button><Button type="button" variant="tertiary" onClick={removeColumn} disabled={columnCount<=1}>Remove column</Button></div><Checkbox label="First row is a heading row" checked={Boolean(block.header_row)} onChange={e=>onChange({...block,header_row:e.target.checked})}/></div>:null}
     {type==="EMBED"?<div className="bp-embed-editor"><TextField label="Embed URL or ID" value={String(block.source_url_or_id??"")} onChange={e=>field("source_url_or_id",e.target.value)} placeholder="Paste the approved embed URL"/><TextField label="Caption" value={String(block.caption??"")} onChange={e=>field("caption",e.target.value)}/><details className="bp-inline-details"><summary>Advanced provider settings</summary><TextField label="Provider key" value={String(block.provider_key??"")} onChange={e=>field("provider_key",e.target.value)} hint="Only approved providers can be published."/></details></div>:null}
     {type==="CALLOUT"?<div className="bp-editorial-callout"><TextField label="Callout label" value={String(block.label??"")} onChange={e=>field("label",e.target.value)} placeholder="Optional label"/><RichTextRunsEditor siteKey={siteKey} editorId={`bp-callout-${block.block_id}`} label="Callout body" value={block.body} onChange={value=>onChange({...block,body:value})} multiline showToolbar={false} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo}/></div>:null}
@@ -199,10 +201,13 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
   const serverVersionRef=useRef(serverVersion);
   const editRevisionRef=useRef(0);
   const lastAutosavedRevisionRef=useRef(0);
+  const autosaveInFlightRef=useRef<Promise<void>|null>(null);
+  const durableSaveInFlightRef=useRef<Promise<UnknownRecord>|null>(null);
   const historyRef=useRef<{past:EditorModel[];future:EditorModel[]}>({past:[],future:[]});
   const [historyState,setHistoryState]=useState({canUndo:false,canRedo:false});
   const [activeBlockId,setActiveBlockId]=useState<string>();
   const [activeEditorId,setActiveEditorId]=useState<string>();
+  const [autoOpenMediaBlockId,setAutoOpenMediaBlockId]=useState<string>();
   const [draggedBlockId,setDraggedBlockId]=useState<string>();
   const [settingsOpen,setSettingsOpen]=useState(true);
   const [settingsTab,setSettingsTab]=useState<"post"|"block">("post");
@@ -259,10 +264,10 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
   },[mode,dirtyState.dirty,model,createMutation.isPending]);
 
   useEffect(()=>{
-    if(mode!=="edit"||!dirtyState.dirty||editRevisionRef.current<=lastAutosavedRevisionRef.current||!permissions.includes("posts.edit")||autosaveMutation.isPending)return;
+    if(mode!=="edit"||!dirtyState.dirty||editRevisionRef.current<=lastAutosavedRevisionRef.current||!permissions.includes("posts.edit")||autosaveMutation.isPending||saveMutation.isPending)return;
     const timer=window.setTimeout(()=>void autosaveNow(),4000);
     return()=>window.clearTimeout(timer);
-  },[mode,dirtyState.dirty,model,serverVersion,postId,site.site_key,editorInstanceId,permissions,autosaveMutation.isPending]);
+  },[mode,dirtyState.dirty,model,serverVersion,postId,site.site_key,editorInstanceId,permissions,autosaveMutation.isPending,saveMutation.isPending]);
 
   function markEdited(){editRevisionRef.current+=1;dirtyState.setDirty(true);dirtyState.setDirtyLabel("post editor changes");setSuccess(undefined);setAutosaveState("unsaved");return editRevisionRef.current}
   function commitModel(change:(current:EditorModel)=>EditorModel){
@@ -322,14 +327,15 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
     commitModel(current=>{const next=[...current.blocks];const index=next.findIndex(block=>block.block_id===blockId);const target=index+delta;if(index<0||target<0||target>=next.length)return current;[next[index],next[target]]=[next[target]!,next[index]!];return {...current,blocks:next}});
   }
   function removeBlock(blockId:string){commitModel(current=>{const next=current.blocks.filter(block=>block.block_id!==blockId);return {...current,blocks:next.length?next:[newBlock("PARAGRAPH")]}})}
-  function insertBlockAt(insertAt:number,type:BlockType,overrides:UnknownRecord={}){
+  function insertBlockAt(insertAt:number,type:BlockType,overrides:UnknownRecord={}):string{
     const block={...newBlock(type),...blockDefaults(type),...overrides} as Block;
     commitModel(current=>{const next=[...current.blocks];next.splice(Math.max(0,Math.min(insertAt,next.length)),0,block);return {...current,blocks:next}});
     setActiveBlockId(block.block_id);if(type==="PARAGRAPH"||type==="HEADING")focusWriter(block.block_id);
+    return block.block_id;
   }
-  function insertBlock(type:BlockType,overrides:UnknownRecord={}){
+  function insertBlock(type:BlockType,overrides:UnknownRecord={}):string{
     const activeIndex=modelRef.current.blocks.findIndex(item=>item.block_id===activeBlockId);
-    insertBlockAt(activeIndex>=0?activeIndex+1:modelRef.current.blocks.length,type,overrides);
+    return insertBlockAt(activeIndex>=0?activeIndex+1:modelRef.current.blocks.length,type,overrides);
   }
   function splitBlock(blockId:string,offset:number){
     const source=model.blocks.find(block=>block.block_id===blockId);
@@ -428,14 +434,21 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
     navigate(`/site/${site.site_key}/posts/${createdId}`,{replace:true});
   }
   async function saveExisting(announce=true):Promise<UnknownRecord>{
-    const includeTags=permissions.includes("tags.view");const snapshotRevision=editRevisionRef.current;const snapshot=modelRef.current;const expectedVersion=serverVersionRef.current;
-    const result=await saveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{...createBody(snapshot,includeTags),expected_version:expectedVersion}});
-    const saved=asRecord(asRecord(result).post);const nextVersion=Number(saved.version??expectedVersion);const nextStatus=stringValue(saved,"status",status);const nextSlug=postSlug(saved,snapshot.slug);
-    serverVersionRef.current=nextVersion;setServerVersion(nextVersion);setStatus(nextStatus);
-    if(nextSlug!==modelRef.current.slug)setModel(current=>{const next={...current,slug:nextSlug};modelRef.current=next;return next});
-    if(editRevisionRef.current===snapshotRevision){dirtyState.setDirty(false);setAutosaveState("clean");if(announce)setSuccess(nextStatus==="PUBLISHED"?"Published article updated":"Draft changes saved")}
-    else{dirtyState.setDirty(true);setAutosaveState("unsaved")}
-    return saved;
+    if(durableSaveInFlightRef.current)return durableSaveInFlightRef.current;
+    const run=(async()=>{
+      const pendingAutosave=autosaveInFlightRef.current;
+      if(pendingAutosave)await pendingAutosave;
+      const includeTags=permissions.includes("tags.view");const snapshotRevision=editRevisionRef.current;const snapshot=modelRef.current;const expectedVersion=serverVersionRef.current;
+      const result=await saveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{...createBody(snapshot,includeTags),expected_version:expectedVersion}});
+      const saved=asRecord(asRecord(result).post);const nextVersion=Number(saved.version??expectedVersion);const nextStatus=stringValue(saved,"status",status);const nextSlug=postSlug(saved,snapshot.slug);
+      serverVersionRef.current=nextVersion;setServerVersion(nextVersion);setStatus(nextStatus);
+      if(nextSlug!==modelRef.current.slug)setModel(current=>{const next={...current,slug:nextSlug};modelRef.current=next;return next});
+      if(editRevisionRef.current===snapshotRevision){dirtyState.setDirty(false);setAutosaveState("clean");if(announce)setSuccess(nextStatus==="PUBLISHED"?"Published article updated":"Draft changes saved")}
+      else{dirtyState.setDirty(true);setAutosaveState("unsaved")}
+      return saved;
+    })();
+    durableSaveInFlightRef.current=run;
+    try{return await run}finally{if(durableSaveInFlightRef.current===run)durableSaveInFlightRef.current=null}
   }
   async function saveDurable(){setSuccess(undefined);if(mode==="create"){await createInitialDraft(true);return}await saveExisting(true)}
   async function saveBeforeLifecycle():Promise<number>{
@@ -447,14 +460,18 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
     return serverVersionRef.current;
   }
   async function autosaveNow(){
-    if(mode!=="edit"||!dirtyState.dirty||editRevisionRef.current<=lastAutosavedRevisionRef.current)return;
+    if(mode!=="edit"||!dirtyState.dirty||editRevisionRef.current<=lastAutosavedRevisionRef.current||autosaveInFlightRef.current||durableSaveInFlightRef.current)return;
     const requestRevision=editRevisionRef.current;const workingCopy=createBody(modelRef.current,permissions.includes("tags.view"));const baseVersion=serverVersionRef.current;
     setAutosaveState("saving");
-    try{
-      const data=await autosaveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{editor_instance_id:editorInstanceId,base_version:baseVersion,working_copy:workingCopy}});
-      lastAutosavedRevisionRef.current=Math.max(lastAutosavedRevisionRef.current,requestRevision);
-      if(editRevisionRef.current===requestRevision){setAutosaveState("saved");setAutosaveTime(formatDate(asRecord(data).saved_at))}else setAutosaveState("unsaved");
-    }catch{if(editRevisionRef.current===requestRevision)setAutosaveState("error");else setAutosaveState("unsaved")}
+    const run=(async()=>{
+      try{
+        const data=await autosaveMutation.mutateAsync({path:{site_key:site.site_key,post_id:postId},body:{editor_instance_id:editorInstanceId,base_version:baseVersion,working_copy:workingCopy}});
+        lastAutosavedRevisionRef.current=Math.max(lastAutosavedRevisionRef.current,requestRevision);
+        if(editRevisionRef.current===requestRevision){setAutosaveState("saved");setAutosaveTime(formatDate(asRecord(data).saved_at))}else setAutosaveState("unsaved");
+      }catch{if(editRevisionRef.current===requestRevision)setAutosaveState("error");else setAutosaveState("unsaved")}
+    })();
+    autosaveInFlightRef.current=run;
+    try{await run}finally{if(autosaveInFlightRef.current===run)autosaveInFlightRef.current=null}
   }
   async function resolvedPublicOrigin():Promise<string>{
     const response=await transport.request<UnknownRecord>("API15-S-001",{path:{site_key:site.site_key}});
@@ -555,7 +572,7 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
         <TextField className="bp-editor-title" label="Article title" placeholder="Add title" value={model.title} onChange={e=>update("title",e.target.value)}/>
         <div className="bp-editor-commandbar" role="toolbar" aria-label="Editor toolbar">
           <BlockInsertMenu label="+ Add block" onInsert={(type,overrides)=>insertBlock(type,overrides)}/>
-          <Button type="button" variant="tertiary" onClick={()=>insertBlock("MEDIA")}>Add Media</Button>
+          <Button type="button" variant="tertiary" onClick={()=>{const blockId=insertBlock("MEDIA");setAutoOpenMediaBlockId(blockId)}}>Add Media</Button>
           <select className="bp-select bp-toolbar-block-type" aria-label="Block type" value={model.blocks.find(block=>block.block_id===activeBlockId)?.type==="HEADING"?`H${Number(model.blocks.find(block=>block.block_id===activeBlockId)?.level??2)}`:"PARAGRAPH"} onChange={event=>applyToolbarTextType(event.target.value as "PARAGRAPH"|"H2"|"H3"|"H4")}><option value="PARAGRAPH">Paragraph</option><option value="H2">Heading 2</option><option value="H3">Heading 3</option><option value="H4">Heading 4</option></select>
           <span className="bp-toolbar-divider" aria-hidden="true"/>
           <Button type="button" variant="tertiary" onMouseDown={event=>event.preventDefault()} onClick={()=>sendRichTextShortcut("b")} title="Bold (⌘/Ctrl+B)"><strong>Bold</strong></Button>
@@ -567,6 +584,7 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
           <Button type="button" variant="tertiary" onClick={convertActiveToQuote}>Quote</Button>
           <Button type="button" variant="tertiary" onClick={()=>insertBlock("TABLE",blockDefaults("TABLE"))}>Table</Button>
           <Button type="button" variant="tertiary" onClick={()=>insertBlock("SEPARATOR")}>Divider</Button>
+          <BlockInsertMenu label="More" types={ADVANCED_BLOCK_TYPES} searchable={false} onInsert={(type,overrides)=>insertBlock(type,overrides)}/>
           <span className="bp-toolbar-divider" aria-hidden="true"/>
           <Button type="button" variant="tertiary" onClick={undoEditor} disabled={!historyState.canUndo} title="Undo (⌘/Ctrl+Z)">Undo</Button>
           <Button type="button" variant="tertiary" onClick={redoEditor} disabled={!historyState.canRedo} title="Redo (⌘/Ctrl+Shift+Z)">Redo</Button>
@@ -576,7 +594,7 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
         <p className="bp-writer-hint">Start writing below. Press Enter for a new paragraph. Type <strong>/</strong> to choose a block.</p>
         <div className="bp-block-list">
           {model.blocks.map((block,index)=><div className="bp-block-stack" key={block.block_id}>
-            <BlockEditor siteKey={site.site_key} block={block} index={index} count={model.blocks.length} active={activeBlockId===block.block_id} onChange={next=>replaceBlock(block.block_id,next)} onMove={delta=>moveBlock(block.block_id,delta)} onRemove={()=>removeBlock(block.block_id)} onDuplicate={()=>duplicateBlock(block.block_id)} onSplit={offset=>splitBlock(block.block_id,offset)} onMergePrevious={()=>mergePrevious(block.block_id)} onExitList={itemIndex=>exitList(block.block_id,itemIndex)} onFocus={()=>setActiveBlockId(block.block_id)} onUndo={undoEditor} onRedo={redoEditor} onSlashCommand={command=>slashCommand(block.block_id,command)} onDragStart={()=>setDraggedBlockId(block.block_id)} onDrop={()=>{if(draggedBlockId)reorderBlock(draggedBlockId,block.block_id);setDraggedBlockId(undefined)}}/>
+            <BlockEditor siteKey={site.site_key} block={block} index={index} count={model.blocks.length} active={activeBlockId===block.block_id} autoOpenMedia={autoOpenMediaBlockId===block.block_id} onChange={next=>replaceBlock(block.block_id,next)} onMove={delta=>moveBlock(block.block_id,delta)} onRemove={()=>removeBlock(block.block_id)} onDuplicate={()=>duplicateBlock(block.block_id)} onSplit={offset=>splitBlock(block.block_id,offset)} onMergePrevious={()=>mergePrevious(block.block_id)} onExitList={itemIndex=>exitList(block.block_id,itemIndex)} onFocus={()=>setActiveBlockId(block.block_id)} onUndo={undoEditor} onRedo={redoEditor} onSlashCommand={command=>slashCommand(block.block_id,command)} onDragStart={()=>setDraggedBlockId(block.block_id)} onDrop={()=>{if(draggedBlockId)reorderBlock(draggedBlockId,block.block_id);setDraggedBlockId(undefined)}}/>
             <div className="bp-inline-inserter"><BlockInsertMenu onInsert={(type,overrides)=>insertBlockAt(index+1,type,overrides)}/></div>
           </div>)}
         </div>
