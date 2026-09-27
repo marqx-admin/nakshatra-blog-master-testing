@@ -10,7 +10,7 @@ export function RichText({ value }: { value: RichTextData }) {
     if (run.marks.includes("ITALIC")) node = <em>{node}</em>;
     if (run.marks.includes("BOLD")) node = <strong>{node}</strong>;
     if (run.link) node = <DestinationLink destination={run.link}>{node}</DestinationLink>;
-    return <span key={`${index}-${run.text.slice(0, 12)}`}>{node}</span>;
+    return <span key={`${index}-${run.text.slice(0, 12)}`} style={{ whiteSpace: "pre-wrap" }}>{node}</span>;
   })}</>;
 }
 

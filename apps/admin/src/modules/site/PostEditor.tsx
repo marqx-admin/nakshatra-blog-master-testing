@@ -78,10 +78,10 @@ function tableRows(block:Block):UnknownRecord[][]{
 function listRichItems(block:Block):UnknownRecord[]{const items=Array.isArray(block.items)?block.items.map(item=>asRecord(item)):[];return items.length?items:[rich("")]}
 
 function BlockEditor({
-  siteKey,block,index,count,active,onChange,onMove,onRemove,onDuplicate,onTransform,onSplit,onMergePrevious,onExitList,onFocus,onUndo,onRedo,onSlashCommand,onDragStart,onDrop,
+  siteKey,block,index,count,active,onChange,onMove,onRemove,onDuplicate,onSplit,onMergePrevious,onExitList,onFocus,onUndo,onRedo,onSlashCommand,onDragStart,onDrop,
 }:{
   siteKey:string;block:Block;index:number;count:number;active:boolean;onChange(block:Block):void;onMove(delta:number):void;onRemove():void;onDuplicate():void;
-  onTransform(target:"PARAGRAPH"|"H2"|"H3"|"H4"):void;onSplit(offset:number):void;onMergePrevious():boolean;onExitList(itemIndex:number):void;onFocus():void;onUndo():void;onRedo():void;onSlashCommand(command:string):boolean;onDragStart():void;onDrop():void;
+  onSplit(offset:number):void;onMergePrevious():boolean;onExitList(itemIndex:number):void;onFocus():void;onUndo():void;onRedo():void;onSlashCommand(command:string):boolean;onDragStart():void;onDrop():void;
 }){
   const field=(key:string,value:string)=>onChange({...block,[key]:value});
   const type=block.type;
@@ -106,7 +106,6 @@ function BlockEditor({
   const removeRow=()=>{if(rows.length<=1)return;onChange({...block,rows:rows.slice(0,-1)})};
   const removeColumn=()=>{if(columnCount<=1)return;onChange({...block,rows:rows.map(row=>row.slice(0,-1))})};
 
-  const textTransform=type==="PARAGRAPH"?"PARAGRAPH":type==="HEADING"?(`H${headingLevel}` as "H2"|"H3"|"H4"):undefined;
   return <article className={`bp-block-frame${naturalWriting?" bp-writing-block":" bp-content-block"} bp-block-${type.toLowerCase()}${active?" is-active":""}`} data-block-id={block.block_id} aria-label={`${BLOCK_LABELS[type]} block ${index+1}`} onFocus={onFocus} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();onDrop()}}>
     <header className={`bp-block-header${naturalWriting?" bp-block-header--writing":""}`} aria-label={`${BLOCK_LABELS[type]} block toolbar`}>
       <div className="bp-block-context">
@@ -577,7 +576,7 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
         <p className="bp-writer-hint">Start writing below. Press Enter for a new paragraph. Type <strong>/</strong> to choose a block.</p>
         <div className="bp-block-list">
           {model.blocks.map((block,index)=><div className="bp-block-stack" key={block.block_id}>
-            <BlockEditor siteKey={site.site_key} block={block} index={index} count={model.blocks.length} active={activeBlockId===block.block_id} onChange={next=>replaceBlock(block.block_id,next)} onMove={delta=>moveBlock(block.block_id,delta)} onRemove={()=>removeBlock(block.block_id)} onDuplicate={()=>duplicateBlock(block.block_id)} onTransform={target=>transformTextBlock(block.block_id,target)} onSplit={offset=>splitBlock(block.block_id,offset)} onMergePrevious={()=>mergePrevious(block.block_id)} onExitList={itemIndex=>exitList(block.block_id,itemIndex)} onFocus={()=>setActiveBlockId(block.block_id)} onUndo={undoEditor} onRedo={redoEditor} onSlashCommand={command=>slashCommand(block.block_id,command)} onDragStart={()=>setDraggedBlockId(block.block_id)} onDrop={()=>{if(draggedBlockId)reorderBlock(draggedBlockId,block.block_id);setDraggedBlockId(undefined)}}/>
+            <BlockEditor siteKey={site.site_key} block={block} index={index} count={model.blocks.length} active={activeBlockId===block.block_id} onChange={next=>replaceBlock(block.block_id,next)} onMove={delta=>moveBlock(block.block_id,delta)} onRemove={()=>removeBlock(block.block_id)} onDuplicate={()=>duplicateBlock(block.block_id)} onSplit={offset=>splitBlock(block.block_id,offset)} onMergePrevious={()=>mergePrevious(block.block_id)} onExitList={itemIndex=>exitList(block.block_id,itemIndex)} onFocus={()=>setActiveBlockId(block.block_id)} onUndo={undoEditor} onRedo={redoEditor} onSlashCommand={command=>slashCommand(block.block_id,command)} onDragStart={()=>setDraggedBlockId(block.block_id)} onDrop={()=>{if(draggedBlockId)reorderBlock(draggedBlockId,block.block_id);setDraggedBlockId(undefined)}}/>
             <div className="bp-inline-inserter"><BlockInsertMenu onInsert={(type,overrides)=>insertBlockAt(index+1,type,overrides)}/></div>
           </div>)}
         </div>
