@@ -18,13 +18,44 @@ export type DashboardWebsiteItem={
   display_name:string;
   lifecycle_state:string;
   blog_count:number|string;
+  draft_count?:number|string;
+  scheduled_count?:number|string;
+  published_count?:number|string;
   public_url:string|null|undefined;
   access_label?:string;
 };
 
-export function WebsiteDashboardOverview({siteCount,totalBlogs,websites}:{siteCount:number|string;totalBlogs:number|string;websites:DashboardWebsiteItem[]}){
+function DashboardMetric({icon,label,value}:{icon:string;label:string;value:number|string}){
+  return <article className="bp-dashboard-metric"><span className="bp-dashboard-metric-icon" aria-hidden="true">{icon}</span><span>{label}</span><strong>{value}</strong></article>;
+}
+
+export function WebsiteDashboardOverview({siteCount,totalBlogs,drafts,scheduled,published,websites}:{siteCount:number|string;totalBlogs:number|string;drafts?:number|string;scheduled?:number|string;published?:number|string;websites:DashboardWebsiteItem[]}){
   const friendlyStatus=(value:string)=>value==="ACTIVE"?"Live":value==="DISABLED"?"Paused":value==="ARCHIVED"?"Archived":"Action required";
-  return <><div className="bp-grid bp-grid--stats"><StatCard label="Total Websites" value={siteCount}/><StatCard label="Total Blogs" value={totalBlogs}/></div><section className="bp-card"><div className="bp-card-header"><div><h2>Websites</h2><p>Open a website dashboard or view its public homepage.</p></div></div>{websites.length?<DataTable rows={websites} rowKey={r=>r.site_key} columns={[{key:"site",header:"Site",cell:r=><span className="bp-table-secondary">{r.site_key}</span>},{key:"name",header:"Website name",cell:r=><><span className="bp-table-primary">{r.display_name}</span>{r.access_label?<span className="bp-table-secondary">{r.access_label}</span>:null}</>},{key:"blogs",header:"Total blogs",cell:r=>String(r.blog_count)},{key:"state",header:"Status",cell:r=><StatusBadge value={friendlyStatus(r.lifecycle_state)}/>},{key:"open",header:"Dashboard",cell:r=><Link className="bp-button bp-button--tertiary" to={`/site/${encodeURIComponent(r.site_key)}/dashboard`}>Open Dashboard</Link>},{key:"frontend",header:"Website",cell:r=>r.public_url===undefined?<Button variant="tertiary" disabled>Resolving website...</Button>:r.public_url===null?<Button variant="tertiary" disabled>Website unavailable</Button>:<a className="bp-button bp-button--tertiary" href={r.public_url} target="_blank" rel="noreferrer">Open Website</a>}]} />:<EmptyState title="No websites assigned" description="Ask the Super Admin to assign website access."/>}</section></>;
+  const metrics=[{icon:"▣",label:"Assigned Websites",value:siteCount},{icon:"▤",label:"Total Blogs",value:totalBlogs},...(drafts!==undefined?[{icon:"◫",label:"Drafts",value:drafts}]:[]),...(scheduled!==undefined?[{icon:"◷",label:"Scheduled",value:scheduled}]:[]),...(published!==undefined?[{icon:"✓",label:"Published",value:published}]:[])];
+  return <div className="bp-dashboard-overview">
+    <div className="bp-dashboard-metrics">{metrics.map(metric=><DashboardMetric key={metric.label} {...metric}/>)}</div>
+    <section className="bp-dashboard-websites">
+      <div className="bp-dashboard-section-heading"><div><h2>Websites</h2><p>Open an assigned website workspace or view its public homepage.</p></div></div>
+      {websites.length?<div className="bp-dashboard-site-list">{websites.map(website=><article className="bp-dashboard-site-card" key={website.site_key}>
+        <div className="bp-dashboard-site-mark" aria-hidden="true">✦</div>
+        <div className="bp-dashboard-site-main">
+          <div className="bp-dashboard-site-kicker"><span>{website.site_key}</span><StatusBadge value={friendlyStatus(website.lifecycle_state)}/></div>
+          <h3>{website.display_name}</h3>
+          {website.access_label?<span className="bp-dashboard-access">{website.access_label}</span>:null}
+          <div className="bp-dashboard-site-metrics">
+            <span><strong>{website.blog_count}</strong>Total blogs</span>
+            {website.draft_count!==undefined?<span><strong>{website.draft_count}</strong>Drafts</span>:null}
+            {website.scheduled_count!==undefined?<span><strong>{website.scheduled_count}</strong>Scheduled</span>:null}
+            {website.published_count!==undefined?<span><strong>{website.published_count}</strong>Published</span>:null}
+          </div>
+        </div>
+        <div className="bp-dashboard-site-actions">
+          <Link className="bp-button bp-button--primary" to={`/site/${encodeURIComponent(website.site_key)}/dashboard`}>Open Dashboard <span aria-hidden="true">→</span></Link>
+          {website.public_url===undefined?<Button variant="secondary" disabled>Resolving website...</Button>:website.public_url===null?<Button variant="secondary" disabled>Website unavailable</Button>:<a className="bp-button bp-button--secondary" href={website.public_url} target="_blank" rel="noreferrer">Open Website <span aria-hidden="true">↗</span></a>}
+        </div>
+      </article>)}</div>:<EmptyState title="No websites assigned" description="Ask the Super Admin to assign website access."/>}
+    </section>
+  </div>;
 }
 export function NetworkDashboardPage(){
   const q=useAdminQuery<UnknownRecord>("API15-G-002",{});

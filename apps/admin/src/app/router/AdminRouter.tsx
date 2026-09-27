@@ -38,8 +38,8 @@ function SiteRoute({ children, managerOnly=false }: { children:ReactNode; manage
 function GlobalRoute({ children }: { children:ReactNode }) { return <OperationalShell scope="GLOBAL">{children}</OperationalShell>; }
 
 type SelectableWebsite={site_key:string;display_name:string;lifecycle_state:string};
-type AssignedWebsite=SelectableWebsite&{access_level:"CONTENT_EDITOR"|"FULL_WEBSITE_MANAGER"|"SUPER_ADMIN";public_url:string|undefined;blog_count:number};
-type WebsiteSummary={blogs:number;drafts:number;scheduled:number};
+type AssignedWebsite=SelectableWebsite&{access_level:"CONTENT_EDITOR"|"FULL_WEBSITE_MANAGER"|"SUPER_ADMIN";public_url:string|undefined;blog_count:number;draft_count:number;scheduled_count:number;published_count:number};
+type WebsiteSummary={blogs:number;drafts:number;scheduled:number;published:number};
 function friendlyAccountName(identifier:string):string {const local=identifier.split("@",1)[0]||"Admin";return local.split(/[._-]+/).filter(Boolean).map(part=>part.charAt(0).toUpperCase()+part.slice(1)).join(" ")||"Admin"}
 function accessLabel(value:AssignedWebsite["access_level"]):string {
   if(value==="FULL_WEBSITE_MANAGER")return "Full Website Manager";
@@ -61,7 +61,7 @@ function LandingPage() {
   const transport=useAdminTransport(); const navigate=useNavigate();
   const [state,setState]=useState<"loading"|"ready"|"error">("loading");
   const [sites,setSites]=useState<AssignedWebsite[]>([]);
-  const [summary,setSummary]=useState<WebsiteSummary>({blogs:0,drafts:0,scheduled:0});
+  const [summary,setSummary]=useState<WebsiteSummary>({blogs:0,drafts:0,scheduled:0,published:0});
   const [accountName,setAccountName]=useState("");
   useEffect(()=>{let active=true; void (async()=>{try{
     const global=await transport.request<{effective_permissions:string[]}>("API15-G-001",{});
@@ -84,17 +84,17 @@ function LandingPage() {
       const dashboard=await transport.request<{metrics:Array<Record<string,unknown>>}>("API15-S-002",{path:{site_key:site.site_key}});
       const dashboardFailure=classifyResponse(dashboard);
       const metrics=dashboardFailure?[]:dashboard.data.metrics;
-      const siteSummary={blogs:metricValue(metrics,["total_posts","total blogs","posts","blogs"]),drafts:metricValue(metrics,["draft_posts","drafts","draft"]),scheduled:metricValue(metrics,["scheduled_posts","scheduled"])};
-      return {site:{...site,access_level,public_url,blog_count:siteSummary.blogs},summary:siteSummary};
+      const siteSummary={blogs:metricValue(metrics,["total_posts","total blogs","posts","blogs"]),drafts:metricValue(metrics,["draft_posts","drafts","draft"]),scheduled:metricValue(metrics,["scheduled_posts","scheduled"]),published:metricValue(metrics,["published_posts","published"])};
+      return {site:{...site,access_level,public_url,blog_count:siteSummary.blogs,draft_count:siteSummary.drafts,scheduled_count:siteSummary.scheduled,published_count:siteSummary.published},summary:siteSummary};
     }));
     setSites(resolved.map(item=>item.site));
-    setSummary(resolved.reduce<WebsiteSummary>((total,item)=>({blogs:total.blogs+item.summary.blogs,drafts:total.drafts+item.summary.drafts,scheduled:total.scheduled+item.summary.scheduled}),{blogs:0,drafts:0,scheduled:0}));
+    setSummary(resolved.reduce<WebsiteSummary>((total,item)=>({blogs:total.blogs+item.summary.blogs,drafts:total.drafts+item.summary.drafts,scheduled:total.scheduled+item.summary.scheduled,published:total.published+item.summary.published}),{blogs:0,drafts:0,scheduled:0,published:0}));
     try{setAccountName(friendlyAccountName(sessionStorage.getItem("bp.accountDisplayName")||"Admin"))}catch{setAccountName("Admin")}
     setState("ready");
   }catch{if(active)setState("error")}})();return()=>{active=false}},[navigate,transport]);
   if(state==="loading") return <main className="bp-centered-state"><div aria-hidden="true">✦</div><h1>Opening Central Admin</h1><p>Validating the current server-authoritative workspace.</p></main>;
   if(state==="error") return <ErrorState onRetry={()=>window.location.reload()}/>;
-  return <AccountShell><PageHeader title="Dashboard" context={`Welcome, ${accountName}. Your dashboard shows only websites assigned to this account.`}/><WebsiteDashboardOverview siteCount={sites.length} totalBlogs={summary.blogs} websites={sites.map(site=>({site_key:site.site_key,display_name:site.display_name,lifecycle_state:site.lifecycle_state,blog_count:site.blog_count,public_url:site.public_url,access_label:accessLabel(site.access_level)}))}/></AccountShell>;
+  return <AccountShell><PageHeader title="Dashboard" context={`Welcome, ${accountName}. Your dashboard shows only websites assigned to this account.`}/><WebsiteDashboardOverview siteCount={sites.length} totalBlogs={summary.blogs} drafts={summary.drafts} scheduled={summary.scheduled} published={summary.published} websites={sites.map(site=>({site_key:site.site_key,display_name:site.display_name,lifecycle_state:site.lifecycle_state,blog_count:site.blog_count,draft_count:site.draft_count,scheduled_count:site.scheduled_count,published_count:site.published_count,public_url:site.public_url,access_label:accessLabel(site.access_level)}))}/></AccountShell>;
 }
 
 export function AdminRouter() {

@@ -113,6 +113,20 @@ test("Add Media immediately opens the portal media picker above the editor",asyn
   expect(document.body.style.overflow).toBe("");
 });
 
+test("Preview stays in Admin and explains that a truly blank title is required",async()=>{
+  const post=makePost({title:""});
+  const previewCalls:string[]=[];
+  const transport=editorTransport(post,(id)=>{
+    if(id==="API15-S-016"){previewCalls.push(id);return ok({preview_url:"/_preview/post/test"})}
+    return undefined;
+  });
+  renderEditor({post,transport});
+  await screen.findByRole("toolbar",{name:"Editor toolbar"});
+  fireEvent.click(screen.getByRole("button",{name:"Preview"}));
+  expect(await screen.findByText("Add a title before previewing this post.")).toBeInTheDocument();
+  expect(previewCalls).toEqual([]);
+});
+
 test("transient empty writer blocks are omitted from persisted ArticleBody content",()=>{
   const blocks=[
     {block_id:"p1",type:"PARAGRAPH",content:rich("Kept")},
@@ -188,7 +202,7 @@ test("settings rail toggles cleanly and selected block controls stay contextual"
   await user.click(screen.getByRole("button",{name:"Settings"}));
   const paragraph=screen.getByRole("textbox",{name:"Paragraph"});paragraph.focus();
   await user.click(screen.getByRole("tab",{name:"Block"}));
-  expect(await screen.findByText("Block controls stay contextual so the writing canvas remains clean.")).toBeInTheDocument();
+  expect(await screen.findByRole("heading",{name:"Paragraph"})).toBeInTheDocument();
 });
 
 test("duplicate and drag-drop block controls reorder the writing document without changing content",async()=>{
