@@ -109,5 +109,7 @@ test("breadcrumbs and access-level projection are present without becoming autho
   const router = fs.readFileSync(path.join(adminRoot, "src/app/router/AdminRouter.tsx"), "utf8");
   assert.ok(router.includes('managerOnly'));
   assert.ok(router.includes('API15-S-001'));
-  assert.ok(router.includes('My Websites'));
+  assert.ok(router.includes('API15-AUTH-012'));
+  assert.ok(router.includes('WebsiteDashboardOverview'));
+  assert.equal(router.includes('<h1>My Websites</h1>'), false);
 });
