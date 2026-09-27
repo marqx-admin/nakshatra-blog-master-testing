@@ -107,7 +107,7 @@ test("Add Media immediately opens the portal media picker above the editor",asyn
   const backdrop=dialog.closest(".bp-modal-backdrop");
   expect(backdrop?.parentElement).toBe(document.body);
   expect(document.body.style.overflow).toBe("hidden");
-  expect(screen.getByLabelText("Image block")).toBeInTheDocument();
+  expect(screen.getByLabelText(/^Image block \d+$/)).toBeInTheDocument();
   fireEvent.click(within(dialog).getByRole("button",{name:"Close dialog"}));
   await waitFor(()=>expect(screen.queryByRole("dialog",{name:"Choose media"})).not.toBeInTheDocument());
   expect(document.body.style.overflow).toBe("");
@@ -198,10 +198,10 @@ test("duplicate and drag-drop block controls reorder the writing document withou
   ]}});
   renderEditor({post,transport:editorTransport(post)});await screen.findByRole("toolbar",{name:"Editor toolbar"});
   const first=screen.getAllByRole("textbox",{name:"Paragraph"})[0]!;first.focus();
-  const firstBlock=screen.getAllByLabelText("Paragraph block")[0]!;
+  const firstBlock=screen.getAllByLabelText(/^Paragraph block \d+$/)[0]!;
   await userEvent.click(within(firstBlock).getByRole("button",{name:"Duplicate"}));
   await waitFor(()=>expect(screen.getAllByRole("textbox",{name:"Paragraph"})).toHaveLength(3));
-  const blocks=screen.getAllByLabelText("Paragraph block");
+  const blocks=screen.getAllByLabelText(/^Paragraph block \d+$/);
   const drag=within(blocks[0]!).getByRole("button",{name:"Drag Paragraph"});
   fireEvent.dragStart(drag,{dataTransfer:{effectAllowed:"move"}});
   fireEvent.drop(blocks[2]!);
@@ -212,8 +212,11 @@ test("Bold and Italic toggle ON/OFF without losing selected text",async()=>{
   function Harness(){const [value,setValue]=useState({runs:[{text:"second paragraph",marks:[] as string[]}]});return <RichTextRunsEditor label="Paragraph" value={value} onChange={next=>setValue(next as typeof value)}/>;}
   render(<AdminApiProvider transport={fixtureTransport()}><Harness/></AdminApiProvider>);const user=userEvent.setup();const editor=screen.getByRole("textbox",{name:"Paragraph"});
   setSelection(editor,0,6);await user.click(screen.getByRole("button",{name:"Bold"}));expect(editor.querySelector("strong")?.textContent).toBe("second");
+  await act(async()=>{await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()))});
   setSelection(editor,0,6);await user.click(screen.getByRole("button",{name:"Bold"}));expect(editor.querySelector("strong")).toBeNull();
+  await act(async()=>{await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()))});
   setSelection(editor,7,16);await user.click(screen.getByRole("button",{name:"Italic"}));expect(editor.querySelector("em")?.textContent).toBe("paragraph");
+  await act(async()=>{await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()))});
   setSelection(editor,7,16);await user.click(screen.getByRole("button",{name:"Italic"}));expect(editor.querySelector("em")).toBeNull();
   expect(editor.textContent).toBe("second paragraph");
 });
