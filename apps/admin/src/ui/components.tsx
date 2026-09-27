@@ -160,6 +160,8 @@ export function Modal({ open, title, description, onClose, children, footer }: P
   const titleId = useId();
   const descriptionId = useId();
   const previousFocus = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     if (!open || typeof document === "undefined") return;
     previousFocus.current = document.activeElement as HTMLElement | null;
@@ -169,7 +171,7 @@ export function Modal({ open, title, description, onClose, children, footer }: P
     const focusable = dialog?.querySelector<HTMLElement>("button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href]");
     focusable?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
+      if (event.key === "Escape") { event.preventDefault(); onCloseRef.current(); return; }
       if (event.key !== "Tab" || !dialog) return;
       const nodes = Array.from(dialog.querySelectorAll<HTMLElement>("button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href]"));
       if (!nodes.length) return;
@@ -183,7 +185,7 @@ export function Modal({ open, title, description, onClose, children, footer }: P
       document.body.style.overflow = previousOverflow;
       previousFocus.current?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
   if (!open || typeof document === "undefined") return null;
   const dialog = <div className="bp-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><div ref={dialogRef} className="bp-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}><header><div><h2 id={titleId}>{title}</h2>{description ? <p id={descriptionId}>{description}</p> : null}</div><IconButton label="Close dialog" onClick={onClose}>×</IconButton></header><div className="bp-modal-body">{children}</div>{footer ? <footer>{footer}</footer> : null}</div></div>;
   return createPortal(dialog, document.body);

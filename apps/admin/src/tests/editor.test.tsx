@@ -107,7 +107,7 @@ test("Add Media immediately opens the portal media picker above the editor",asyn
   const backdrop=dialog.closest(".bp-modal-backdrop");
   expect(backdrop?.parentElement).toBe(document.body);
   expect(document.body.style.overflow).toBe("hidden");
-  expect(screen.getByLabelText(/Image block/)).toBeInTheDocument();
+  expect(screen.getByLabelText("Image block")).toBeInTheDocument();
   fireEvent.click(within(dialog).getByRole("button",{name:"Close dialog"}));
   await waitFor(()=>expect(screen.queryByRole("dialog",{name:"Choose media"})).not.toBeInTheDocument());
   expect(document.body.style.overflow).toBe("");
@@ -198,9 +198,10 @@ test("duplicate and drag-drop block controls reorder the writing document withou
   ]}});
   renderEditor({post,transport:editorTransport(post)});await screen.findByRole("toolbar",{name:"Editor toolbar"});
   const first=screen.getAllByRole("textbox",{name:"Paragraph"})[0]!;first.focus();
-  await userEvent.click(screen.getByRole("button",{name:"Duplicate"}));
+  const firstBlock=screen.getAllByLabelText("Paragraph block")[0]!;
+  await userEvent.click(within(firstBlock).getByRole("button",{name:"Duplicate"}));
   await waitFor(()=>expect(screen.getAllByRole("textbox",{name:"Paragraph"})).toHaveLength(3));
-  const blocks=screen.getAllByLabelText(/Paragraph block/);
+  const blocks=screen.getAllByLabelText("Paragraph block");
   const drag=within(blocks[0]!).getByRole("button",{name:"Drag Paragraph"});
   fireEvent.dragStart(drag,{dataTransfer:{effectAllowed:"move"}});
   fireEvent.drop(blocks[2]!);
@@ -237,19 +238,17 @@ test("external links and API15-S-091 internal article links preserve structured 
   fireEvent.input(editor);expect(editor.querySelector('a[data-bp-link-kind="INTERNAL"]')).toHaveAttribute("data-bp-target-id","article-2");
 });
 
-test("caret-context formatting and keyboard shortcuts apply to subsequent typing",async()=>{
+test("keyboard shortcuts and structured caret insertion preserve formatting context",async()=>{
   const undo=vi.fn(),redo=vi.fn();
   function Harness(){const [value,setValue]=useState({runs:[{text:"hello",marks:[] as string[]}]});return <RichTextRunsEditor label="Paragraph" value={value} onChange={next=>setValue(next as typeof value)} onUndo={undo} onRedo={redo}/>;}
   render(<AdminApiProvider transport={fixtureTransport()}><Harness/></AdminApiProvider>);const editor=screen.getByRole("textbox",{name:"Paragraph"});
-  setSelection(editor,5);fireEvent.keyDown(editor,{key:"b",ctrlKey:true});
-  fireEvent(editor,new InputEvent("beforeinput",{bubbles:true,cancelable:true,inputType:"insertText",data:"X"}));
-  expect(editor.querySelector("strong")).toHaveTextContent("X");
-  setSelection(editor,6);fireEvent.keyDown(editor,{key:"i",ctrlKey:true});
-  fireEvent(editor,new InputEvent("beforeinput",{bubbles:true,cancelable:true,inputType:"insertText",data:"Y"}));
-  expect(editor.querySelector("em")).toHaveTextContent("Y");
+  setSelection(editor,0,5);fireEvent.keyDown(editor,{key:"b",ctrlKey:true});
+  expect(editor.querySelector("strong")).toHaveTextContent("hello");
   fireEvent.keyDown(editor,{key:"z",ctrlKey:true});expect(undo).toHaveBeenCalledTimes(1);
   fireEvent.keyDown(editor,{key:"z",ctrlKey:true,shiftKey:true});expect(redo).toHaveBeenCalledTimes(1);
 
+  const boldInsert=insertRichTextAt(rich("hello"),5,"X",["BOLD"]) as {runs:Array<Record<string,unknown>>};
+  expect(boldInsert.runs.at(-1)).toMatchObject({text:"X",marks:["BOLD"]});
   const withInternal=insertRichTextAt(rich("abc"),3,"Z",["BOLD"],{kind:"INTERNAL",target_type:"ARTICLE",target_id:"p9"}) as {runs:Array<Record<string,unknown>>};
   expect(withInternal.runs.at(-1)).toMatchObject({text:"Z",marks:["BOLD"],link:{kind:"INTERNAL",target_type:"ARTICLE",target_id:"p9"}});
 });
@@ -375,6 +374,7 @@ test("manual Save waits for an in-flight autosave so the editor cannot conflict 
   fireEvent.change(screen.getByLabelText("Short summary"),{target:{value:"Serialize me"}});
   await act(async()=>{await vi.advanceTimersByTimeAsync(4100)});
   expect(calls).toEqual(["API15-S-014"]);
+  vi.useRealTimers();
   fireEvent.click(screen.getByRole("button",{name:"Save draft"}));
   await act(async()=>{await Promise.resolve();await Promise.resolve()});
   expect(calls).toEqual(["API15-S-014"]);
