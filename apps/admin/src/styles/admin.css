@@ -626,3 +626,22 @@ a { color: inherit; }
   .bp-rich-text-editor--heading3 .bp-rich-text-surface { font-size:23px; }
   .bp-table-editor-grid { min-width:340px; }
 }
+
+
+/* RUN-1 unified writer/dashboard repair */
+.bp-modal-backdrop { z-index:1000; }
+.bp-toolbar-block-type { width:auto; min-width:124px; min-height:34px; padding:4px 30px 4px 10px; }
+.bp-toolbar-divider { width:1px; align-self:stretch; min-height:28px; margin:2px 3px; background:var(--admin-border); }
+.bp-editor-commandbar { flex-wrap:wrap; }
+.bp-editor-commandbar > .bp-button { white-space:nowrap; }
+.bp-writing-block .bp-block-header { left:auto; right:8px; width:max-content; max-width:calc(100% - 16px); }
+.bp-writing-block .bp-block-context { min-width:30px; }
+.bp-writing-block .bp-block-context .bp-block-transform { display:none; }
+.bp-writing-block .bp-block-header .bp-block-actions { opacity:.72; }
+.bp-writing-block .bp-block-header:hover .bp-block-actions,.bp-writing-block .bp-block-header:focus-within .bp-block-actions { opacity:1; }
+.bp-rich-text-editor--writer > .bp-format-toolbar { display:none !important; }
+@media (max-width:767px){
+  .bp-toolbar-divider { display:none; }
+  .bp-toolbar-block-type { flex:1 1 140px; }
+  .bp-writing-block .bp-block-header { width:auto; max-width:100%; }
+}

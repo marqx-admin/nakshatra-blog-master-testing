@@ -71,7 +71,42 @@ export function AdminShell({ children }: PropsWithChildren) {
     {navOpen ? <button className="bp-nav-backdrop" type="button" aria-label="Close navigation" onClick={() => { closeNavigation(); menuButtonRef.current?.focus(); }} /> : null}
     <header className="bp-topbar">
       <div className="bp-topbar-left"><button ref={menuButtonRef} type="button" className="bp-icon-button bp-mobile-menu-button" aria-label={navOpen ? "Close navigation" : "Open navigation"} aria-expanded={navOpen} aria-controls="bp-primary-navigation" onClick={() => setNavOpen((value) => !value)}>☰</button><span className="bp-topbar-title">{workspaceLabel}</span></div>
-      <div className="bp-topbar-actions">{context.scope === "SITE" ? <Button variant="secondary" onClick={() => navigate(context.site?.access_level === "SUPER_ADMIN" ? "/global/network" : "/")}>{context.site?.access_level === "SUPER_ADMIN" ? "← Back to Global Dashboard" : "← Back to My Websites"}</Button> : null}<Button variant="tertiary" onClick={() => navigate("/security", { state: { returnTo: location.pathname || securityHref } })}>Security</Button><Button variant="tertiary" onClick={() => navigate("/logout")}>Sign out</Button></div>
+      <div className="bp-topbar-actions">{context.scope === "SITE" ? <Button variant="secondary" onClick={() => navigate(context.site?.access_level === "SUPER_ADMIN" ? "/global/network" : "/")}>{context.site?.access_level === "SUPER_ADMIN" ? "← Back to Global Dashboard" : "← Back to Dashboard"}</Button> : null}<Button variant="tertiary" onClick={() => navigate("/security", { state: { returnTo: location.pathname || securityHref } })}>Security</Button><Button variant="tertiary" onClick={() => navigate("/logout")}>Sign out</Button></div>
+    </header>
+    <main className="bp-main"><div className="bp-content">{children}</div></main>
+  </div>;
+}
+
+
+export function AccountShell({ children }: PropsWithChildren) {
+  const [navOpen,setNavOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    drawerRef.current?.querySelector<HTMLElement>("a,button,[tabindex]:not([tabindex='-1'])")?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setNavOpen(false);
+      menuButtonRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [navOpen]);
+
+  return <div className="bp-app" data-nav-open={navOpen ? "true" : "false"}>
+    <aside id="bp-account-navigation" ref={drawerRef} className="bp-sidebar" aria-label="Central Admin primary navigation" tabIndex={-1}>
+      <div className="bp-brand"><span className="bp-brand-mark" aria-hidden="true">✦</span><div><strong>Nakshatra Admin</strong><span>Blogging Platform</span></div></div>
+      <nav className="bp-nav-group" aria-label="My workspace"><h2>My workspace</h2><ul className="bp-nav-list"><li><NavLink className="bp-nav-link" to="/" onClick={() => setNavOpen(false)}><span className="bp-nav-symbol" aria-hidden="true">◇</span><span>Dashboard</span></NavLink></li></ul></nav>
+    </aside>
+    {navOpen ? <button className="bp-nav-backdrop" type="button" aria-label="Close navigation" onClick={() => { setNavOpen(false); menuButtonRef.current?.focus(); }} /> : null}
+    <header className="bp-topbar">
+      <div className="bp-topbar-left"><button ref={menuButtonRef} type="button" className="bp-icon-button bp-mobile-menu-button" aria-label={navOpen ? "Close navigation" : "Open navigation"} aria-expanded={navOpen} aria-controls="bp-account-navigation" onClick={() => setNavOpen((value) => !value)}>☰</button><span className="bp-topbar-title">Dashboard</span></div>
+      <div className="bp-topbar-actions"><Button variant="tertiary" onClick={() => navigate("/security", { state: { returnTo: location.pathname || "/" } })}>Security</Button><Button variant="tertiary" onClick={() => navigate("/logout")}>Sign out</Button></div>
     </header>
     <main className="bp-main"><div className="bp-content">{children}</div></main>
   </div>;

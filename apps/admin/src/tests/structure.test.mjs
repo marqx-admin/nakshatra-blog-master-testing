@@ -64,21 +64,19 @@ test('Admin source respects architecture boundaries',()=>{
   assert.ok(all.includes('API15-G-001'));
 });
 
-test('My Websites validates each card before opening and the workspace shell stays focused',()=>{
+test('ordinary users share the main dashboard presentation while authority remains server-scoped',()=>{
   const shell=fs.readFileSync(path.join(root,'src/ui/AdminShell.tsx'),'utf8');
   assert.equal(shell.includes('API15-S-001'),false);
   assert.equal(shell.includes('Active Website'),false);
   assert.ok(router.includes('API15-S-001'));
-  assert.ok(router.includes('<h1>My Websites</h1>'));
-  assert.ok(router.includes('Open Dashboard'));
+  assert.ok(router.includes('WebsiteDashboardOverview'));
+  assert.ok(router.includes('AccountShell'));
+  assert.equal(router.includes('<h1>My Websites</h1>'),false);
+  assert.ok(globalPages.includes('export function WebsiteDashboardOverview'));
+  assert.ok(globalPages.includes('Open Dashboard'));
   assert.ok(router.includes('Full Website Manager'));
-  assert.equal(router.includes('Validate and open'),false);
-  assert.ok(router.includes('"SITE-01":"WhatsYourRashi.in"'));
-  assert.ok(router.includes('"SITE-14":"VastuShastra360.in"'));
-  assert.equal(router.includes('"SITE-01":"jwohxcdtucakfgaj1hap49wy"'),false);
-  assert.equal(router.includes('"SITE-14":"ovlpmow0sqgawkh4xz4hgig0"'),false);
   assert.ok(router.includes('response.headers.get("X-BP-Public-Url")'));
-  assert.ok(router.includes('if(site.public_url)return site.public_url'));
+  assert.ok(shell.includes('← Back to Dashboard'));
 });
 
 test('Super Admin Open Website uses the same server-resolved public URL path',()=>{

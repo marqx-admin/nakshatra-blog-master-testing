@@ -10,6 +10,7 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from "react";
+import { createPortal } from "react-dom";
 
 export function cx(...values: Array<string | false | null | undefined>): string {
   return values.filter(Boolean).join(" ");
@@ -160,8 +161,10 @@ export function Modal({ open, title, description, onClose, children, footer }: P
   const descriptionId = useId();
   const previousFocus = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    if (!open) return;
+    if (!open || typeof document === "undefined") return;
     previousFocus.current = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const dialog = dialogRef.current;
     const focusable = dialog?.querySelector<HTMLElement>("button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href]");
     focusable?.focus();
@@ -175,10 +178,15 @@ export function Modal({ open, title, description, onClose, children, footer }: P
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     };
     document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("keydown", onKey); previousFocus.current?.focus(); };
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+      previousFocus.current?.focus();
+    };
   }, [open, onClose]);
-  if (!open) return null;
-  return <div className="bp-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><div ref={dialogRef} className="bp-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}><header><div><h2 id={titleId}>{title}</h2>{description ? <p id={descriptionId}>{description}</p> : null}</div><IconButton label="Close dialog" onClick={onClose}>×</IconButton></header><div className="bp-modal-body">{children}</div>{footer ? <footer>{footer}</footer> : null}</div></div>;
+  if (!open || typeof document === "undefined") return null;
+  const dialog = <div className="bp-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><div ref={dialogRef} className="bp-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}><header><div><h2 id={titleId}>{title}</h2>{description ? <p id={descriptionId}>{description}</p> : null}</div><IconButton label="Close dialog" onClick={onClose}>×</IconButton></header><div className="bp-modal-body">{children}</div>{footer ? <footer>{footer}</footer> : null}</div></div>;
+  return createPortal(dialog, document.body);
 }
 export function ConfirmDialog({ open, title, description, confirmLabel, cancelLabel = "Cancel", destructive = false, onConfirm, onCancel }: { open: boolean; title: string; description: string; confirmLabel: string; cancelLabel?: string; destructive?: boolean; onConfirm(): void; onCancel(): void }) {
   return <Modal open={open} title={title} description={description} onClose={onCancel} footer={<><Button onClick={onCancel}>{cancelLabel}</Button><Button variant={destructive ? "destructive" : "primary"} onClick={onConfirm}>{confirmLabel}</Button></>}><Alert tone={destructive ? "warning" : "info"}>The server will reauthorize the operation at submit time.</Alert></Modal>;
