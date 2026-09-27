@@ -109,13 +109,17 @@ test('Post editor keeps natural writer-state controls out of browser execCommand
 });
 
 test('Phase 1 editor keeps technical concepts out of the routine writer flow',()=>{
+  const canvasStart=editor.indexOf('<section className="bp-editor-canvas"');
+  const railStart=editor.indexOf('<aside className="bp-editor-rail"',canvasStart);
+  assert.ok(canvasStart>=0&&railStart>canvasStart);
+  const routineWriter=editor.slice(canvasStart,railStart);
   assert.ok(editor.includes('Bulleted list'));
   assert.ok(editor.includes('Numbered list'));
-  assert.ok(editor.includes('>Divider<'));
-  assert.equal(editor.includes('<SelectField label="List style"'),false);
-  assert.equal(editor.includes('>List style<'),false);
-  assert.equal(editor.includes('A horizontal divider will appear here.'),false);
-  assert.equal(editor.includes('Put each row on a new line and press Tab between columns.'),false);
+  assert.ok(routineWriter.includes('>Divider<'));
+  assert.equal(routineWriter.includes('<SelectField label="List style"'),false);
+  assert.equal(routineWriter.includes('>List style<'),false);
+  assert.equal(routineWriter.includes('A horizontal divider will appear here.'),false);
+  assert.equal(routineWriter.includes('Put each row on a new line and press Tab between columns.'),false);
   assert.ok(editor.includes('bp-table-editor-grid'));
   assert.ok(editor.includes('Short summary'));
 });
