@@ -210,6 +210,22 @@ def create_app(*, settings: Settings | None = None, services: Services | None = 
         delivery = resolved_services.media_delivery
         if delivery is None:
             return Response(status_code=404, headers={"Cache-Control": "no-store"})
+        preview_grant = request.query_params.get("preview_grant")
+        preview_authorized = False
+        if preview_grant:
+            validator = resolved_services.preview_authority
+            try:
+                preview_authorized = bool(
+                    validator
+                    and len(preview_grant) <= 512
+                    and await validator.validate_media_grant(
+                        preview_grant,
+                        site_key=site_key,
+                        media_id=media_id,
+                    )
+                )
+            except Exception:
+                return Response(status_code=404, headers={"Cache-Control": "no-store"})
         try:
             item = await delivery.get(
                 site_key=site_key,
@@ -217,6 +233,7 @@ def create_app(*, settings: Settings | None = None, services: Services | None = 
                 variant_key=variant_key,
                 extension=extension,
                 request_id=request.headers.get("x-request-id", "media-delivery"),
+                preview_authorized=preview_authorized,
             )
         except Exception:
             return Response(status_code=503, headers={"Cache-Control": "no-store"})
@@ -228,7 +245,11 @@ def create_app(*, settings: Settings | None = None, services: Services | None = 
             content=item.body,
             media_type=item.content_type,
             headers={
-                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cache-Control": (
+                    "no-store, private"
+                    if preview_authorized
+                    else "public, max-age=31536000, immutable"
+                ),
                 "ETag": f'"{item.etag}"',
                 "X-Content-Type-Options": "nosniff",
             },

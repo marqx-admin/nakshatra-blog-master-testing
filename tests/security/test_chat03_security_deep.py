@@ -325,6 +325,17 @@ async def test_preview_handoff_is_single_use_host_site_target_bound_and_revalida
         canonical_session, site_id="site-uuid-01", post_id="post-1", request_host="whatsyourrashi.in"
     ) == "v8"
 
+    media_grant = await preview.issue_media_grant(
+        canonical_session,
+        site_id="site-uuid-01",
+        post_id="post-1",
+        media_id="media-1",
+        request_host="whatsyourrashi.in",
+    )
+    assert await preview.validate_media_grant(media_grant, site_key="SITE-01", media_id="media-1") is True
+    with pytest.raises(Unauthenticated):
+        await preview.validate_media_grant(media_grant, site_key="SITE-01", media_id="media-2")
+
     eligibility.allowed = False
     with pytest.raises(Unauthenticated):
         await preview.validate(session, site_id="site-uuid-01", post_id="post-1", request_host=staging_host)

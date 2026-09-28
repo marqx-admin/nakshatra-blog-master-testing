@@ -29,7 +29,14 @@ class SelfHostedMediaDelivery:
         self.storage = storage
 
     async def get(
-        self, *, site_key: str, media_id: str, variant_key: str, extension: str, request_id: str
+        self,
+        *,
+        site_key: str,
+        media_id: str,
+        variant_key: str,
+        extension: str,
+        request_id: str,
+        preview_authorized: bool = False,
     ) -> DeliveredMedia | None:
         if not _VARIANT.fullmatch(variant_key) or extension not in {"webp", "avif"}:
             return None
@@ -67,7 +74,7 @@ class SelfHostedMediaDelivery:
                               AND native.media_id=mv.media_id
                               AND native.variant_key='native_webp'
                           )
-                          AND EXISTS (
+                          AND (:preview_authorized OR EXISTS (
                             SELECT 1 FROM media_usages mu
                             LEFT JOIN posts p
                               ON p.site_id=mu.site_id AND p.post_id=mu.post_id
@@ -89,11 +96,16 @@ class SelfHostedMediaDelivery:
                                   'SITE_LOGO','SITE_FAVICON','SITE_DEFAULT_SOCIAL'
                                 )
                               )
-                          )
+                          ))
                         LIMIT 1
                         """
                     ),
-                    {"site_id": site.site_id, "media_id": media_id, "variant_key": variant_key},
+                    {
+                        "site_id": site.site_id,
+                        "media_id": media_id,
+                        "variant_key": variant_key,
+                        "preview_authorized": preview_authorized,
+                    },
                 )
                 .mappings()
                 .first()

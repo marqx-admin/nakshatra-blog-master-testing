@@ -72,7 +72,7 @@ function setSelection(editor:HTMLElement,start:number,end=start){
   const range=document.createRange();range.setStart(startNode,startOffset);range.setEnd(endNode,endOffset);
   const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);
 }
-afterEach(()=>{cleanup();vi.useRealTimers();vi.restoreAllMocks()});
+afterEach(()=>{cleanup();vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllEnvs()});
 
 test("editor exposes a clean WordPress-style command bar while preserving all 12 ArticleBody types",async()=>{
   renderEditor();
@@ -456,6 +456,19 @@ test("Preview uses the dynamic current-site origin without publishing",async()=>
   });
   renderEditor({transport});await screen.findByRole("toolbar",{name:"Editor toolbar"});fireEvent.click(screen.getByRole("button",{name:"Preview"}));
   await waitFor(()=>expect(open).toHaveBeenCalledWith("https://site01-staging.example/_preview/private-token?x=1","_blank","noopener,noreferrer"));
+  expect(calls).toEqual(["API15-S-016"]);
+});
+
+test("Preview uses the explicitly configured local site renderer origin",async()=>{
+  vi.stubEnv("VITE_PUBLIC_SITE_ORIGINS",JSON.stringify({"SITE-01":"http://127.0.0.1:3001"}));
+  const open=vi.spyOn(window,"open").mockImplementation(()=>null);const calls:AdminOperationId[]=[];
+  const transport=editorTransport(makePost(),(id)=>{
+    if(id==="API15-S-016"){calls.push(id);return ok({preview_url:"https://canonical.invalid/_preview/private-token?x=1"})}
+    if(id==="API15-S-001"){calls.push(id);return ok({site_key:"SITE-01"},{"X-BP-Public-Url":"https://canonical.example"})}
+    return undefined;
+  });
+  renderEditor({transport});await screen.findByRole("toolbar",{name:"Editor toolbar"});fireEvent.click(screen.getByRole("button",{name:"Preview"}));
+  await waitFor(()=>expect(open).toHaveBeenCalledWith("http://127.0.0.1:3001/_preview/private-token?x=1","_blank","noopener,noreferrer"));
   expect(calls).toEqual(["API15-S-016"]);
 });
 

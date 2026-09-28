@@ -205,6 +205,15 @@ def _set_runtime_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, environmen
     monkeypatch.delenv("BP_RUNTIME_COMPOSITION", raising=False)
 
 
+def test_production_runtime_rejects_placeholder_public_media_origin(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    from bp_api.config.settings import ProductionRuntimeSettings
+
+    _set_runtime_env(monkeypatch, tmp_path, "production")
+    monkeypatch.setenv("BP_MEDIA_CDN_ORIGIN", "https://media.example.invalid")
+    with pytest.raises(RuntimeError, match=r"reserved \.invalid placeholder"):
+        ProductionRuntimeSettings.from_env()
+
+
 def _settings(environment: str) -> Settings:
     return Settings(
         environment=environment,

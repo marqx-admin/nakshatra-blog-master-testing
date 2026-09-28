@@ -35,15 +35,22 @@ class _Connection:
             "site_id": SITE_ID,
             "media_id": MEDIA_ID,
             "variant_key": "native_webp",
+            "preview_authorized": self.preview_authorized,
         }
         return _Result()
 
+    def __init__(self, preview_authorized: bool = False):
+        self.preview_authorized = preview_authorized
+
 
 class _Transactions:
+    def __init__(self, preview_authorized: bool = False):
+        self.preview_authorized = preview_authorized
+
     @asynccontextmanager
     async def transaction(self, context):
         assert context.site_id == SITE_ID
-        yield _Connection()
+        yield _Connection(self.preview_authorized)
 
 
 @pytest.mark.asyncio
@@ -90,3 +97,28 @@ async def test_self_hosted_delivery_rejects_extension_mismatch_before_storage_re
         )
         is None
     )
+
+
+@pytest.mark.asyncio
+async def test_self_hosted_delivery_accepts_a_validated_preview_media_grant():
+    storage = InMemoryObjectStorageAdapter()
+    body = b"preview-webp"
+    await storage.put_private_create_only(
+        key=OBJECT_KEY,
+        data=body,
+        content_type="image/webp",
+        checksum_sha256=hashlib.sha256(body).hexdigest(),
+    )
+    delivery = SelfHostedMediaDelivery(
+        sites=_Sites(), transactions=_Transactions(preview_authorized=True), storage=storage
+    )
+    item = await delivery.get(
+        site_key="SITE-01",
+        media_id=MEDIA_ID,
+        variant_key="native_webp",
+        extension="webp",
+        request_id="preview-media",
+        preview_authorized=True,
+    )
+    assert item is not None
+    assert item.body == body

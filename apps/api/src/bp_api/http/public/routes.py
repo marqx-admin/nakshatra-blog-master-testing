@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 from ipaddress import ip_address
+import re
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import UUID
 
 from fastapi import APIRouter, Request
@@ -15,6 +17,161 @@ from ..dependencies.security import PREVIEW_COOKIE, set_preview_cookie
 from ..rate_limits import enforce_transport_quota, safe_subject_hash, source_network_key
 
 router = APIRouter()
+
+_MEDIA_URL = re.compile(
+    r"^/m/(?P<site_key>SITE-[0-9]{2})/(?P<media_id>[0-9a-fA-F-]{36})/"
+)
+
+
+def _trusted_preview_media_reference(
+    value: str, *, media_origin: str
+) -> tuple[str, str] | None:
+    if not media_origin:
+        return None
+    parsed = urlsplit(value)
+    trusted = urlsplit(media_origin.rstrip("/"))
+    if (
+        parsed.scheme not in {"http", "https"}
+        or parsed.scheme != trusted.scheme
+        or parsed.netloc != trusted.netloc
+        or parsed.username
+        or parsed.password
+    ):
+        return None
+    match = _MEDIA_URL.match(parsed.path)
+    if not match:
+        return None
+    return match.group("site_key"), match.group("media_id")
+
+
+_MEDIA_URL_FIELDS = frozenset({"url", "image_url", "public_url", "src"})
+_MEDIA_ID = re.compile(r"^[0-9a-fA-F-]{36}$")
+
+
+def _preview_media_references(
+    value: object,
+    *,
+    media_origin: str,
+    media_id: str | None = None,
+) -> set[tuple[str, str]]:
+    references: set[tuple[str, str]] = set()
+
+    if isinstance(value, dict):
+        scoped_media_id = media_id
+        candidate = value.get("media_id")
+        if isinstance(candidate, str) and _MEDIA_ID.fullmatch(candidate):
+            scoped_media_id = candidate
+
+        for key, child in value.items():
+            if (
+                key in _MEDIA_URL_FIELDS
+                and isinstance(child, str)
+                and scoped_media_id
+            ):
+                reference = _trusted_preview_media_reference(
+                    child, media_origin=media_origin
+                )
+                if (
+                    reference
+                    and reference[1].lower() == scoped_media_id.lower()
+                ):
+                    references.add(reference)
+                continue
+
+            references.update(
+                _preview_media_references(
+                    child,
+                    media_origin=media_origin,
+                    media_id=scoped_media_id,
+                )
+            )
+
+    elif isinstance(value, list):
+        for child in value:
+            references.update(
+                _preview_media_references(
+                    child,
+                    media_origin=media_origin,
+                    media_id=media_id,
+                )
+            )
+
+    return references
+
+
+def _attach_preview_media_grants(
+    value: object,
+    grants: dict[tuple[str, str], str],
+    *,
+    media_origin: str,
+    media_id: str | None = None,
+) -> object:
+    if isinstance(value, dict):
+        scoped_media_id = media_id
+        candidate = value.get("media_id")
+        if isinstance(candidate, str) and _MEDIA_ID.fullmatch(candidate):
+            scoped_media_id = candidate
+
+        result: dict[object, object] = {}
+
+        for key, child in value.items():
+            if (
+                key in _MEDIA_URL_FIELDS
+                and isinstance(child, str)
+                and scoped_media_id
+            ):
+                reference = _trusted_preview_media_reference(
+                    child, media_origin=media_origin
+                )
+
+                grant = (
+                    grants.get(reference)
+                    if reference
+                    and reference[1].lower() == scoped_media_id.lower()
+                    else None
+                )
+
+                if grant:
+                    parsed = urlsplit(child)
+                    query = [
+                        (name, item)
+                        for name, item in parse_qsl(
+                            parsed.query, keep_blank_values=True
+                        )
+                        if name != "preview_grant"
+                    ]
+                    query.append(("preview_grant", grant))
+                    child = urlunsplit(
+                        (
+                            parsed.scheme,
+                            parsed.netloc,
+                            parsed.path,
+                            urlencode(query),
+                            parsed.fragment,
+                        )
+                    )
+
+            result[key] = _attach_preview_media_grants(
+                child,
+                grants,
+                media_origin=media_origin,
+                media_id=scoped_media_id,
+            )
+
+        return result
+
+    if isinstance(value, list):
+        return [
+            _attach_preview_media_grants(
+                child,
+                grants,
+                media_origin=media_origin,
+                media_id=media_id,
+            )
+            for child in value
+        ]
+
+    return value
 
 
 def _private_or_loopback_client(host: str) -> bool:
@@ -186,6 +343,22 @@ async def preview_page(request: Request, post_id: UUID):
     )
     body = await request.app.state.services.public_pages.resolve_preview(
         context, post_id=str(post_id), source_snapshot=source_snapshot
+    )
+    media_origin = os.getenv("BP_MEDIA_CDN_ORIGIN", "").rstrip("/")
+    references = _preview_media_references(body, media_origin=media_origin)
+    grants = {
+        reference: await validator.issue_media_grant(
+            raw,
+            site_id=context.site_id,
+            post_id=str(post_id),
+            media_id=reference[1],
+            request_host=context.request_host or "",
+        )
+        for reference in references
+        if reference[0] == context.site_key
+    }
+    body = _attach_preview_media_grants(
+        body, grants, media_origin=media_origin
     )
     validate_response(request.app.state.canonical_openapi, _contract(request, operation_id), 200, body)
     response = JSONResponse(

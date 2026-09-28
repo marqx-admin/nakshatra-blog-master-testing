@@ -6,6 +6,12 @@ const adminOrigins = [
   `http://localhost:${adminPort}`,
   `http://127.0.0.1:${adminPort}`,
 ].join(",");
+const localSiteOrigins = Object.fromEntries(
+  Array.from({ length: 14 }, (_, index) => [
+    `SITE-${String(index + 1).padStart(2, "0")}`,
+    `http://127.0.0.1:${3001 + index}`,
+  ]),
+);
 const children = new Set();
 let shuttingDown = false;
 
@@ -69,6 +75,8 @@ try {
     VITE_ADMIN_PORT: adminPort,
     VITE_ADMIN_API_PROXY_TARGET:
       process.env.VITE_ADMIN_API_PROXY_TARGET ?? `http://127.0.0.1:${apiPort}`,
+    VITE_PUBLIC_SITE_ORIGINS:
+      process.env.VITE_PUBLIC_SITE_ORIGINS ?? JSON.stringify(localSiteOrigins),
   });
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);

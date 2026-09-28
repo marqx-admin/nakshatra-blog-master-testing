@@ -1073,6 +1073,87 @@ class PreviewAuthorityService:
             raise Unauthenticated("preview authority required")
         return source_snapshot
 
+    async def issue_media_grant(
+        self,
+        raw_preview_session: str,
+        *,
+        site_id: str,
+        post_id: str,
+        media_id: str,
+        request_host: str,
+    ) -> str:
+        source_snapshot = await self.validate(
+            raw_preview_session,
+            site_id=site_id,
+            post_id=post_id,
+            request_host=request_host,
+        )
+        now = now_utc()
+        session = await self.state.get_token(
+            token_hash(raw_preview_session),
+            "PREVIEW_SESSION",
+            now,
+        )
+        if session is None:
+            raise Unauthenticated("preview authority required")
+        raw_grant = new_secret_token(32)
+        await self.state.put_token(
+            TokenRecord(
+                token_hash=token_hash(raw_grant),
+                admin_id=session.admin_id,
+                purpose="PREVIEW_MEDIA",
+                issued_at=now,
+                expires_at=min(session.expires_at, now + PREVIEW_SESSION_TTL),
+                site_id=site_id,
+                post_id=post_id,
+                metadata={
+                    "media_id": media_id,
+                    "preview_host": request_host,
+                    "source_snapshot": source_snapshot,
+                },
+            )
+        )
+        return raw_grant
+
+    async def validate_media_grant(self, raw_grant: str, *, site_key: str, media_id: str) -> bool:
+        now = now_utc()
+        record = await self.state.get_token(token_hash(raw_grant), "PREVIEW_MEDIA", now)
+        site = await self.sites.get_site_by_key(site_key)
+        if (
+            record is None
+            or site is None
+            or not site.public_eligible
+            or record.site_id != site.site_id
+            or record.metadata.get("media_id") != media_id
+            or not record.post_id
+        ):
+            raise Unauthenticated("preview authority required")
+        preview_host = record.metadata.get("preview_host", "")
+        resolved = await self.sites.resolve_host(preview_host)
+        if resolved is None or resolved.site_id != site.site_id:
+            raise Unauthenticated("preview authority required")
+        context = SiteContext(
+            kind=context_kind_preview(),
+            site_id=site.site_id,
+            site_key=site.site_key,
+            site_status=site.lifecycle,
+            canonical_domain=site.canonical_domain,
+            context_source=context_source_preview(),
+            request_id="preview-media",
+            request_host=preview_host,
+            timezone=site.timezone,
+            locale=site.locale,
+            resolved_at=now,
+            version_marker=site.version_marker,
+        )
+        if not await self.eligibility.is_preview_eligible(
+            context,
+            post_id=record.post_id,
+            source_snapshot=record.metadata.get("source_snapshot") or None,
+        ):
+            raise Unauthenticated("preview authority required")
+        return True
+
 
 def context_kind_preview():
     from bp_domain.context import ContextKind

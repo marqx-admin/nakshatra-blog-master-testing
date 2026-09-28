@@ -109,6 +109,24 @@ class PreviewAuthorityPort(Protocol):
         request_host: str,
     ) -> str: ...
 
+    async def issue_media_grant(
+        self,
+        raw_preview_session: str,
+        *,
+        site_id: str,
+        post_id: str,
+        media_id: str,
+        request_host: str,
+    ) -> str: ...
+
+    async def validate_media_grant(
+        self,
+        raw_grant: str,
+        *,
+        site_key: str,
+        media_id: str,
+    ) -> bool: ...
+
 
 class GlobalOperationsPort(Protocol):
     async def execute(
