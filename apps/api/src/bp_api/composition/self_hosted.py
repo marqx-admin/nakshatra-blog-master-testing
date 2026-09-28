@@ -58,6 +58,7 @@ from bp_adapters.security_store import DynamoSecurityStateStore, DynamoSecurityT
 from bp_domain.editorial import validate_embed_provider_registry
 
 from ..config import Settings
+from ..config.settings import validated_public_origin
 from ..http.site.routes import EditorialTransportServices
 from .derived_postgres import PostgresDerivedAdminRepository
 from .global_postgres import PostgresGlobalOperations
@@ -281,7 +282,7 @@ def build_self_hosted_services(settings: Settings, spec: dict[str, Any]) -> Serv
         opensearch_endpoint=_require("BP_OPENSEARCH_ENDPOINT"),
         media_bucket=_require("BP_MEDIA_BUCKET"),
         media_staging_prefix=_require("BP_MEDIA_STAGING_PREFIX"),
-        media_cdn_origin=_require("BP_MEDIA_CDN_ORIGIN"),
+        media_cdn_origin=validated_public_origin("BP_MEDIA_CDN_ORIGIN", _require("BP_MEDIA_CDN_ORIGIN"), environment=settings.environment),
         security_state_table=_require("BP_SECURITY_STATE_TABLE"),
         security_state_endpoint=_require("BP_SECURITY_STATE_ENDPOINT"),
         media_endpoint_url=_require("BP_MEDIA_ENDPOINT_URL"),

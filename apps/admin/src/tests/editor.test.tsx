@@ -78,7 +78,7 @@ test("editor exposes a clean WordPress-style command bar while preserving all 12
   renderEditor();
   expect(await screen.findByRole("toolbar",{name:"Editor toolbar"})).toBeInTheDocument();
   expect(ARTICLE_BLOCK_TYPES).toEqual(["PARAGRAPH","HEADING","LIST","QUOTE","SEPARATOR","MEDIA","TABLE","EMBED","CALLOUT","CTA","DISCLAIMER","SOURCES_REFERENCES"]);
-  for(const label of ["+ Add block","Add Media","Bold","Italic","Link","Bullets","Numbers","Quote","Table","Divider","More","Undo","Redo","Hide settings","Preview","Schedule"]){
+  for(const label of ["+ Add block","Add Media","Bold","Italic","Link","Bullets","Numbers","Quote","Table","More","Undo","Redo","Hide settings","Preview","Schedule"]){
     expect(screen.getByRole("button",{name:label})).toBeInTheDocument();
   }
   expect(screen.getByRole("button",{name:/Publish/})).toBeInTheDocument();
@@ -167,7 +167,7 @@ test("contextual transforms, slash blocks, inserter blocks and natural list exit
   const paragraph=screen.getByRole("textbox",{name:"Paragraph"});paragraph.focus();
   const transform=await screen.findByRole("combobox",{name:"Block type"});
   await user.selectOptions(transform,"H2");const h2=await screen.findByRole("textbox",{name:"Heading H2"});await user.type(h2,"Heading converted");
-  await user.selectOptions(screen.getByRole("combobox",{name:"Block type"}),"PARAGRAPH");
+  await user.selectOptions(transform,"PARAGRAPH");
   await waitFor(()=>expect(screen.queryByRole("textbox",{name:"Heading H2"})).not.toBeInTheDocument());
   expect(screen.getByRole("textbox",{name:"Paragraph"})).toHaveTextContent("Heading converted");
 
@@ -213,9 +213,11 @@ test("duplicate and drag-drop block controls reorder the writing document withou
   renderEditor({post,transport:editorTransport(post)});await screen.findByRole("toolbar",{name:"Editor toolbar"});
   const first=screen.getAllByRole("textbox",{name:"Paragraph"})[0]!;first.focus();
   const firstBlock=screen.getAllByLabelText(/^Paragraph block \d+$/)[0]!;
+  await userEvent.click(first);
   await userEvent.click(within(firstBlock).getByRole("button",{name:"Duplicate"}));
   await waitFor(()=>expect(screen.getAllByRole("textbox",{name:"Paragraph"})).toHaveLength(3));
   const blocks=screen.getAllByLabelText(/^Paragraph block \d+$/);
+  await userEvent.click(blocks[0]!);
   const drag=within(blocks[0]!).getByRole("button",{name:"Drag Paragraph"});
   fireEvent.dragStart(drag,{dataTransfer:{effectAllowed:"move"}});
   fireEvent.drop(blocks[2]!);

@@ -649,6 +649,7 @@ a { color: inherit; }
 
 /* RUN-1 browser acceptance repair: compact WordPress-style writer + assigned-site dashboard */
 .bp-editor-commandbar { flex-wrap:nowrap; overflow-x:auto; overflow-y:visible; scrollbar-width:thin; gap:2px; min-height:44px; padding:4px 5px; }
+.bp-editor-commandbar > .bp-wp-inserter { flex:0 0 auto; }
 .bp-editor-commandbar > .bp-button,.bp-editor-commandbar > .bp-wp-inserter > .bp-button { flex:0 0 auto; min-height:34px; padding:5px 8px; border-radius:6px; }
 .bp-editor-media-button { gap:6px !important; }
 .bp-toolbar-block-type { flex:0 0 132px; width:132px; min-height:34px; padding:5px 28px 5px 9px; border-radius:6px; }

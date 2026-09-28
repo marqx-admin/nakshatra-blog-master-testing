@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import ipaddress
 import os
 from urllib.parse import urlparse
 
@@ -72,6 +73,25 @@ def _optional_env(name: str) -> str | None:
     return value.strip()
 
 
+def validated_public_origin(name: str, value: str, *, environment: str) -> str:
+    parsed = urlparse(value)
+    hostname = (parsed.hostname or "").lower().rstrip(".")
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path not in {"", "/"} or parsed.query or parsed.fragment or parsed.username or parsed.password:
+        raise RuntimeError(f"{name} must be an absolute HTTP(S) origin without credentials, path, query, or fragment")
+    if environment in {"staging", "production"}:
+        if hostname.endswith(".invalid"):
+            raise RuntimeError(f"{name} must not use a reserved .invalid placeholder hostname")
+        if parsed.scheme != "https":
+            raise RuntimeError(f"{name} must use HTTPS in staging/production")
+        try:
+            if ipaddress.ip_address(hostname).is_loopback:
+                raise RuntimeError(f"{name} must be publicly browser-accessible in staging/production")
+        except ValueError:
+            if hostname == "localhost":
+                raise RuntimeError(f"{name} must be publicly browser-accessible in staging/production")
+    return value.rstrip("/")
+
+
 @dataclass(frozen=True, slots=True)
 class ProductionRuntimeSettings:
     """Validated DOC-24 provider/runtime configuration for the API composition.
@@ -140,7 +160,7 @@ class ProductionRuntimeSettings:
             opensearch_endpoint=_required_env("BP_OPENSEARCH_ENDPOINT"),
             media_bucket=_required_env("BP_MEDIA_BUCKET"),
             media_staging_prefix=_required_env("BP_MEDIA_STAGING_PREFIX"),
-            media_cdn_origin=_required_env("BP_MEDIA_CDN_ORIGIN"),
+            media_cdn_origin=validated_public_origin("BP_MEDIA_CDN_ORIGIN", _required_env("BP_MEDIA_CDN_ORIGIN"), environment=environment),
             security_state_table=_required_env("BP_SECURITY_STATE_TABLE"),
             vault_addr=_required_env("BP_VAULT_ADDR"),
             vault_role=_required_env("BP_VAULT_ROLE"),

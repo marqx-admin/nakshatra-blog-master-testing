@@ -115,7 +115,9 @@ test('Phase 1 editor keeps technical concepts out of the routine writer flow',()
   const routineWriter=editor.slice(canvasStart,railStart);
   assert.ok(editor.includes('Bulleted list'));
   assert.ok(editor.includes('Numbered list'));
-  assert.ok(routineWriter.includes('>Divider<'));
+  assert.ok(editor.includes('const ADVANCED_BLOCK_TYPES:readonly BlockType[]=["SEPARATOR"'));
+  assert.ok(routineWriter.includes('label="More"'));
+  assert.equal(routineWriter.includes('className="bp-editor-icon-button"aria-label="Divider"'),false);
   assert.equal(routineWriter.includes('<SelectField label="List style"'),false);
   assert.equal(routineWriter.includes('>List style<'),false);
   assert.equal(routineWriter.includes('A horizontal divider will appear here.'),false);

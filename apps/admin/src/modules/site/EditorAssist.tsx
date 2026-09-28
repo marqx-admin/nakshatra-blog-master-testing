@@ -31,7 +31,7 @@ function normalizedInternalCandidate(candidate: UnknownRecord): UnknownRecord | 
   return undefined;
 }
 
-export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSelect, label = "Choose media", disabled = false, preview = "compact", openOnMount = false }: { siteKey: string; value?: string; fallbackValue?: string; fallbackLabel?: string; onSelect(mediaId: string): void; label?: string; disabled?: boolean; preview?: "compact" | "article"; openOnMount?: boolean }) {
+export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSelect, label = "Choose media", disabled = false, preview = "compact", openOnMount = false, buttonId }: { siteKey: string; value?: string; fallbackValue?: string; fallbackLabel?: string; onSelect(mediaId: string): void; label?: string; disabled?: boolean; preview?: "compact" | "article"; openOnMount?: boolean; buttonId?: string }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [file, setFile] = useState<File>();
@@ -65,7 +65,7 @@ export function MediaPicker({ siteKey, value, fallbackValue, fallbackLabel, onSe
     <div className={`bp-media-picker-selection${preview==="article"?" bp-media-picker-selection--article":""}`} onDragOver={event=>{if(!disabled)event.preventDefault()}} onDrop={event=>{if(disabled)return;event.preventDefault();prepareFile(event.dataTransfer.files?.[0])}}>
       {selected && typeof selected.public_url === "string" ? <img className={preview === "article" ? "bp-media-picker-selected-thumb bp-media-picker-selected-thumb--article" : "bp-media-picker-selected-thumb"} src={selected.public_url} alt={stringValue(selected, "alt_text", "")} /> : preview==="article"?<div className="bp-media-drop-hint"><strong>Drop an image here</strong><span>or choose from this website's media library</span></div>:null}
       <div><div className="bp-inline-actions">
-        <Button type="button" variant="secondary" onClick={() => setOpen(true)} disabled={disabled}>{value ? "Change media" : fallbackValue ? "Choose social image" : label}</Button>
+        <Button id={buttonId} type="button" variant="secondary" onClick={() => setOpen(true)} disabled={disabled}>{value ? "Change media" : fallbackValue ? "Choose social image" : label}</Button>
         {value ? <Button type="button" variant="tertiary" onClick={() => onSelect("")} disabled={disabled}>Remove</Button> : null}
       </div>{effectiveValue ? <span className="bp-field-hint">{!value&&fallbackValue?(fallbackLabel??"Using fallback")+" · ":""}{selected ? stringValue(selected, "title", stringValue(selected, "filename", "Selected media")) : !value&&fallbackValue?(fallbackLabel??"Using fallback"):"Selected media"}</span> : null}</div>
     </div>
@@ -558,4 +558,3 @@ export function RichTextRunsEditor({
     </Modal>
   </div>;
 }
-
