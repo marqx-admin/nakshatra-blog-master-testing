@@ -46,6 +46,7 @@ INVITE_TTL = timedelta(hours=48)
 RESET_TTL = timedelta(minutes=30)
 PREVIEW_HANDOFF_TTL = timedelta(seconds=60)
 PREVIEW_SESSION_TTL = timedelta(minutes=10)
+ADMIN_MEDIA_TTL = timedelta(minutes=10)
 STEP_UP_L1_TTL = timedelta(minutes=10)
 STEP_UP_L2_TTL = timedelta(minutes=5)
 
@@ -173,6 +174,88 @@ class SessionAuthority:
             record.last_seen_at = now
             record.idle_expires_at = idle_expires
         return record, principal
+
+    async def issue_media_grant(
+        self,
+        session: SessionRecord,
+        *,
+        site_id: str,
+        site_key: str,
+        media_id: str,
+    ) -> str:
+        """Issue a short-lived, site-scoped image grant for the authenticated Admin UI."""
+
+        now = now_utc()
+        principal = await self.identities.get_principal(session.admin_id)
+        permissions = None if principal is None else principal.site_permissions.get(site_key)
+        if (
+            session.revoked_at is not None
+            or now >= session.idle_expires_at
+            or now >= session.absolute_expires_at
+            or principal is None
+            or principal.state is not AccountState.ACTIVE
+            or (
+                not principal.is_super_admin
+                and (permissions is None or "media.view" not in permissions)
+            )
+        ):
+            raise Unauthenticated("authentication required")
+
+        raw_grant = new_secret_token(32)
+        await self.store.put_token(
+            TokenRecord(
+                token_hash=token_hash(raw_grant),
+                admin_id=session.admin_id,
+                purpose="ADMIN_MEDIA",
+                issued_at=now,
+                expires_at=min(
+                    session.idle_expires_at,
+                    session.absolute_expires_at,
+                    now + ADMIN_MEDIA_TTL,
+                ),
+                site_id=site_id,
+                metadata={
+                    "media_id": media_id,
+                    "site_key": site_key,
+                    "session_id_hash": session.session_id_hash,
+                },
+            )
+        )
+        return raw_grant
+
+    async def validate_media_grant(
+        self, raw_grant: str, *, site_key: str, media_id: str
+    ) -> bool:
+        """Validate an Admin image grant and its still-live parent session/permission."""
+
+        now = now_utc()
+        record = await self.store.get_token(token_hash(raw_grant), "ADMIN_MEDIA", now)
+        if (
+            record is None
+            or record.metadata.get("site_key") != site_key
+            or record.metadata.get("media_id") != media_id
+        ):
+            raise Unauthenticated("authentication required")
+
+        session_hash = record.metadata.get("session_id_hash", "")
+        session = await self.store.get_session(session_hash)
+        principal = await self.identities.get_principal(record.admin_id)
+        permissions = None if principal is None else principal.site_permissions.get(site_key)
+        if (
+            session is None
+            or session.admin_id != record.admin_id
+            or session.revoked_at is not None
+            or now >= session.idle_expires_at
+            or now >= session.absolute_expires_at
+            or principal is None
+            or principal.state is not AccountState.ACTIVE
+            or (
+                not principal.is_super_admin
+                and (permissions is None or "media.view" not in permissions)
+            )
+        ):
+            raise Unauthenticated("authentication required")
+        return True
 
 
 @dataclass(slots=True)

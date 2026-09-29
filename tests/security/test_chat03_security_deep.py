@@ -263,6 +263,41 @@ async def test_session_idle_absolute_expiry_and_account_state_are_authoritative(
 
 
 @pytest.mark.asyncio
+async def test_admin_media_grant_is_site_media_permission_and_session_bound():
+    principal = replace(
+        _principal(),
+        site_permissions={"SITE-01": frozenset({"media.view"})},
+    )
+    auth, identities, state, audit, _, _ = await _service(principal)
+    authority = SessionAuthority(state, identities, audit)
+    raw_session, _, session = await auth._issue_session(principal, mfa_verified=False)
+
+    grant = await authority.issue_media_grant(
+        session,
+        site_id="site-uuid-01",
+        site_key="SITE-01",
+        media_id="media-1",
+    )
+    assert await authority.validate_media_grant(
+        grant, site_key="SITE-01", media_id="media-1"
+    ) is True
+    with pytest.raises(Unauthenticated):
+        await authority.validate_media_grant(
+            grant, site_key="SITE-01", media_id="media-2"
+        )
+    with pytest.raises(Unauthenticated):
+        await authority.validate_media_grant(
+            grant, site_key="SITE-02", media_id="media-1"
+        )
+
+    await state.revoke_session(token_hash(raw_session), "LOGOUT")
+    with pytest.raises(Unauthenticated):
+        await authority.validate_media_grant(
+            grant, site_key="SITE-01", media_id="media-1"
+        )
+
+
+@pytest.mark.asyncio
 async def test_l2_stepup_requires_mfa_rotates_session_and_is_bound_to_new_session():
     auth, identities, state, _, _, secrets_provider = await _service(_principal())
     secret = b"12345678901234567890"

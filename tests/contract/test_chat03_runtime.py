@@ -5,8 +5,25 @@ from dataclasses import dataclass
 from fastapi.testclient import TestClient
 
 from bp_api.app import create_app
+from bp_api.media_delivery import DeliveredMedia
 from bp_api.config import Settings
 from tests.e2e.test_chat03_auth import PASSWORD, build
+
+
+class _PrivateMediaDelivery:
+    async def get(self, **kwargs):
+        assert kwargs["preview_authorized"] is True
+        return DeliveredMedia(b"private-image", "image/webp", "private-etag")
+
+
+class _PreviewMediaValidator:
+    async def validate_media_grant(self, raw_grant, *, site_key, media_id):
+        return raw_grant == "valid-preview" and site_key == "SITE-01" and media_id == "media-1"
+
+
+class _AdminMediaValidator:
+    async def validate_media_grant(self, raw_grant, *, site_key, media_id):
+        return raw_grant == "valid-admin" and site_key == "SITE-01" and media_id == "media-1"
 
 
 def test_cors_preflight_is_exact_origin_credentialed_and_bounded():
@@ -57,6 +74,43 @@ def test_security_headers_and_no_store_are_applied_to_auth_and_preview_surfaces(
     assert preview.status_code == 403
     assert preview.headers["cache-control"] == "no-store"
     assert preview.headers["referrer-policy"] == "no-referrer"
+
+
+def test_private_media_conditional_response_remains_private_and_no_store():
+    app, services, *_ = build()
+    services.media_delivery = _PrivateMediaDelivery()
+    services.preview_authority = _PreviewMediaValidator()
+    client = TestClient(app, base_url="https://admin.test")
+    path = "/m/SITE-01/media-1/native_webp.webp?preview_grant=valid-preview"
+
+    first = client.get(path)
+    assert first.status_code == 200
+    assert first.headers["cache-control"] == "no-store, private"
+    assert first.headers["etag"] == '"private-etag"'
+
+    conditional = client.get(path, headers={"If-None-Match": '"private-etag"'})
+    assert conditional.status_code == 304
+    assert conditional.headers["cache-control"] == "no-store, private"
+    assert conditional.headers["etag"] == '"private-etag"'
+
+
+def test_admin_media_grant_uses_the_same_private_delivery_boundary():
+    app, services, *_ = build()
+    services.media_delivery = _PrivateMediaDelivery()
+    services.sessions = _AdminMediaValidator()
+    client = TestClient(app, base_url="https://admin.test")
+
+    allowed = client.get(
+        "/m/SITE-01/media-1/native_webp.webp?admin_grant=valid-admin"
+    )
+    assert allowed.status_code == 200
+    assert allowed.headers["cache-control"] == "no-store, private"
+
+    denied = client.get(
+        "/m/SITE-01/media-1/native_webp.webp?admin_grant=wrong"
+    )
+    assert denied.status_code == 404
+    assert denied.headers["cache-control"] == "no-store"
 
 
 def test_error_envelope_never_echoes_sensitive_request_values():

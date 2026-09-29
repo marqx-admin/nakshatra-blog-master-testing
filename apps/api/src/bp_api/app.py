@@ -211,11 +211,14 @@ def create_app(*, settings: Settings | None = None, services: Services | None = 
         if delivery is None:
             return Response(status_code=404, headers={"Cache-Control": "no-store"})
         preview_grant = request.query_params.get("preview_grant")
-        preview_authorized = False
+        admin_grant = request.query_params.get("admin_grant")
+        private_authorized = False
+        if preview_grant and admin_grant:
+            return Response(status_code=404, headers={"Cache-Control": "no-store"})
         if preview_grant:
             validator = resolved_services.preview_authority
             try:
-                preview_authorized = bool(
+                private_authorized = bool(
                     validator
                     and len(preview_grant) <= 512
                     and await validator.validate_media_grant(
@@ -224,6 +227,22 @@ def create_app(*, settings: Settings | None = None, services: Services | None = 
                         media_id=media_id,
                     )
                 )
+                if not private_authorized:
+                    return Response(status_code=404, headers={"Cache-Control": "no-store"})
+            except Exception:
+                return Response(status_code=404, headers={"Cache-Control": "no-store"})
+        elif admin_grant:
+            try:
+                private_authorized = bool(
+                    len(admin_grant) <= 512
+                    and await resolved_services.sessions.validate_media_grant(
+                        admin_grant,
+                        site_key=site_key,
+                        media_id=media_id,
+                    )
+                )
+                if not private_authorized:
+                    return Response(status_code=404, headers={"Cache-Control": "no-store"})
             except Exception:
                 return Response(status_code=404, headers={"Cache-Control": "no-store"})
         try:
@@ -233,23 +252,27 @@ def create_app(*, settings: Settings | None = None, services: Services | None = 
                 variant_key=variant_key,
                 extension=extension,
                 request_id=request.headers.get("x-request-id", "media-delivery"),
-                preview_authorized=preview_authorized,
+                preview_authorized=private_authorized,
             )
         except Exception:
             return Response(status_code=503, headers={"Cache-Control": "no-store"})
         if item is None:
             return Response(status_code=404, headers={"Cache-Control": "no-store"})
+        cache_control = (
+            "no-store, private"
+            if private_authorized
+            else "public, max-age=31536000, immutable"
+        )
         if request.headers.get("if-none-match") == f'"{item.etag}"':
-            return Response(status_code=304, headers={"ETag": f'"{item.etag}"'})
+            return Response(
+                status_code=304,
+                headers={"Cache-Control": cache_control, "ETag": f'"{item.etag}"'},
+            )
         return Response(
             content=item.body,
             media_type=item.content_type,
             headers={
-                "Cache-Control": (
-                    "no-store, private"
-                    if preview_authorized
-                    else "public, max-age=31536000, immutable"
-                ),
+                "Cache-Control": cache_control,
                 "ETag": f'"{item.etag}"',
                 "X-Content-Type-Options": "nosniff",
             },

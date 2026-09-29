@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import re
 from email.parser import BytesParser
 from email.policy import default
-import re
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
@@ -19,6 +20,9 @@ router = APIRouter()
 _PERMISSION_RE = re.compile(r"\b[a-z_]+\.[a-z_]+\b")
 _MEDIA_FIELDS = frozenset({"file", "alt_text", "caption", "credit", "title", "source_url"})
 _MAX_MULTIPART_BODY = 20 * 1024 * 1024 + 1024 * 1024
+_MEDIA_RESPONSE_OPERATION_IDS = frozenset(
+    {"API15-S-060", "API15-S-061", "API15-S-062", "API15-S-063", "API15-S-064"}
+)
 
 CHAT05_OPERATION_IDS = (
     "API15-S-060", "API15-S-061", "API15-S-062", "API15-S-063", "API15-S-064", "API15-S-065", "API15-S-066",
@@ -95,6 +99,86 @@ async def _body(request: Request, contract) -> Any:
     return body
 
 
+def _admin_media_url_with_grant(
+    value: str,
+    grant: str,
+    *,
+    media_origin: str,
+    site_key: str,
+    media_id: str,
+) -> str:
+    """Attach a grant only to the expected same-site media gateway URL."""
+
+    parsed = urlsplit(value)
+    trusted = urlsplit(media_origin.rstrip("/"))
+    prefix = f"/m/{site_key}/{media_id}/"
+    if (
+        not media_origin
+        or parsed.scheme not in {"http", "https"}
+        or parsed.scheme != trusted.scheme
+        or parsed.netloc != trusted.netloc
+        or parsed.username
+        or parsed.password
+        or not parsed.path.startswith(prefix)
+    ):
+        return value
+    query = [
+        (name, item)
+        for name, item in parse_qsl(parsed.query, keep_blank_values=True)
+        if name != "admin_grant"
+    ]
+    query.append(("admin_grant", grant))
+    return urlunsplit(
+        (parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment)
+    )
+
+
+async def _secure_admin_media_payload(
+    payload: Any,
+    *,
+    sessions: Any,
+    session: Any,
+    context: Any,
+    media_origin: str,
+) -> Any:
+    if not isinstance(payload, dict):
+        return payload
+    raw_records = (
+        payload.get("items")
+        if isinstance(payload.get("items"), list)
+        else [payload.get("media")]
+    )
+    secured_records: list[Any] = []
+    for raw_record in raw_records:
+        if not isinstance(raw_record, dict):
+            secured_records.append(raw_record)
+            continue
+        record = dict(raw_record)
+        media_id = record.get("media_id")
+        public_url = record.get("public_url")
+        if isinstance(media_id, str) and isinstance(public_url, str):
+            grant = await sessions.issue_media_grant(
+                session,
+                site_id=context.site_id,
+                site_key=context.site_key,
+                media_id=media_id,
+            )
+            record["public_url"] = _admin_media_url_with_grant(
+                public_url,
+                grant,
+                media_origin=media_origin,
+                site_key=context.site_key,
+                media_id=media_id,
+            )
+        secured_records.append(record)
+    secured = dict(payload)
+    if isinstance(payload.get("items"), list):
+        secured["items"] = secured_records
+    elif secured_records:
+        secured["media"] = secured_records[0]
+    return secured
+
+
 def _endpoint(operation_id: str):
     async def endpoint(request: Request):
         contract = _contract(request, operation_id)
@@ -138,6 +222,14 @@ def _endpoint(operation_id: str):
                 **({"idempotency-key": request.headers["idempotency-key"]} if request.headers.get("idempotency-key") else {}),
             },
         )
+        if operation_id in _MEDIA_RESPONSE_OPERATION_IDS:
+            payload = await _secure_admin_media_payload(
+                payload,
+                sessions=request.app.state.services.sessions,
+                session=session,
+                context=context,
+                media_origin=str(getattr(getattr(service, "media", None), "media_cdn_origin", "")),
+            )
         validate_response(request.app.state.canonical_openapi, contract, status, payload)
         if status == 204:
             return Response(status_code=204, headers=headers)
