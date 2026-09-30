@@ -105,6 +105,51 @@ test("unified toolbar formats the active writer and More exposes only advanced b
   expect(await screen.findByLabelText("Callout label")).toBeInTheDocument();
 });
 
+
+test("Callout preserves its label and rich-text body when saved",async()=>{
+  const post=makePost();
+  let savedBody:Record<string,unknown>|undefined;
+
+  const transport=editorTransport(post,(id,input)=>{
+    if(id==="API15-S-013"){
+      savedBody=(input?.body??{}) as Record<string,unknown>;
+      return ok({post:{...post,...savedBody,version:2,status:"DRAFT"}});
+    }
+    return undefined;
+  });
+
+  renderEditor({post,transport});
+  await screen.findByRole("toolbar",{name:"Editor toolbar"});
+  const user=userEvent.setup();
+
+  await user.click(screen.getByRole("button",{name:"More"}));
+  const more=screen.getByRole("dialog",{name:"More blocks"});
+  await user.click(within(more).getByRole("button",{name:/Callout/i}));
+
+  const label=await screen.findByLabelText("Callout label");
+  const body=screen.getByRole("textbox",{name:"Callout body"});
+
+  await user.type(label,"Key takeaway");
+  await user.type(body,"This is an important callout.");
+
+  await user.click(screen.getByRole("button",{name:"Save draft"}));
+  await waitFor(()=>expect(savedBody).toBeDefined());
+
+  const articleBody=(savedBody?.body??{}) as Record<string,unknown>;
+  const blocks=(articleBody.blocks??[]) as Array<Record<string,unknown>>;
+  const callout=blocks.find(block=>block.type==="CALLOUT");
+
+  expect(callout).toMatchObject({
+    type:"CALLOUT",
+    label:"Key takeaway",
+    body:{
+      runs:[
+        {text:"This is an important callout."},
+      ],
+    },
+  });
+});
+
 test("Embed hides provider internals while preserving approved provider metadata",async()=>{
   const post=makePost({body:{content_schema_version:"1",blocks:[
     {

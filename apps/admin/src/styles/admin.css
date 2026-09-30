@@ -675,8 +675,29 @@ a { color: inherit; }
 
 
 /* RUN-1 browser acceptance repair: compact WordPress-style writer + assigned-site dashboard */
-.bp-editor-commandbar { flex-wrap:wrap; overflow:visible; gap:2px; min-height:44px; padding:4px 5px; }
-.bp-editor-commandbar > .bp-wp-inserter { flex:0 0 auto; }
+.bp-editor-commandbar {
+  position:relative;
+  flex-wrap:wrap;
+  overflow:visible;
+  gap:2px;
+  min-height:44px;
+  padding:4px 5px;
+}
+
+.bp-editor-commandbar > .bp-wp-inserter {
+  position:static;
+  flex:0 0 auto;
+}
+
+.bp-editor-commandbar > .bp-wp-inserter > .bp-wp-inserter-popover {
+  top:calc(100% + 6px);
+  left:0;
+}
+
+.bp-editor-commandbar > .bp-wp-inserter:has(> button[aria-label="More"]) > .bp-wp-inserter-popover {
+  left:auto;
+  right:0;
+}
 .bp-editor-commandbar > .bp-button,.bp-editor-commandbar > .bp-wp-inserter > .bp-button { flex:0 0 auto; min-height:34px; padding:5px 8px; border-radius:6px; }
 .bp-editor-media-button { gap:6px !important; }
 .bp-toolbar-block-type { flex:0 0 132px; width:132px; min-height:34px; padding:5px 28px 5px 9px; border-radius:6px; }
@@ -760,3 +781,32 @@ a { color: inherit; }
 @media (max-width:1199px){ .bp-dashboard-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); } .bp-dashboard-site-card { grid-template-columns:auto minmax(0,1fr); } .bp-dashboard-site-actions { grid-column:2; justify-content:flex-start; } }
 @media (max-width:767px){ .bp-editor-commandbar { flex-wrap:nowrap; overflow-x:auto; } .bp-dashboard-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .bp-dashboard-site-card { grid-template-columns:1fr; } .bp-dashboard-site-mark { width:44px; height:44px; } .bp-dashboard-site-actions { grid-column:1; flex-wrap:wrap; } }
 @media (max-width:520px){ .bp-dashboard-metrics { grid-template-columns:1fr 1fr; gap:10px; } .bp-dashboard-metric { min-height:108px; padding:13px; } .bp-dashboard-site-actions .bp-button { width:100%; } }
+
+/* RUN-1 browser acceptance repair: visible quotation marks */
+.bp-quote-editor .bp-rich-text-surface {
+  position:relative;
+  padding-inline:1.35rem;
+}
+
+.bp-quote-editor .bp-rich-text-surface::before,
+.bp-quote-editor .bp-rich-text-surface::after {
+  position:absolute;
+  font-family:Georgia, "Times New Roman", serif;
+  font-size:1.45em;
+  font-weight:700;
+  line-height:1;
+  color:var(--admin-celestial-indigo);
+  pointer-events:none;
+}
+
+.bp-quote-editor .bp-rich-text-surface::before {
+  content:"“";
+  left:.2rem;
+  top:.15em;
+}
+
+.bp-quote-editor .bp-rich-text-surface::after {
+  content:"”";
+  right:.2rem;
+  bottom:.1em;
+}
