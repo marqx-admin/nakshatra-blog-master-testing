@@ -63,9 +63,9 @@ function blockDefaults(type:BlockType):UnknownRecord{
 function BlockInsertMenu({label="+",visualLabel,onInsert,types=ARTICLE_BLOCK_TYPES,searchable=true}:{label?:string;visualLabel?:string;onInsert(type:BlockType,overrides?:UnknownRecord):void;types?:readonly BlockType[];searchable?:boolean}){
   const [open,setOpen]=useState(false);const [query,setQuery]=useState("");
   const choices=types.filter(type=>BLOCK_LABELS[type].toLowerCase().includes(query.trim().toLowerCase()));
-  const dialogLabel=label==="+"||label==="+ Add block"?"Add block":label==="More"?"More blocks":label;
+  const dialogLabel=label==="+"?"Add block":label==="More"?"More blocks":label;
   return <div className="bp-wp-inserter">
-    <Button type="button" variant="tertiary" onClick={()=>setOpen(value=>!value)} aria-expanded={open} aria-label={label==="+"?"Add block":label} title={label==="+"?"Add block":label}>{visualLabel??label}</Button>
+    <Button type="button" variant="tertiary" onClick={()=>setOpen(value=>!value)} aria-expanded={open} aria-label={label==="+"?"Add block":label} data-tooltip={dialogLabel}>{visualLabel??label}</Button>
     {open?<div className="bp-wp-inserter-popover" role="dialog" aria-label={dialogLabel}>
       {searchable?<input className="bp-input" aria-label="Search blocks" placeholder="Search blocks" value={query} onChange={event=>setQuery(event.target.value)} autoFocus/>:null}
       <div className="bp-wp-inserter-grid">{choices.map(type=><button type="button" key={type} onClick={()=>{onInsert(type,blockDefaults(type));setOpen(false);setQuery("")}}><strong>{BLOCK_LABELS[type]}</strong><span>{type==="PARAGRAPH"?"Start writing":type==="HEADING"?"Heading H2/H3/H4":type==="LIST"?"Bulleted or numbered list":type==="MEDIA"?"Upload or choose an image":type==="CTA"?"Call-to-action button":"Insert content block"}</span></button>)}</div>
@@ -108,13 +108,22 @@ function BlockEditor({
   const removeRow=()=>{if(rows.length<=1)return;onChange({...block,rows:rows.slice(0,-1)})};
   const removeColumn=()=>{if(columnCount<=1)return;onChange({...block,rows:rows.map(row=>row.slice(0,-1))})};
 
+  const sourceEntries=Array.isArray(block.entries)?block.entries.map(entry=>asRecord(entry)):[];
+  const editableSourceEntries=sourceEntries.length?sourceEntries:[{}];
+  const updateSourceEntry=(entryIndex:number,key:"title"|"url"|"publisher"|"note",value:string)=>{
+    const next=editableSourceEntries.map((entry,index)=>index===entryIndex?stripEmpty({...entry,[key]:value}):entry);
+    onChange({...block,entries:next});
+  };
+  const addSourceEntry=()=>onChange({...block,entries:[...editableSourceEntries,{}]});
+  const removeSourceEntry=(entryIndex:number)=>onChange({...block,entries:sourceEntries.filter((_,index)=>index!==entryIndex)});
+
   return <article className={`bp-block-frame${naturalWriting?" bp-writing-block":" bp-content-block"} bp-block-${type.toLowerCase()}${active?" is-active":""}`} data-block-id={block.block_id} aria-label={`${BLOCK_LABELS[type]} block ${index+1}`} onMouseDown={onFocus} onFocus={onFocus} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();onDrop()}}>
     {active?<header className={`bp-block-header${naturalWriting?" bp-block-header--writing":""}`} aria-label={`${BLOCK_LABELS[type]} block toolbar`}>
       <div className="bp-block-context">
-        <button className="bp-drag-handle" type="button" draggable onDragStart={event=>{event.dataTransfer.effectAllowed="move";onDragStart()}} aria-label={`Drag ${BLOCK_LABELS[type]}`}>⋮⋮</button>
-        {naturalWriting?null:type==="LIST"?<div className="bp-list-toggle" role="group" aria-label="List style"><Button type="button" variant={String(block.style??"UNORDERED")==="UNORDERED"?"secondary":"tertiary"} onClick={()=>onChange({...block,style:"UNORDERED"})} aria-label="Bullets" title="Bulleted list">•</Button><Button type="button" variant={String(block.style??"UNORDERED")==="ORDERED"?"secondary":"tertiary"} onClick={()=>onChange({...block,style:"ORDERED"})} aria-label="Numbers" title="Numbered list">1.</Button></div>:<span className="bp-block-type">{BLOCK_LABELS[type]}</span>}
+        <button className="bp-drag-handle" type="button" draggable onDragStart={event=>{event.dataTransfer.effectAllowed="move";onDragStart()}} aria-label={`Drag ${BLOCK_LABELS[type]}`} data-tooltip={`Drag ${BLOCK_LABELS[type]}`}>⋮⋮</button>
+        {naturalWriting?null:type==="LIST"?<div className="bp-list-toggle" role="group" aria-label="List style"><Button type="button" variant={String(block.style??"UNORDERED")==="UNORDERED"?"secondary":"tertiary"} onClick={()=>onChange({...block,style:"UNORDERED"})} aria-label="Bullets" data-tooltip="Bulleted list">•</Button><Button type="button" variant={String(block.style??"UNORDERED")==="ORDERED"?"secondary":"tertiary"} onClick={()=>onChange({...block,style:"ORDERED"})} aria-label="Numbers" data-tooltip="Numbered list">1.</Button></div>:<span className="bp-block-type">{BLOCK_LABELS[type]}</span>}
       </div>
-      <div className="bp-block-actions"><Button variant="tertiary" type="button" onClick={()=>onMove(-1)} disabled={index===0} aria-label={`Move ${BLOCK_LABELS[type]} up`} title="Move up">↑</Button><Button variant="tertiary" type="button" onClick={()=>onMove(1)} disabled={index===count-1} aria-label={`Move ${BLOCK_LABELS[type]} down`} title="Move down">↓</Button><Button variant="tertiary" type="button" onClick={onDuplicate} aria-label="Duplicate" title="Duplicate block">⧉</Button><Button variant="tertiary" type="button" onClick={onRemove} aria-label={`Remove ${BLOCK_LABELS[type]}`} title="Remove block">×</Button></div>
+      <div className="bp-block-actions"><Button variant="tertiary" type="button" onClick={()=>onMove(-1)} disabled={index===0} aria-label={`Move ${BLOCK_LABELS[type]} up`} data-tooltip="Move up">↑</Button><Button variant="tertiary" type="button" onClick={()=>onMove(1)} disabled={index===count-1} aria-label={`Move ${BLOCK_LABELS[type]} down`} data-tooltip="Move down">↓</Button><Button variant="tertiary" type="button" onClick={onDuplicate} aria-label="Duplicate" data-tooltip="Duplicate block">⧉</Button><Button variant="tertiary" type="button" onClick={onRemove} aria-label={`Remove ${BLOCK_LABELS[type]}`} data-tooltip="Remove block">×</Button></div>
     </header>:null}
     {type==="PARAGRAPH"?<RichTextRunsEditor siteKey={siteKey} editorId={`bp-writer-${block.block_id}`} label="Paragraph" variant="paragraph" placeholder="Start writing or type / for a quick block…" value={block.content} onChange={value=>onChange({...block,content:value})} multiline showToolbar={false} onEnter={onSplit} onBackspaceAtStart={onMergePrevious} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo} onSlashCommand={onSlashCommand}/>:null}
     {type==="HEADING"?<RichTextRunsEditor siteKey={siteKey} editorId={`bp-writer-${block.block_id}`} label={`Heading H${headingLevel}`} variant={headingLevel===3?"heading3":headingLevel===4?"heading4":"heading2"} placeholder="Add heading" value={block.content} onChange={value=>onChange({...block,content:value})} showToolbar={false} onEnter={onSplit} onBackspaceAtStart={onMergePrevious} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo}/>:null}
@@ -123,11 +132,35 @@ function BlockEditor({
     {type==="SEPARATOR"?<div className="bp-separator-preview" aria-label="Divider"><hr/></div>:null}
     {type==="MEDIA"?<div className="bp-article-image-editor"><MediaPicker siteKey={siteKey} value={String(block.media_id??"")} onSelect={mediaId=>field("media_id",mediaId)} label="Upload or choose image" preview="article" openOnMount={Boolean(autoOpenMedia)} buttonId={`bp-media-picker-${block.block_id}`}/></div>:null}
     {type==="TABLE"?<div className="bp-table-editor"><div className="bp-table-editor-grid">{rows.map((row,rowIndex)=><div className="bp-table-editor-row" key={rowIndex}>{Array.from({length:columnCount},(_,columnIndex)=><input key={columnIndex} className="bp-table-editor-cell" aria-label={`Row ${rowIndex+1}, column ${columnIndex+1}`} value={richText(row[columnIndex]??rich(""))} onChange={e=>updateCell(rowIndex,columnIndex,e.target.value)}/>)}</div>)}</div><div className="bp-inline-actions"><Button type="button" variant="tertiary" onClick={addRow}>Add row</Button><Button type="button" variant="tertiary" onClick={addColumn}>Add column</Button><Button type="button" variant="tertiary" onClick={removeRow} disabled={rows.length<=1}>Remove row</Button><Button type="button" variant="tertiary" onClick={removeColumn} disabled={columnCount<=1}>Remove column</Button></div><Checkbox label="First row is a heading row" checked={Boolean(block.header_row)} onChange={e=>onChange({...block,header_row:e.target.checked})}/></div>:null}
-    {type==="EMBED"?<div className="bp-embed-editor"><TextField label="Embed URL or ID" value={String(block.source_url_or_id??"")} onChange={e=>field("source_url_or_id",e.target.value)} placeholder="Paste the approved embed URL"/><TextField label="Caption" value={String(block.caption??"")} onChange={e=>field("caption",e.target.value)}/><details className="bp-inline-details"><summary>Advanced provider settings</summary><TextField label="Provider key" value={String(block.provider_key??"")} onChange={e=>field("provider_key",e.target.value)} hint="Only approved providers can be published."/></details></div>:null}
+    {type==="EMBED"?<div className="bp-embed-editor">
+      {String(block.provider_key??"").trim()?<>
+        <TextField label="Embed URL or ID" value={String(block.source_url_or_id??"")} onChange={e=>field("source_url_or_id",e.target.value)} placeholder="Paste the approved embed URL or ID"/>
+        <TextField label="Caption" value={String(block.caption??"")} onChange={e=>field("caption",e.target.value)} placeholder="Optional caption"/>
+        <p className="bp-field-hint">This embed uses an approved source configured by the platform.</p>
+      </>:<p className="bp-field-hint">Embeds are unavailable until an approved source is configured by an administrator.</p>}
+    </div>:null}
     {type==="CALLOUT"?<div className="bp-editorial-callout"><TextField label="Callout label" value={String(block.label??"")} onChange={e=>field("label",e.target.value)} placeholder="Optional label"/><RichTextRunsEditor siteKey={siteKey} editorId={`bp-callout-${block.block_id}`} label="Callout body" value={block.body} onChange={value=>onChange({...block,body:value})} multiline showToolbar={false} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo}/></div>:null}
     {type==="CTA"?<div className="bp-cta-editor"><TextField label="Supporting text" value={String(block.supporting_text??"")} onChange={e=>field("supporting_text",e.target.value)} placeholder="Optional supporting text"/><div className="bp-cta-button-preview">{String(block.label??"")||"Button text"}</div><TextField label="Button label" value={String(block.label??"")} onChange={e=>field("label",e.target.value)} required/><details className="bp-inline-details"><summary>Button link</summary><div className="bp-form-stack"><SelectField label="Link type" value={destinationKind} onChange={e=>onChange({...block,destination:e.target.value==="EXTERNAL"?{kind:"EXTERNAL",url:""}:{kind:"INTERNAL",target_type:"ARTICLE",target_id:""}})}><option value="EXTERNAL">Web address</option><option value="INTERNAL">This website</option></SelectField>{destinationKind==="EXTERNAL"?<TextField label="Web address" type="url" value={stringValue(destination,"url","")==="—"?"":stringValue(destination,"url","")} onChange={e=>onChange({...block,destination:{kind:"EXTERNAL",url:e.target.value}})} required/>:<><p className="bp-field-hint">{destinationTargetType==="STATIC"?"A website page is selected.":stringValue(destination,"target_id","")&&stringValue(destination,"target_id","")!=="—"?"An internal destination is selected.":"Search and choose an internal destination below."}</p><InternalLinkSearchPanel siteKey={siteKey} onUse={candidate=>{const kind=stringValue(candidate,"kind","ARTICLE");if(kind==="STATIC"){const staticPageKey=stringValue(candidate,"static_page_key","");if(staticPageKey&&STATIC_PAGE_KEYS.includes(staticPageKey as typeof STATIC_PAGE_KEYS[number]))onChange({...block,destination:{kind:"INTERNAL",target_type:"STATIC",static_page_key:staticPageKey}});return;}const resourceId=stringValue(candidate,"resource_id","");if(resourceId)onChange({...block,destination:{kind:"INTERNAL",target_type:kind,target_id:resourceId}})}}/></>}</div></details></div>:null}
     {type==="DISCLAIMER"?<div className="bp-editorial-disclaimer"><TextField label="Disclaimer label" value={String(block.label??"")} onChange={e=>field("label",e.target.value)} placeholder="Disclaimer"/><RichTextRunsEditor siteKey={siteKey} editorId={`bp-disclaimer-${block.block_id}`} label="Disclaimer body" value={block.body} onChange={value=>onChange({...block,body:value})} multiline showToolbar={false} onFocus={onFocus} onUndo={onUndo} onRedo={onRedo}/></div>:null}
-    {type==="SOURCES_REFERENCES"?<div className="bp-sources-editor"><strong>Sources & References</strong><TextArea label="Sources / References" hint="One source per line: Title | URL | Publisher | Note" value={(Array.isArray(block.entries)?block.entries:[]).map((entry)=>{const r=asRecord(entry);return [r.title,r.url,r.publisher,r.note].map(v=>String(v??"")).join(" | ")}).join("\n")} onChange={e=>onChange({...block,entries:e.target.value.split("\n").filter(Boolean).map(line=>{const [title,url,publisher,note]=line.split("|").map(v=>v.trim());return stripEmpty({title:title??"",url,publisher,note})})})}/></div>:null}
+    {type==="SOURCES_REFERENCES"?<div className="bp-sources-editor">
+      <strong>Sources & References</strong>
+      <p className="bp-field-hint">Add each source separately. A title is required for every saved source.</p>
+      <div className="bp-source-entry-list">
+        {editableSourceEntries.map((entry,entryIndex)=><fieldset className="bp-source-entry" key={entryIndex}>
+          <legend>{`Source ${entryIndex+1}`}</legend>
+          <div className="bp-source-entry-grid">
+            <TextField label="Title" value={String(entry.title??"")} onChange={e=>updateSourceEntry(entryIndex,"title",e.target.value)} required/>
+            <TextField label="URL" type="url" value={String(entry.url??"")} onChange={e=>updateSourceEntry(entryIndex,"url",e.target.value)} placeholder="https://example.com"/>
+            <TextField label="Publisher" value={String(entry.publisher??"")} onChange={e=>updateSourceEntry(entryIndex,"publisher",e.target.value)} placeholder="Optional publisher"/>
+            <TextArea label="Note" value={String(entry.note??"")} onChange={e=>updateSourceEntry(entryIndex,"note",e.target.value)} placeholder="Optional note"/>
+          </div>
+          <div className="bp-source-entry-actions">
+            <Button type="button" variant="tertiary" onClick={()=>removeSourceEntry(entryIndex)} disabled={sourceEntries.length===0}>Remove source</Button>
+          </div>
+        </fieldset>)}
+      </div>
+      <Button type="button" variant="secondary" onClick={addSourceEntry}>Add another source</Button>
+    </div>:null}
   </article>
 }
 
@@ -587,24 +620,24 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
       <section className="bp-editor-canvas" aria-label="Article editor canvas" onFocusCapture={event=>{const target=event.target as HTMLElement;if(target.classList.contains("bp-rich-text-surface")&&target.id)setActiveEditorId(target.id)}}>
         <TextField className="bp-editor-title" label="Article title" placeholder="Add title" value={model.title} onFocus={()=>{setActiveBlockId(undefined);setSettingsTab("post")}} onChange={e=>{update("title",e.target.value);if(e.target.value.trim())setPreviewValidation(undefined)}}/>
         <div className="bp-editor-commandbar" role="toolbar" aria-label="Editor toolbar">
-          <BlockInsertMenu label="+ Add block" onInsert={(type,overrides)=>insertBlock(type,overrides)}/>
+          <BlockInsertMenu label="Add block" visualLabel="+" onInsert={(type,overrides)=>insertBlock(type,overrides)}/>
           <Button type="button" variant="tertiary" className="bp-editor-media-button" onClick={()=>{const blockId=insertBlock("MEDIA");setAutoOpenMediaBlockId(blockId)}}><span aria-hidden="true">▧</span><span>Add Media</span></Button>
           <select className="bp-select bp-toolbar-block-type" aria-label="Block type" title="Paragraph or heading" value={model.blocks.find(block=>block.block_id===activeBlockId)?.type==="HEADING"?`H${Number(model.blocks.find(block=>block.block_id===activeBlockId)?.level??2)}`:"PARAGRAPH"} onChange={event=>applyToolbarTextType(event.target.value as "PARAGRAPH"|"H2"|"H3"|"H4")}><option value="PARAGRAPH">Paragraph</option><option value="H2">Heading 2</option><option value="H3">Heading 3</option><option value="H4">Heading 4</option></select>
           <span className="bp-toolbar-divider" aria-hidden="true"/>
-          <button type="button" className="bp-editor-icon-button" aria-label="Bold" title="Bold (⌘/Ctrl+B)" onMouseDown={event=>event.preventDefault()} onClick={()=>sendRichTextShortcut("b")}><strong aria-hidden="true">B</strong></button>
-          <button type="button" className="bp-editor-icon-button" aria-label="Italic" title="Italic (⌘/Ctrl+I)" onMouseDown={event=>event.preventDefault()} onClick={()=>sendRichTextShortcut("i")}><em aria-hidden="true">I</em></button>
-          <button type="button" className="bp-editor-icon-button" aria-label="Link" title="Link (⌘/Ctrl+K)" onMouseDown={event=>event.preventDefault()} onClick={()=>sendRichTextShortcut("k")}><span aria-hidden="true">⌁</span></button>
+          <button type="button" className="bp-editor-icon-button" aria-label="Bold" data-tooltip="Bold (Cmd/Ctrl+B)" onMouseDown={event=>event.preventDefault()} onClick={()=>sendRichTextShortcut("b")}><strong aria-hidden="true">B</strong></button>
+          <button type="button" className="bp-editor-icon-button" aria-label="Italic" data-tooltip="Italic (Cmd/Ctrl+I)" onMouseDown={event=>event.preventDefault()} onClick={()=>sendRichTextShortcut("i")}><em aria-hidden="true">I</em></button>
+          <button type="button" className="bp-editor-icon-button" aria-label="Link" data-tooltip="Link (Cmd/Ctrl+K)" onMouseDown={event=>event.preventDefault()} onClick={()=>sendRichTextShortcut("k")}><span aria-hidden="true">⌁</span></button>
           <span className="bp-toolbar-divider" aria-hidden="true"/>
-          <button type="button" className="bp-editor-icon-button" aria-label="Bullets" title="Bulleted list" onClick={()=>convertActiveToList("UNORDERED")}><span aria-hidden="true">•≡</span></button>
-          <button type="button" className="bp-editor-icon-button" aria-label="Numbers" title="Numbered list" onClick={()=>convertActiveToList("ORDERED")}><span aria-hidden="true">1≡</span></button>
-          <button type="button" className="bp-editor-icon-button" aria-label="Quote" title="Quote" onClick={convertActiveToQuote}><span aria-hidden="true">“</span></button>
-          <button type="button" className="bp-editor-icon-button" aria-label="Table" title="Table" onClick={()=>insertBlock("TABLE",blockDefaults("TABLE"))}><span aria-hidden="true">▦</span></button>
+          <button type="button" className="bp-editor-icon-button" aria-label="Bullets" data-tooltip="Bulleted list" onClick={()=>convertActiveToList("UNORDERED")}><span aria-hidden="true">•≡</span></button>
+          <button type="button" className="bp-editor-icon-button" aria-label="Numbers" data-tooltip="Numbered list" onClick={()=>convertActiveToList("ORDERED")}><span aria-hidden="true">1≡</span></button>
+          <button type="button" className="bp-editor-icon-button" aria-label="Quote" data-tooltip="Quote" onClick={convertActiveToQuote}><span aria-hidden="true">“</span></button>
+          <button type="button" className="bp-editor-icon-button" aria-label="Table" data-tooltip="Table" onClick={()=>insertBlock("TABLE",blockDefaults("TABLE"))}><span aria-hidden="true">▦</span></button>
           <BlockInsertMenu label="More" visualLabel="⋮" types={ADVANCED_BLOCK_TYPES} searchable={false} onInsert={(type,overrides)=>insertBlock(type,overrides)}/>
           <span className="bp-toolbar-divider" aria-hidden="true"/>
-          <button type="button" className="bp-editor-icon-button" aria-label="Undo" title="Undo (⌘/Ctrl+Z)" onClick={undoEditor} disabled={!historyState.canUndo}><span aria-hidden="true">↶</span></button>
-          <button type="button" className="bp-editor-icon-button" aria-label="Redo" title="Redo (⌘/Ctrl+Shift+Z)" onClick={redoEditor} disabled={!historyState.canRedo}><span aria-hidden="true">↷</span></button>
+          <button type="button" className="bp-editor-icon-button" aria-label="Undo" data-tooltip="Undo (Cmd/Ctrl+Z)" onClick={undoEditor} disabled={!historyState.canUndo}><span aria-hidden="true">↶</span></button>
+          <button type="button" className="bp-editor-icon-button" aria-label="Redo" data-tooltip="Redo (Cmd/Ctrl+Shift+Z)" onClick={redoEditor} disabled={!historyState.canRedo}><span aria-hidden="true">↷</span></button>
           <span className="bp-editor-toolbar-spacer"/>
-          <button type="button" className="bp-editor-icon-button" aria-label={settingsOpen?"Hide settings":"Settings"} title={settingsOpen?"Hide settings":"Show settings"} onClick={()=>setSettingsOpen(value=>!value)}><span aria-hidden="true">⚙</span></button>
+          <button type="button" className="bp-editor-icon-button" aria-label={settingsOpen?"Hide settings":"Settings"} data-tooltip={settingsOpen?"Hide settings":"Settings"} onClick={()=>setSettingsOpen(value=>!value)}><span aria-hidden="true">⚙</span></button>
         </div>
         <p className="bp-writer-hint">Start writing below. Press Enter for a new paragraph. Type <strong>/</strong> to choose a block.</p>
         <div className="bp-block-list">

@@ -76,9 +76,14 @@ afterEach(()=>{cleanup();vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllEnv
 
 test("editor exposes a clean WordPress-style command bar while preserving all 12 ArticleBody types",async()=>{
   renderEditor();
-  expect(await screen.findByRole("toolbar",{name:"Editor toolbar"})).toBeInTheDocument();
+  const toolbar=await screen.findByRole("toolbar",{name:"Editor toolbar"});
+  expect(toolbar).toBeInTheDocument();
   expect(ARTICLE_BLOCK_TYPES).toEqual(["PARAGRAPH","HEADING","LIST","QUOTE","SEPARATOR","MEDIA","TABLE","EMBED","CALLOUT","CTA","DISCLAIMER","SOURCES_REFERENCES"]);
-  for(const label of ["+ Add block","Add Media","Bold","Italic","Link","Bullets","Numbers","Quote","Table","More","Undo","Redo","Hide settings","Preview","Schedule"]){
+  const addBlock=within(toolbar).getByRole("button",{name:"Add block"});
+  expect(addBlock).toBeInTheDocument();
+  expect(addBlock).toHaveTextContent("+");
+  expect(addBlock).not.toHaveTextContent("Add block");
+  for(const label of ["Add Media","Bold","Italic","Link","Bullets","Numbers","Quote","Table","More","Undo","Redo","Hide settings","Preview","Schedule"]){
     expect(screen.getByRole("button",{name:label})).toBeInTheDocument();
   }
   expect(screen.getByRole("button",{name:/Publish/})).toBeInTheDocument();
@@ -98,6 +103,143 @@ test("unified toolbar formats the active writer and More exposes only advanced b
   expect(within(more).queryByRole("button",{name:/Paragraph/i})).not.toBeInTheDocument();
   await user.click(within(more).getByRole("button",{name:/Callout/i}));
   expect(await screen.findByLabelText("Callout label")).toBeInTheDocument();
+});
+
+test("Embed hides provider internals while preserving approved provider metadata",async()=>{
+  const post=makePost({body:{content_schema_version:"1",blocks:[
+    {
+      block_id:"embed-1",
+      type:"EMBED",
+      provider_key:"TEST_PROVIDER",
+      source_url_or_id:"https://embed.example.test/original",
+      caption:"Original caption",
+    },
+  ]}});
+  let savedBody:Record<string,unknown>|undefined;
+  const transport=editorTransport(post,(id,input)=>{
+    if(id==="API15-S-013"){
+      savedBody=(input?.body??{}) as Record<string,unknown>;
+      return ok({post:{...post,...savedBody,version:2,status:"DRAFT"}});
+    }
+    return undefined;
+  });
+
+  renderEditor({post,transport});
+  await screen.findByRole("toolbar",{name:"Editor toolbar"});
+  const user=userEvent.setup();
+  const embedBlock=screen.getByLabelText("Embed block 1");
+
+  expect(within(embedBlock).queryByLabelText("Provider key")).not.toBeInTheDocument();
+  expect(within(embedBlock).queryByText("Advanced provider settings")).not.toBeInTheDocument();
+  expect(within(embedBlock).getByText("This embed uses an approved source configured by the platform.")).toBeInTheDocument();
+
+  const source=within(embedBlock).getByLabelText("Embed URL or ID");
+  const caption=within(embedBlock).getByLabelText("Caption");
+
+  expect(source).toHaveValue("https://embed.example.test/original");
+  expect(caption).toHaveValue("Original caption");
+
+  await user.clear(source);
+  await user.type(source,"https://embed.example.test/updated");
+  await user.clear(caption);
+  await user.type(caption,"Updated caption");
+
+  await user.click(screen.getByRole("button",{name:"Save draft"}));
+  await waitFor(()=>expect(savedBody).toBeDefined());
+
+  const articleBody=(savedBody?.body??{}) as Record<string,unknown>;
+  const blocks=(articleBody.blocks??[]) as Array<Record<string,unknown>>;
+  const embed=blocks.find(block=>block.type==="EMBED");
+
+  expect(embed).toMatchObject({
+    provider_key:"TEST_PROVIDER",
+    source_url_or_id:"https://embed.example.test/updated",
+    caption:"Updated caption",
+  });
+});
+
+test("new Embed fails closed without exposing provider internals",async()=>{
+  renderEditor();
+  const toolbar=await screen.findByRole("toolbar",{name:"Editor toolbar"});
+  const user=userEvent.setup();
+
+  await user.click(within(toolbar).getByRole("button",{name:"More"}));
+  const more=screen.getByRole("dialog",{name:"More blocks"});
+  await user.click(within(more).getByRole("button",{name:/Embed/i}));
+
+  const embedBlock=screen.getByLabelText("Embed block 2");
+
+  expect(within(embedBlock).getByText(
+    "Embeds are unavailable until an approved source is configured by an administrator."
+  )).toBeInTheDocument();
+
+  expect(within(embedBlock).queryByLabelText("Provider key")).not.toBeInTheDocument();
+  expect(within(embedBlock).queryByText("Advanced provider settings")).not.toBeInTheDocument();
+  expect(within(embedBlock).queryByLabelText("Embed URL or ID")).not.toBeInTheDocument();
+  expect(within(embedBlock).queryByLabelText("Caption")).not.toBeInTheDocument();
+});
+
+test("Sources and references uses repeatable structured fields and preserves entry shape",async()=>{
+  const post=makePost({body:{content_schema_version:"1",blocks:[
+    {block_id:"source-1",type:"SOURCES_REFERENCES",entries:[
+      {title:"Original source",url:"https://example.com/one",publisher:"Publisher One",note:"Original note"},
+    ]},
+  ]}});
+  let savedBody:Record<string,unknown>|undefined;
+  const transport=editorTransport(post,(id,input)=>{
+    if(id==="API15-S-013"){
+      savedBody=(input?.body??{}) as Record<string,unknown>;
+      return ok({post:{...post,...savedBody,version:2,status:"DRAFT"}});
+    }
+    return undefined;
+  });
+
+  renderEditor({post,transport});
+  await screen.findByRole("toolbar",{name:"Editor toolbar"});
+  const user=userEvent.setup();
+  const sourceBlock=screen.getByLabelText("Sources and references block 1");
+
+  expect(within(sourceBlock).queryByLabelText("Sources / References")).not.toBeInTheDocument();
+
+  const source1=within(sourceBlock).getByText("Source 1").closest("fieldset");
+  expect(source1).not.toBeNull();
+  expect(within(source1!).getByLabelText(/^Title/)).toHaveValue("Original source");
+  expect(within(source1!).getByLabelText("URL")).toHaveValue("https://example.com/one");
+  expect(within(source1!).getByLabelText("Publisher")).toHaveValue("Publisher One");
+  expect(within(source1!).getByLabelText("Note")).toHaveValue("Original note");
+
+  await user.click(within(sourceBlock).getByRole("button",{name:"Add another source"}));
+
+  const titles=within(sourceBlock).getAllByLabelText(/^Title/);
+  const urls=within(sourceBlock).getAllByLabelText("URL");
+  const publishers=within(sourceBlock).getAllByLabelText("Publisher");
+  const notes=within(sourceBlock).getAllByLabelText("Note");
+
+  expect(titles).toHaveLength(2);
+
+  await user.type(titles[1]!,"Second source");
+  await user.type(urls[1]!,"https://example.com/two");
+  await user.type(publishers[1]!,"Publisher Two");
+  await user.type(notes[1]!,"Second note");
+
+  await user.click(within(source1!).getByRole("button",{name:"Remove source"}));
+
+  expect(within(sourceBlock).getAllByLabelText(/^Title/)).toHaveLength(1);
+  expect(within(sourceBlock).getByLabelText(/^Title/)).toHaveValue("Second source");
+
+  await user.click(screen.getByRole("button",{name:"Save draft"}));
+  await waitFor(()=>expect(savedBody).toBeDefined());
+
+  const articleBody=(savedBody?.body??{}) as Record<string,unknown>;
+  const blocks=(articleBody.blocks??[]) as Array<Record<string,unknown>>;
+  const sources=blocks.find(block=>block.type==="SOURCES_REFERENCES");
+
+  expect(sources?.entries).toEqual([{
+    title:"Second source",
+    url:"https://example.com/two",
+    publisher:"Publisher Two",
+    note:"Second note",
+  }]);
 });
 
 test("Add Media immediately opens the portal media picker above the editor",async()=>{
@@ -163,7 +305,7 @@ test("Enter splits paragraphs, Backspace merges them, and Undo/Redo restore actu
 });
 
 test("contextual transforms, slash blocks, inserter blocks and natural list exit work",async()=>{
-  renderEditor();await screen.findByRole("toolbar",{name:"Editor toolbar"});const user=userEvent.setup();
+  renderEditor();const toolbar=await screen.findByRole("toolbar",{name:"Editor toolbar"});const user=userEvent.setup();
   const paragraph=screen.getByRole("textbox",{name:"Paragraph"});paragraph.focus();
   const transform=await screen.findByRole("combobox",{name:"Block type"});
   await user.selectOptions(transform,"H2");const h2=await screen.findByRole("textbox",{name:"Heading H2"});await user.type(h2,"Heading converted");
@@ -176,15 +318,15 @@ test("contextual transforms, slash blocks, inserter blocks and natural list exit
   await user.click(within(screen.getByRole("listbox",{name:"Block suggestions"})).getByRole("option",{name:/Heading 3/}));
   expect(await screen.findByRole("textbox",{name:"Heading H3"})).toBeInTheDocument();
 
-  await user.click(screen.getByRole("button",{name:"+ Add block"}));let dialog=screen.getByRole("dialog",{name:"Add block"});
+  await user.click(within(toolbar).getByRole("button",{name:"Add block"}));let dialog=screen.getByRole("dialog",{name:"Add block"});
   await user.type(within(dialog).getByLabelText("Search blocks"),"Quote");await user.click(within(dialog).getByRole("button",{name:/Quote/}));
   const quote=await screen.findByRole("textbox",{name:"Quote"});await user.type(quote,"A simple quote");expect(quote).toHaveTextContent("A simple quote");
 
-  await user.click(screen.getByRole("button",{name:"+ Add block"}));dialog=screen.getByRole("dialog",{name:"Add block"});
+  await user.click(within(toolbar).getByRole("button",{name:"Add block"}));dialog=screen.getByRole("dialog",{name:"Add block"});
   await user.type(within(dialog).getByLabelText("Search blocks"),"Table");await user.click(within(dialog).getByRole("button",{name:/Table/}));
   const cell=await screen.findByRole("textbox",{name:"Row 1, column 1"});await user.type(cell,"Cell value");expect(cell).toHaveValue("Cell value");
 
-  await user.click(screen.getByRole("button",{name:"+ Add block"}));dialog=screen.getByRole("dialog",{name:"Add block"});
+  await user.click(within(toolbar).getByRole("button",{name:"Add block"}));dialog=screen.getByRole("dialog",{name:"Add block"});
   await user.type(within(dialog).getByLabelText("Search blocks"),"List");await user.click(within(dialog).getByRole("button",{name:/List/}));
   const listStyle=await screen.findByRole("group",{name:"List style"});await user.click(within(listStyle).getByRole("button",{name:"Bullets"}));
   const item1=await screen.findByRole("textbox",{name:"List item 1"});await user.type(item1,"First item");fireEvent.keyDown(item1,{key:"Enter"});
