@@ -1,0 +1,28 @@
+{
+  "name": "@bp/public-universal",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test src/site/tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@bp/api-client-public": "workspace:*",
+    "@bp/api-contract": "workspace:*",
+    "next": "^16.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "esbuild": "^0.28.2",
+    "jsdom": "^26.0.0",
+    "typescript": "^5.0.0"
+  }
+}

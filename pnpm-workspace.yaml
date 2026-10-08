@@ -1,4 +1,5 @@
 packages:
+  - 'apps/public-universal'
   - 'apps/sites/*'
   - 'apps/admin'
   - 'apps/api'

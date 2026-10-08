@@ -62,6 +62,43 @@ importers:
 
   apps/api: {}
 
+  apps/public-universal:
+    dependencies:
+      '@bp/api-client-public':
+        specifier: workspace:*
+        version: link:../../packages/ts/api-client-public
+      '@bp/api-contract':
+        specifier: workspace:*
+        version: link:../../packages/ts/api-contract
+      next:
+        specifier: ^16.3.0
+        version: 16.3.5(@types/node@24.13.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      react:
+        specifier: ^19.0.0
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.0(react@19.3.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.4
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.3.0(@types/react@19.3.0)
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
+      jsdom:
+        specifier: ^26.0.0
+        version: 26.1.0
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   apps/sites/site-01-whats-your-rashi:
     dependencies:
       '@bp/api-client-public':
