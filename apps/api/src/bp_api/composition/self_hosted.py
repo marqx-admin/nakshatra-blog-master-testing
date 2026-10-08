@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """Staging/production API composition for self-hosted infrastructure."""
+
+from __future__ import annotations
 
 import asyncio
 import base64
@@ -18,7 +18,6 @@ from bp_application import (
     AuthService,
     AuthorizationService,
     DerivedSiteOperationsService,
-    GlobalPlatformService,
     PasswordCodec,
     PasswordPolicy,
     PreviewAuthorityService,
@@ -27,6 +26,8 @@ from bp_application import (
     SetWeakPasswordChecker,
     TrustedContextService,
 )
+from bp_application.discovery import SeoCrawlerResourceService
+from bp_application.global_platform import GlobalPlatformService
 from bp_application.editorial import EditorialApplication, EditorialPreviewEligibility
 from bp_application.media import MediaService
 from bp_application.redirects import RedirectService
@@ -34,7 +35,7 @@ from bp_application.search_admin import SearchAdminService
 from bp_application.seo import SeoAdminService
 from bp_adapters.mail import SmtpMailAdapter
 from bp_adapters_media import VipsMediaProcessor
-from bp_adapters_object_storage import S3CompatibleObjectStorageAdapter
+from bp_adapters_object_storage import S3CompatibleObjectStorageAdapter, S3SitemapArtifactAdapter
 from bp_adapters.postgres import (
     PoolBudget,
     PostgresAdminSiteContextPayload,
@@ -62,6 +63,7 @@ from ..config.settings import validated_public_origin
 from ..http.site.routes import EditorialTransportServices
 from .derived_postgres import PostgresDerivedAdminRepository
 from .global_postgres import PostgresGlobalOperations
+from .presentation import PresentationPolicy
 from .services import Services
 from ..media_delivery import SelfHostedMediaDelivery
 
@@ -388,6 +390,8 @@ def build_self_hosted_services(settings: Settings, spec: dict[str, Any]) -> Serv
         downstream=downstream,
         preview_issuer=preview_authority,
         embed_provider_registry=_load_embed_provider_registry(runtime.embed_provider_registry_file),
+        presentation_validator=PresentationPolicy(spec).presentation_valid,
+        static_pages_validator=PresentationPolicy(spec).static_pages.is_valid,
     )
     editorial_transport = EditorialTransportServices(
         editorial_application,
@@ -398,8 +402,16 @@ def build_self_hosted_services(settings: Settings, spec: dict[str, Any]) -> Serv
         search=search,
         media_cdn_origin=runtime.media_cdn_origin,
         static_content={},
+        presentation_validator=PresentationPolicy(spec).presentation_valid,
+        temporary_domain_suffix=settings.temporary_domain_suffix,
     )
-    global_backend = PostgresGlobalOperations(platform_engine, site_transactions, contexts)
+    global_backend = PostgresGlobalOperations(
+        platform_engine,
+        site_transactions,
+        contexts,
+        temporary_domain_suffix=settings.temporary_domain_suffix,
+        presentation_policy=PresentationPolicy(spec),
+    )
 
     s3 = boto3.client(
         "s3",
@@ -450,6 +462,8 @@ def build_self_hosted_services(settings: Settings, spec: dict[str, Any]) -> Serv
             global_backend,
             auth,
             settings.invitation_setup_base_url,
+            downstream=downstream,
+            site_contexts=contexts,
         ),
         audit=audit,
         derived_operations=derived_ops,
@@ -461,5 +475,12 @@ def build_self_hosted_services(settings: Settings, spec: dict[str, Any]) -> Serv
         lifecycle=(lifecycle,),
         readiness=readiness,
         editorial_transport=editorial_transport,
-        media_delivery=SelfHostedMediaDelivery(sites=sites, transactions=site_transactions, storage=object_storage),
+        crawler_resources=SeoCrawlerResourceService(
+            derived_repo,
+            S3SitemapArtifactAdapter(s3_client=s3, bucket=runtime.media_bucket),
+            settings.temporary_domain_suffix,
+        ),
+        media_delivery=SelfHostedMediaDelivery(
+            sites=sites, transactions=site_transactions, storage=object_storage
+        ),
     )

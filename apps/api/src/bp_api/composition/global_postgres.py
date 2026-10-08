@@ -8,6 +8,9 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 
 from bp_domain.errors import Conflict, NotFound, ValidationFault
+from bp_application.context import normalize_host
+
+from .presentation import PresentationPolicy, presentation_references
 
 
 def _m(row: Any) -> dict[str, Any]:
@@ -36,10 +39,27 @@ class PostgresGlobalOperations:
     authority and exact permission/step-up requirements.
     """
 
-    def __init__(self, platform_engine: Engine, site_transactions: Any, contexts: Any) -> None:
+    def __init__(self, platform_engine: Engine, site_transactions: Any, contexts: Any, *,
+                 temporary_domain_suffix: str | None = None,
+                 presentation_policy: PresentationPolicy | None = None) -> None:
         self.engine = platform_engine
         self.site_transactions = site_transactions
         self.contexts = contexts
+        self.temporary_domain_suffix = temporary_domain_suffix
+        self.presentation_policy = presentation_policy
+
+    def _temporary_hostname(self, site_key: str) -> str:
+        suffix = self.temporary_domain_suffix
+        if not suffix:
+            raise ValidationFault("platform temporary-domain suffix is not configured")
+        try:
+            normalized_suffix = normalize_host(suffix)
+            hostname = normalize_host(f"{site_key.lower()}.{normalized_suffix}")
+        except NotFound as exc:
+            raise ValidationFault("platform temporary-domain suffix is invalid") from exc
+        if normalized_suffix.endswith((".invalid", ".localhost")) or "." not in normalized_suffix:
+            raise ValidationFault("platform temporary-domain suffix must be an explicit DNS suffix")
+        return hostname
 
     def _site(self, connection, site_key: str) -> dict[str, Any]:
         row = connection.execute(text(
@@ -212,11 +232,97 @@ class PostgresGlobalOperations:
                 return 200,{"items":vals,"page":{"page":page,"page_size":size,"has_more":len(rows)>size}},{}
             if operation_id == "API15-G-011":
                 b=body or {}
-                row=c.execute(text("INSERT INTO sites(site_key,display_name,status,timezone_id,locale_code,default_language_code) VALUES (:k,:n,'DISABLED',:tz,:loc,:lang) RETURNING site_id"),{"k":b["site_key"],"n":b["display_name"],"tz":b["timezone_id"],"loc":b.get("locale_code"),"lang":b.get("default_language")}).fetchone()
-                sid=_m(row)["site_id"]
-                self._write_audit(c,event_code="SITE.CREATED",principal=principal,headers=headers,target_type="SITE",target_id=sid,site_id=sid,details={"operation_id":operation_id,"changed_field_names":["site_key","display_name","timezone_id","locale_code","default_language_code"]})
-                return 201,{"site":self._site(c,b["site_key"])},{}
-            if operation_id in {"API15-G-012","API15-G-013","API15-G-014","API15-G-015","API15-G-016"}:
+                if self.presentation_policy is None:
+                    raise RuntimeError("canonical presentation policy is required for provisioning")
+                self.presentation_policy.require_presentation(b.get("presentation"))
+                self.presentation_policy.require_static_pages(b.get("static_pages"))
+                media_refs, navigation_refs = presentation_references(b["presentation"])
+                # The new tenant has no media or navigation items yet. References
+                # cannot be borrowed from any existing tenant during creation.
+                if media_refs or navigation_refs:
+                    raise ValidationFault(
+                        "new website presentation cannot reference existing tenant resources"
+                    )
+                hostname = self._temporary_hostname(b["site_key"])
+                sid = c.execute(
+                    text(
+                        "INSERT INTO sites(site_key,display_name,status,timezone_id,"
+                        "locale_code,default_language_code) "
+                        "VALUES (:key,:name,'DISABLED',:timezone,:locale,:language) RETURNING site_id"
+                    ),
+                    {
+                        "key": b["site_key"],
+                        "name": b["display_name"],
+                        "timezone": b["timezone_id"],
+                        "locale": b.get("locale_code"),
+                        "language": b.get("default_language"),
+                    },
+                ).scalar_one()
+                identity_ready=bool(c.execute(text(
+                    "SELECT EXISTS(SELECT 1 FROM sites WHERE site_id=:site_id AND site_key=:key "
+                    "AND status='DISABLED' AND timezone_id=:timezone "
+                    "AND locale_code IS NOT DISTINCT FROM :locale "
+                    "AND default_language_code IS NOT DISTINCT FROM :language)"
+                ), {
+                    "site_id":sid,"key":b["site_key"],"timezone":b["timezone_id"],
+                    "locale":b.get("locale_code"),"language":b.get("default_language"),
+                }).scalar_one())
+                if not identity_ready:
+                    raise RuntimeError("website identity persistence failed")
+                baseline = c.execute(
+                    text(
+                        "SELECT app.insert_website_site_baseline("
+                        ":site_id,:actor,CAST(:presentation AS jsonb),CAST(:pages AS jsonb))"
+                    ),
+                    {
+                        "site_id": sid,
+                        "actor": principal.admin_id,
+                        "presentation": json.dumps(b["presentation"], sort_keys=True),
+                        "pages": json.dumps(b["static_pages"], sort_keys=True),
+                    },
+                ).scalar_one()
+                if isinstance(baseline, str):
+                    baseline = json.loads(baseline)
+                c.execute(
+                    text(
+                        "INSERT INTO domains(site_id,hostname,is_canonical,is_active) "
+                        "VALUES (:site_id,:hostname,true,true)"
+                    ),
+                    {"site_id": sid, "hostname": hostname},
+                )
+                domain_ready=bool(c.execute(text(
+                    "SELECT EXISTS(SELECT 1 FROM domains WHERE site_id=:site_id "
+                    "AND hostname_normalized=:hostname AND is_active=true)"
+                ), {"site_id":sid,"hostname":hostname}).scalar_one())
+                self._write_audit(c,event_code="SITE.CREATED",principal=principal,headers=headers,
+                                  target_type="SITE",target_id=sid,site_id=sid,
+                                  details={"operation_id":operation_id,"temporary_hostname":hostname})
+                readiness={**baseline,"temporary_domain_ready":domain_ready}
+                missing=[name for name,ready in (
+                    ("SETTINGS",readiness["settings_ready"]),
+                    ("NAVIGATION",readiness["navigation_ready"]),
+                    ("HOMEPAGE",readiness["homepage_ready"]),
+                    ("TEMPORARY_DOMAIN",domain_ready),
+                ) if not ready]
+                readiness.update(overall_ready=not missing,missing_components=missing)
+                if not readiness["overall_ready"]:
+                    raise RuntimeError("mandatory website provisioning readiness failed")
+                return (
+                    201,
+                    {
+                        "site": self._site(c, b["site_key"]),
+                        "temporary_hostname": hostname,
+                        "readiness": readiness,
+                    },
+                    {},
+                )
+            if operation_id in {
+                "API15-G-012",
+                "API15-G-013",
+                "API15-G-014",
+                "API15-G-015",
+                "API15-G-016",
+            }:
                 key=path_params["site_key"]
                 if operation_id=="API15-G-012":
                     return 200,{"site":self._site(c,key)},{}
@@ -263,6 +369,9 @@ class PostgresGlobalOperations:
                     self._write_audit(c,event_code="SITE.DOMAIN_CHANGED",principal=principal,headers=headers,target_type="DOMAIN",target_id=did,site_id=sid,details={"operation_id":operation_id,"changed_field_names":["deleted"]})
                     c.execute(text("DELETE FROM domains WHERE domain_id=:d AND site_id=:s"),{"d":did,"s":sid}); return 204,None,{}
                 else:
+                    # Serialize canonical promotion for this tenant. Both updates
+                    # participate in the enclosing engine.begin() transaction.
+                    c.execute(text("SELECT 1 FROM sites WHERE site_id=:s FOR UPDATE"), {"s": sid})
                     c.execute(text("UPDATE domains SET is_canonical=false,updated_at=now() WHERE site_id=:s"),{"s":sid}); c.execute(text("UPDATE domains SET is_canonical=true,is_active=true,updated_at=now() WHERE domain_id=:d AND site_id=:s"),{"d":did,"s":sid})
                 self._write_audit(c,event_code="SITE.DOMAIN_CHANGED",principal=principal,headers=headers,target_type="DOMAIN",target_id=did,site_id=sid,details={"operation_id":operation_id,"changed_field_names":["is_active"] if operation_id=="API15-G-020" else ["is_canonical","is_active"]})
                 row=c.execute(text("SELECT * FROM domains WHERE domain_id=:d"),{"d":did}).fetchone(); return 200,{"domain":self._domain(row)},{}

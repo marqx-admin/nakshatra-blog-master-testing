@@ -10,10 +10,12 @@ from urllib.parse import quote_plus, urlsplit, urlunsplit
 from sqlalchemy import text
 
 from bp_application import (
-    AuthService, AuthorizationService, GlobalPlatformService, PasswordCodec,
+    AuthService, AuthorizationService, PasswordCodec,
     PasswordPolicy, PreviewAuthorityService, PublicPageService, SessionAuthority,
     SetWeakPasswordChecker, TrustedContextService,
 )
+from bp_application.discovery import SeoCrawlerResourceService
+from bp_application.global_platform import GlobalPlatformService
 from bp_application.editorial import EditorialApplication, EditorialPreviewEligibility
 from bp_application import DerivedSiteOperationsService
 from bp_application.media import MediaService
@@ -22,7 +24,7 @@ from bp_application.search_admin import SearchAdminService
 from bp_application.seo import SeoAdminService
 from bp_adapters.mail import SmtpMailAdapter
 from bp_adapters_media import VipsMediaProcessor
-from bp_adapters_object_storage import S3CompatibleObjectStorageAdapter
+from bp_adapters_object_storage import S3CompatibleObjectStorageAdapter, S3SitemapArtifactAdapter
 from bp_adapters.postgres import (
     PoolBudget, PostgresAdminSiteContextPayload, PostgresAuditAdapter,
     PostgresDerivedSource, PostgresIdentityAuthorization, PostgresPublicPageAdapter,
@@ -41,6 +43,7 @@ from ..config import Settings
 from ..config.settings import ProductionRuntimeSettings
 from ..http.site.routes import EditorialTransportServices
 from .global_postgres import PostgresGlobalOperations
+from .presentation import PresentationPolicy
 from .derived_postgres import PostgresDerivedAdminRepository
 from .services import Services
 
@@ -266,6 +269,8 @@ def build_production_services(settings: Settings, spec: dict[str, Any]) -> Servi
         downstream=downstream,
         preview_issuer=preview_authority,
         embed_provider_registry=_load_embed_provider_registry(runtime),
+        presentation_validator=PresentationPolicy(spec).presentation_valid,
+        static_pages_validator=PresentationPolicy(spec).static_pages.is_valid,
     )
     editorial_transport = EditorialTransportServices(
         editorial_application,
@@ -276,8 +281,16 @@ def build_production_services(settings: Settings, spec: dict[str, Any]) -> Servi
         search=search,
         media_cdn_origin=runtime.media_cdn_origin,
         static_content={},
+        presentation_validator=PresentationPolicy(spec).presentation_valid,
+        temporary_domain_suffix=settings.temporary_domain_suffix,
     )
-    global_backend = PostgresGlobalOperations(platform_engine, site_transactions, contexts)
+    global_backend = PostgresGlobalOperations(
+        platform_engine,
+        site_transactions,
+        contexts,
+        temporary_domain_suffix=settings.temporary_domain_suffix,
+        presentation_policy=PresentationPolicy(spec),
+    )
 
     # Compose the already-accepted CHAT05 application services with production
     # providers. No discovery/media semantics are redefined here.
@@ -323,6 +336,8 @@ def build_production_services(settings: Settings, spec: dict[str, Any]) -> Servi
             global_backend,
             auth,
             settings.invitation_setup_base_url,
+            downstream=downstream,
+            site_contexts=contexts,
         ),
         audit=audit,
         derived_operations=derived_ops,
@@ -334,4 +349,9 @@ def build_production_services(settings: Settings, spec: dict[str, Any]) -> Servi
         lifecycle=(lifecycle,),
         readiness=readiness,
         editorial_transport=editorial_transport,
+        crawler_resources=SeoCrawlerResourceService(
+            derived_repo,
+            S3SitemapArtifactAdapter(s3_client=s3, bucket=runtime.media_bucket),
+            settings.temporary_domain_suffix,
+        ),
     )

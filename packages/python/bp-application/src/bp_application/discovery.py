@@ -11,18 +11,24 @@ from bp_ports import CrawlerResourcePort, SeoRepositoryPort, SitemapArtifactPort
 class SeoCrawlerResourceService(CrawlerResourcePort):
     """Backend-side DOC-16 crawler resource integration for public frontends.
 
-    It is deliberately not an HTTP route in the shared API: /robots.txt and sitemap
-    paths are site-local crawler resources served at each public canonical origin.
+    The shared API serves these resources only after Host resolves a trusted site.
     """
 
     seo_repository: SeoRepositoryPort
     sitemaps: SitemapArtifactPort
+    temporary_domain_suffix: str | None = None
+
+    def _temporary(self, context: SiteContext) -> bool:
+        suffix = (self.temporary_domain_suffix or "").lower().rstrip(".")
+        return bool(suffix and context.request_host == f"{context.site_key.lower()}.{suffix}")
 
     async def robots(self, context: SiteContext) -> tuple[int, bytes, str]:
         settings = await self.seo_repository.get_site_seo(context)
         body = robots_txt(
             site_status=context.site_status,
-            index_policy=str(settings.get("index_policy") or "INHERIT"),
+            index_policy="NOINDEX"
+            if self._temporary(context)
+            else str(settings.get("index_policy") or "INHERIT"),
             canonical_domain=context.canonical_domain,
         )
         if body is None:
@@ -32,7 +38,7 @@ class SeoCrawlerResourceService(CrawlerResourcePort):
     async def sitemap(self, context: SiteContext, path: str) -> tuple[int, bytes, str]:
         if path != "/sitemap.xml" and not (path.startswith("/sitemaps/") and path.endswith(".xml")):
             return 404, b"", "application/xml; charset=utf-8"
-        if context.site_status != "ACTIVE":
+        if context.site_status != "ACTIVE" or self._temporary(context):
             return 404, b"", "application/xml; charset=utf-8"
         payload = await self.sitemaps.get_active_resource(context.site_id, path)
         if payload is None:

@@ -619,9 +619,28 @@ class PostgresEditorialRepository:
                 text("SELECT slug,became_public_at,ceased_public_at FROM post_url_history WHERE site_id=:site_id AND post_id=:post_id ORDER BY became_public_at ASC,url_history_id ASC"),
                 {"site_id": context.site_id, "post_id": post_id},
             ).fetchall()
-            return [_clean({"slug": _mapping(row)["slug"], "became_current_at": _iso(_mapping(row)["became_public_at"]), "ceased_current_at": _iso(_mapping(row)["ceased_public_at"])}) for row in rows]
+            return [
+                _clean(
+                    {
+                        "slug": _mapping(row)["slug"],
+                        "became_current_at": _iso(_mapping(row)["became_public_at"]),
+                        "ceased_current_at": _iso(_mapping(row)["ceased_public_at"]),
+                    }
+                )
+                for row in rows
+            ]
 
-    async def relationships_exist(self, context: SiteContext, *, author_id: str | None = None, category_ids: list[str] | None = None, tag_ids: list[str] | None = None, media_ids: list[str] | None = None, related_post_ids: list[str] | None = None) -> bool:
+    async def relationships_exist(
+        self,
+        context: SiteContext,
+        *,
+        author_id: str | None = None,
+        category_ids: list[str] | None = None,
+        tag_ids: list[str] | None = None,
+        media_ids: list[str] | None = None,
+        related_post_ids: list[str] | None = None,
+        header_navigation_item_ids: list[str] | None = None,
+    ) -> bool:
         async with self._site_transactions.transaction(context) as connection:
             if author_id is not None and not self._one_exists(connection, "author_site_profiles", "author_profile_id", context.site_id, author_id, "status='ACTIVE'"):
                 return False
@@ -633,6 +652,14 @@ class PostgresEditorialRepository:
                 return False
             if not self._all_exist(connection, "posts", "post_id", context.site_id, related_post_ids or [], None):
                 return False
+            for item_id in header_navigation_item_ids or []:
+                if connection.execute(text(
+                    "SELECT 1 FROM navigation_items i JOIN navigation_menus m "
+                    "ON m.site_id=i.site_id AND m.menu_id=i.menu_id "
+                    "WHERE i.site_id=:site_id AND i.item_id=:item_id AND i.is_enabled=true "
+                    "AND m.menu_key='HEADER' AND i.destination_kind<>'EXTERNAL'"
+                ), {"site_id": context.site_id, "item_id": item_id}).fetchone() is None:
+                    return False
             return True
 
     @staticmethod
@@ -1046,8 +1073,18 @@ class PostgresEditorialRepository:
             return self._site_settings_wire(connection, context)
 
     def _site_settings_wire(self, connection: Any, context: SiteContext) -> list[dict[str, Any]]:
-        site = connection.execute(text("SELECT display_name,locale_code,default_language_code,timezone_id FROM sites WHERE site_id=:site_id"), {"site_id": context.site_id}).fetchone()
-        settings = connection.execute(text("SELECT logo_media_id,favicon_media_id,default_social_image_media_id,copyright_text,contact_info,social_profiles,seo_defaults,analytics_verification FROM site_settings WHERE site_id=:site_id"), {"site_id": context.site_id}).fetchone()
+        site = connection.execute(
+            text(
+                "SELECT display_name,locale_code,default_language_code,timezone_id FROM sites WHERE site_id=:site_id"
+            ),
+            {"site_id": context.site_id},
+        ).fetchone()
+        settings = connection.execute(
+            text(
+                "SELECT logo_media_id,favicon_media_id,default_social_image_media_id,copyright_text,contact_info,social_profiles,seo_defaults,analytics_verification,presentation_config,static_pages FROM site_settings WHERE site_id=:site_id"
+            ),
+            {"site_id": context.site_id},
+        ).fetchone()
         if site is None or settings is None:
             raise NotFound("resource not found")
         s = _mapping(site)
@@ -1066,25 +1103,88 @@ class PostgresEditorialRepository:
             ("seo_defaults", x.get("seo_defaults") or {}),
             ("analytics_verification", x.get("analytics_verification") or {}),
         ]
+        for key in ("presentation_config", "static_pages"):
+            if x.get(key) is not None:
+                ordered.append((key, x[key]))
         return [{"key": key, "value": value if value is not None else ""} for key, value in ordered]
 
-    async def update_site_settings(self, context: SiteContext, *, actor_admin_id: str, values: dict[str, Any]) -> list[dict[str, Any]]:
-        site_fields = {key: values[key] for key in ("display_name", "locale_code", "default_language_code", "timezone_id") if key in values}
-        local_fields = {key: values[key] for key in ("logo_media_id", "favicon_media_id", "default_social_image_media_id", "copyright_text", "contact_info", "social_profiles", "seo_defaults", "analytics_verification") if key in values}
+    async def update_site_settings(
+        self, context: SiteContext, *, actor_admin_id: str, values: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        site_fields = {
+            key: values[key]
+            for key in ("display_name", "locale_code", "default_language_code", "timezone_id")
+            if key in values
+        }
+        local_fields = {
+            key: values[key]
+            for key in (
+                "logo_media_id",
+                "favicon_media_id",
+                "default_social_image_media_id",
+                "copyright_text",
+                "contact_info",
+                "social_profiles",
+                "seo_defaults",
+                "analytics_verification",
+                "presentation_config",
+                "static_pages",
+            )
+            if key in values
+        }
         for key in ("logo_media_id", "favicon_media_id", "default_social_image_media_id"):
             if local_fields.get(key) == "":
                 local_fields[key] = None
         if local_fields.get("copyright_text") == "":
             local_fields["copyright_text"] = None
         async with self._site_transactions.transaction(context) as connection:
+            presentation = local_fields.get("presentation_config")
+            if isinstance(presentation, dict):
+                branding = presentation.get("branding") or {}
+                hero = presentation.get("hero") or {}
+                for media_id in (branding.get("logo_media_id"), hero.get("media_id")):
+                    if media_id and not self._one_exists(
+                        connection,
+                        "media",
+                        "media_id",
+                        context.site_id,
+                        str(media_id),
+                        "status='ACTIVE'",
+                    ):
+                        raise NotFound("resource not found")
+                cta = hero.get("cta") or {}
+                if cta.get("enabled") is True:
+                    item = connection.execute(
+                        text(
+                            "SELECT 1 FROM navigation_items i JOIN navigation_menus m "
+                            "ON m.site_id=i.site_id AND m.menu_id=i.menu_id "
+                            "WHERE i.site_id=:site_id AND i.item_id=:item_id AND i.is_enabled=true "
+                            "AND m.menu_key='HEADER' AND i.destination_kind<>'EXTERNAL'"
+                        ),
+                        {"site_id": context.site_id, "item_id": cta["navigation_item_id"]},
+                    ).fetchone()
+                    if item is None:
+                        raise NotFound("resource not found")
             if site_fields:
                 connection.execute(
                     text("SELECT app.update_current_site_identity(CAST(:payload AS jsonb))"),
                     {"payload": _json(site_fields)},
                 )
             if local_fields:
-                json_keys = {"contact_info", "social_profiles", "seo_defaults", "analytics_verification"}
-                assignments = [f"{key}=CAST(:{key} AS jsonb)" if key in json_keys else f"{key}=:{key}" for key in local_fields]
+                json_keys = {
+                    "contact_info",
+                    "social_profiles",
+                    "seo_defaults",
+                    "analytics_verification",
+                    "presentation_config",
+                    "static_pages",
+                }
+                assignments = [
+                    f"{key}=CAST(:{key} AS jsonb)" if key in json_keys else f"{key}=:{key}"
+                    for key in local_fields
+                ]
+                if "presentation_config" in local_fields:
+                    assignments.append("presentation_schema_version=1")
                 params = {"site_id": context.site_id, "actor": actor_admin_id}
                 for key, value in local_fields.items():
                     params[key] = _json(value) if key in json_keys else value

@@ -128,7 +128,7 @@ class TrustedContextService:
         if principal.state is not AccountState.ACTIVE:
             raise Unauthenticated("authentication required")
         site = await self.sites.get_site_by_key(site_key)
-        # Unknown, inactive, and unassigned site keys share a safe non-disclosing
+        # Unknown, ineligible, and unassigned site keys share a safe non-disclosing
         # result for ordinary site-scoped Admin execution.
         if site is None or not site.ordinary_admin_eligible:
             raise NotFound("resource not found")
@@ -142,7 +142,7 @@ class TrustedContextService:
         )
 
     async def selectable_sites(self, *, principal: AdminPrincipal) -> list[SiteRecord]:
-        """Return only ACTIVE Sites the authenticated Admin may legitimately attempt to enter.
+        """Return ACTIVE or DISABLED Sites the Admin may legitimately enter.
 
         This is a projection for the existing Active Website selector, never an
         authorization grant. Every subsequent SITE operation still resolves and

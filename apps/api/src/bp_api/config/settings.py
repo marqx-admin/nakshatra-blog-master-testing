@@ -15,6 +15,7 @@ class Settings:
     enforce_https: bool
     hsts_include_subdomains: bool = False
     invitation_setup_base_url: str = "https://admin.example.invalid/setup"
+    temporary_domain_suffix: str | None = None
 
     def __post_init__(self) -> None:
         if not self.admin_origins:
@@ -56,6 +57,7 @@ class Settings:
                 "BP_INVITE_SETUP_BASE_URL",
                 "https://admin.example.invalid/setup",
             ),
+            temporary_domain_suffix=os.getenv("BP_TEMP_DOMAIN_SUFFIX"),
         )
 
 

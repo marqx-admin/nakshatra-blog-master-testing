@@ -496,7 +496,9 @@ def validate_site_settings_entries(entries: Any) -> dict[str, Any]:
         "logo_media_id", "favicon_media_id", "default_social_image_media_id",
         "copyright_text", "contact_info", "social_profiles", "seo_defaults",
         "analytics_verification",
+        "presentation_config", "static_pages",
     }
+    complex_keys = {"presentation_config", "static_pages"}
     object_keys = {"contact_info", "social_profiles", "seo_defaults", "analytics_verification"}
     result: dict[str, Any] = {}
     for index, entry in enumerate(entries):
@@ -508,6 +510,13 @@ def validate_site_settings_entries(entries: Any) -> dict[str, Any]:
         if key in result:
             raise validation_error(f"settings.{index}.key", "Setting keys must be unique.")
         value = entry["value"]
+        if key in complex_keys:
+            if not isinstance(value, dict):
+                raise validation_error(
+                    f"settings.{index}.value", "This setting requires a typed JSON object."
+                )
+            result[key] = value
+            continue
         if key in object_keys:
             if not isinstance(value, dict):
                 raise validation_error(f"settings.{index}.value", "This Site Setting requires a JSON object value.")

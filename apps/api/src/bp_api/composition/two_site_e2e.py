@@ -1,11 +1,11 @@
-from __future__ import annotations
-
 """Concrete two-site E2E API composition.
 
 This composition is intentionally opt-in (``BP_RUNTIME_COMPOSITION=two-site-e2e``)
 and exists to let CHAT12 exercise the real accepted adapters with real dependency
 services.  It does not change HTTP contracts or introduce a tenant bypass.
 """
+
+from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
@@ -28,13 +28,18 @@ from bp_application import (
     SetWeakPasswordChecker,
     TrustedContextService,
 )
+from bp_application.discovery import SeoCrawlerResourceService
+from bp_application.global_platform import GlobalPlatformService
 from bp_application.editorial import EditorialApplication, EditorialPreviewEligibility
 from bp_application.media import MediaService
 from bp_application.redirects import RedirectService
 from bp_application.search_admin import SearchAdminService
 from bp_application.seo import SeoAdminService
 from bp_adapters_media import VipsMediaProcessor
-from bp_adapters_object_storage import S3CompatibleObjectStorageAdapter
+from bp_adapters_object_storage import (
+    S3CompatibleObjectStorageAdapter,
+    FilesystemSitemapArtifactAdapter,
+)
 from bp_adapters.mail import SmtpMailAdapter
 from bp_adapters.postgres import (
     PoolBudget,
@@ -61,6 +66,7 @@ from bp_domain.editorial import validate_embed_provider_registry
 from ..config import Settings
 from ..http.site.routes import EditorialTransportServices
 from .global_postgres import PostgresGlobalOperations
+from .presentation import PresentationPolicy
 from .derived_postgres import PostgresDerivedAdminRepository
 from .services import Services
 from ..media_delivery import SelfHostedMediaDelivery
@@ -333,6 +339,8 @@ def build_two_site_e2e_services(settings: Settings, spec: dict[str, Any]) -> Ser
         downstream=downstream,
         preview_issuer=preview_authority,
         embed_provider_registry=_load_embed_provider_registry(),
+        presentation_validator=PresentationPolicy(spec).presentation_valid,
+        static_pages_validator=PresentationPolicy(spec).static_pages.is_valid,
     )
     editorial_transport = EditorialTransportServices(
         editorial_application,
@@ -344,6 +352,8 @@ def build_two_site_e2e_services(settings: Settings, spec: dict[str, Any]) -> Ser
         search=search,
         media_cdn_origin=_require("BP_MEDIA_CDN_ORIGIN"),
         static_content=_load_static_content(),
+        presentation_validator=PresentationPolicy(spec).presentation_valid,
+        temporary_domain_suffix=settings.temporary_domain_suffix,
     )
 
     s3 = boto3.client(
@@ -390,7 +400,19 @@ def build_two_site_e2e_services(settings: Settings, spec: dict[str, Any]) -> Ser
         sessions=sessions,
         auth=auth,
         public_pages=PublicPageService(public_backend),
-        global_operations=PostgresGlobalOperations(platform_engine, site_transactions, contexts),
+        global_operations=GlobalPlatformService(
+            PostgresGlobalOperations(
+                platform_engine,
+                site_transactions,
+                contexts,
+                temporary_domain_suffix=settings.temporary_domain_suffix,
+                presentation_policy=PresentationPolicy(spec),
+            ),
+            auth,
+            settings.invitation_setup_base_url,
+            downstream=downstream,
+            site_contexts=contexts,
+        ),
         audit=audit,
         derived_operations=derived_ops,
         preview_authority=preview_authority,
@@ -401,5 +423,14 @@ def build_two_site_e2e_services(settings: Settings, spec: dict[str, Any]) -> Ser
         lifecycle=(lifecycle,),
         readiness=readiness,
         editorial_transport=editorial_transport,
-        media_delivery=SelfHostedMediaDelivery(sites=sites, transactions=site_transactions, storage=object_storage),
+        crawler_resources=SeoCrawlerResourceService(
+            derived_repo,
+            FilesystemSitemapArtifactAdapter(
+                os.getenv("BP_SITEMAP_ARTIFACT_ROOT", "/tmp/bp-sitemaps")
+            ),
+            settings.temporary_domain_suffix,
+        ),
+        media_delivery=SelfHostedMediaDelivery(
+            sites=sites, transactions=site_transactions, storage=object_storage
+        ),
     )

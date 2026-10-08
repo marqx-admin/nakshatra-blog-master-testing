@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any
 
-from bp_domain.context import ContextKind, GlobalContext
+from bp_domain.context import ContextKind, ContextSource, GlobalContext, SiteContext
+from bp_domain.effects import SiteEffectEnvelope
 from bp_domain.security import AccountState, AdminPrincipal, Unauthenticated, ValidationFault
-from bp_ports import GlobalOperationsPort
+from bp_ports import DownstreamEffectsPort, GlobalOperationsPort
 
+from .context import TrustedContextService
 from .security import AuthService
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -22,6 +27,8 @@ class GlobalPlatformService:
     backend: GlobalOperationsPort
     auth: AuthService
     invitation_setup_base_url: str
+    downstream: DownstreamEffectsPort | None = None
+    site_contexts: TrustedContextService | None = None
 
     async def execute(
         self,
@@ -100,6 +107,52 @@ class GlobalPlatformService:
                     target_admin_id,
                     reason="ACCOUNT_DISABLED",
                     actor_admin_id=principal.admin_id,
+                )
+
+        effect_type = {
+            "API15-G-014": "SITE_ENABLE",
+            "API15-G-015": "SITE_DISABLE",
+            "API15-G-016": "SITE_ARCHIVE",
+            "API15-G-019": "DOMAIN_CHANGE",
+            "API15-G-020": "DOMAIN_CHANGE",
+            "API15-G-021": "DOMAIN_CHANGE",
+            "API15-G-022": "DOMAIN_CHANGE",
+        }.get(operation_id)
+        site_key = path_params.get("site_key")
+        if (
+            effect_type
+            and 200 <= status < 300
+            and isinstance(site_key, str)
+            and self.downstream
+            and self.site_contexts
+        ):
+            try:
+                record = await self.site_contexts.sites.get_site_by_key(site_key)
+                if record is None:
+                    raise RuntimeError("committed site missing during effect enqueue")
+                site = SiteContext(
+                    kind=ContextKind.ADMIN_SITE,
+                    site_id=record.site_id,
+                    site_key=record.site_key,
+                    site_status=record.lifecycle,
+                    canonical_domain=record.canonical_domain,
+                    context_source=ContextSource.ADMIN_SELECTION,
+                    request_id=headers.get("x-request-id") or context.request_id,
+                )
+                await self.downstream.emit(
+                    SiteEffectEnvelope(
+                        effect_type=effect_type,
+                        context=site,
+                        entity_type="SITE",
+                        entity_id=site.site_id,
+                        correlation_id=site.request_id,
+                        payload={},
+                    )
+                )
+            except Exception:
+                logger.exception(
+                    "post-commit site effect enqueue failed",
+                    extra={"operation_id": operation_id, "site_key": site_key},
                 )
 
         return status, payload, response_headers

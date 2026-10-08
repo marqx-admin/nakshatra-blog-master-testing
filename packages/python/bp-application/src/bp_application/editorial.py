@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from collections.abc import Callable
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -73,6 +74,8 @@ class EditorialApplication:
     downstream: DownstreamEffectsPort | None = None
     preview_issuer: PreviewHandoffIssuerPort | None = None
     embed_provider_registry: dict[str, Any] = field(default_factory=dict)
+    presentation_validator: Callable[[Any], bool] | None = None
+    static_pages_validator: Callable[[Any], bool] | None = None
 
     def _require(self, principal: AdminPrincipal, context: SiteContext, *permissions: str) -> None:
         self.authorization.require_site(principal, context.site_key, set(permissions))
@@ -988,6 +991,32 @@ class EditorialApplication:
             return 200, {"settings": await self.repository.get_site_settings(context)}, {}
         self._require(principal, context, "site_settings.view", "site_settings.edit")
         values = validate_site_settings_entries(body["settings"])
+        if "presentation_config" in values:
+            config = values["presentation_config"]
+            if self.presentation_validator is None or not self.presentation_validator(config):
+                raise validation_error(
+                    "settings.presentation_config", "PresentationConfig is invalid."
+                )
+            media_ids = [
+                str(part[field])
+                for part, field in (
+                    (config.get("branding") or {}, "logo_media_id"),
+                    (config.get("hero") or {}, "media_id"),
+                )
+                if field in part
+            ]
+            cta = (config.get("hero") or {}).get("cta") or {}
+            navigation_ids = [str(cta["navigation_item_id"])] if cta.get("enabled") is True else []
+            if media_ids or navigation_ids:
+                if not await self.repository.relationships_exist(
+                    context,media_ids=media_ids,header_navigation_item_ids=navigation_ids,
+                ):
+                    raise NotFound("resource not found")
+        if "static_pages" in values:
+            if self.static_pages_validator is None or not self.static_pages_validator(
+                values["static_pages"]
+            ):
+                raise validation_error("settings.static_pages", "StaticPages is invalid.")
         for key in {"logo_media_id", "favicon_media_id", "default_social_image_media_id"}:
             if values.get(key):
                 self._require(principal, context, "media.view")

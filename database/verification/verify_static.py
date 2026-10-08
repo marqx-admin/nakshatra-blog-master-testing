@@ -40,6 +40,7 @@ EXPECTED_MIGRATIONS = [
     "0018_DB-MIG-018__site-identity-settings-write.sql",
     "0019_DB-MIG-019__launch-access-boundaries.sql",
     "0020_DB-MIG-020__universal-presentation-foundation.sql",
+    "0021_DB-MIG-021__atomic-website-provisioning.sql",
 ]
 SITE_TABLES = {t for t, v in CONTRACT["tables"].items() if v["scope"] == "SITE"}
 GLOBAL_TABLES = set(CONTRACT["tables"]) - SITE_TABLES
@@ -222,6 +223,52 @@ check("post_runtime_delete_allowed", re.search(r"grant select, insert, update, d
 check("revisions_runtime_immutable", "grant select, insert on post_revisions to db_site_runtime" in grants)
 check("audit_runtime_append_only", "grant select, insert on audit_events to db_platform_runtime" in grants)
 check("homepage_registry_no_insert_delete", "grant select, update on homepage_sections to db_site_runtime" in grants)
+provisioning_sql = normalize_sql((MIG / EXPECTED_MIGRATIONS[20]).read_text())
+check(
+    "provisioning_helper_fixed_search_path",
+    "security definer set search_path = pg_catalog, pg_temp" in provisioning_sql,
+)
+helper_signature = "app.insert_website_site_baseline(uuid,uuid,jsonb,jsonb)"
+check(
+    "provisioning_helper_execute_boundary",
+    f"revoke all on function {helper_signature} from public" in provisioning_sql
+    and f"grant execute on function {helper_signature} to db_platform_runtime" in provisioning_sql
+    and "to db_site_runtime" not in provisioning_sql,
+)
+check(
+    "provisioning_helper_no_dynamic_sql",
+    re.search(r"\bexecute\s+(?!on function)", provisioning_sql) is None,
+)
+baseline_tables = ("site_settings", "navigation_menus", "homepage_sections")
+check(
+    "provisioning_helper_insert_only",
+    all(f"insert into public.{table}" in provisioning_sql for table in baseline_tables)
+    and "update public." not in provisioning_sql
+    and "delete from public." not in provisioning_sql,
+)
+check(
+    "provisioning_helper_no_existing_baseline_mutation",
+    all(
+        f"exists (select 1 from public.{table} where site_id=target_site_id)"
+        in provisioning_sql
+        for table in baseline_tables
+    ),
+)
+home_tokens = (
+    "'featured-posts'", "'featured-categories'", "'post_selection'",
+    "'category_selection'", "'universal-home-v1'", "'featured_posts'",
+    "'featured_categories'",
+)
+check(
+    "universal_home_v1_exact_rows",
+    all(token in provisioning_sql for token in home_tokens)
+    and "'toggle_only'" not in provisioning_sql,
+)
+check(
+    "universal_home_v1_site_scoped_readiness",
+    "from public.homepage_sections where site_id=target_site_id" in provisioning_sql
+    and "count(*)=2 and count(*) filter" in provisioning_sql,
+)
 check("platform_setting_registry_no_insert_delete", "grant select, update on platform_settings to db_platform_runtime" in grants)
 for table in sorted(SITE_TABLES):
     check(f"platform_no_site_grant_{table}", not re.search(rf"grant [^;]*\b{table}\b[^;]* to db_platform_runtime", grants))

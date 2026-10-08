@@ -45,8 +45,13 @@ class SiteContext:
             ContextKind.PREVIEW_SITE,
         }:
             raise ValueError("SiteContext cannot represent GLOBAL scope")
-        if not self.site_id or not self.site_key or not self.canonical_domain:
+        if not self.site_id or not self.site_key:
             raise ValueError("site-owned context requires one resolved site")
+        if (
+            self.kind in {ContextKind.PUBLIC_SITE, ContextKind.PREVIEW_SITE}
+            and not self.canonical_domain
+        ):
+            raise ValueError("public and preview contexts require a canonical domain")
         if not self.request_id:
             raise ValueError("site-owned context requires request correlation")
         if self.kind in {ContextKind.PUBLIC_SITE, ContextKind.PREVIEW_SITE} and not self.request_host:
@@ -106,4 +111,4 @@ class SiteRecord:
 
     @property
     def ordinary_admin_eligible(self) -> bool:
-        return self.lifecycle == "ACTIVE"
+        return self.lifecycle in {"ACTIVE", "DISABLED"}

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from bp_application import AuthService, AuthorizationService, SessionAuthority, TrustedContextService
+from bp_application.global_platform import GlobalPlatformService
 from bp_ports import (
     AdminSiteContextPayloadPort,
     SiteDashboardPayloadPort,
@@ -11,6 +12,7 @@ from bp_ports import (
     GlobalOperationsPort,
     PreviewAuthorityPort,
     PublicPagePort,
+    CrawlerResourcePort,
     LifecyclePort,
     ReadinessPort,
     SecurityAbusePort,
@@ -25,7 +27,7 @@ class Services:
     sessions: SessionAuthority
     auth: AuthService
     public_pages: PublicPagePort
-    global_operations: GlobalOperationsPort
+    global_operations: GlobalOperationsPort | GlobalPlatformService
     audit: AuditPort
     # CHAT05 SITE-derived HTTP service. It remains optional until concrete
     # persistence/provider composition is supplied by the integrated runtime.
@@ -44,3 +46,4 @@ class Services:
     # Self-hosted private-origin media gateway. Managed-CDN compositions leave
     # this unset because their delivery tier owns /m/*.
     media_delivery: object | None = None
+    crawler_resources: CrawlerResourcePort | None = None

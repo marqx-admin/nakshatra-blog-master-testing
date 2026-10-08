@@ -7,7 +7,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import UUID
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 
 from bp_domain.errors import NotFound, Unauthenticated, ValidationFault
 from bp_domain.context import RequestContext
@@ -245,6 +245,43 @@ def _neutral_not_found() -> dict:
             "structured_data": [],
         },
     }
+
+
+async def _crawler_response(request: Request, path: str) -> Response:
+    crawler = request.app.state.services.crawler_resources
+    if crawler is None:
+        return Response(status_code=404)
+    try:
+        context = await request.app.state.services.contexts.public(
+            _effective_public_host(request), request_id=request.state.request_id,
+        )
+    except NotFound:
+        return Response(status_code=404, headers={"Cache-Control": "no-store"})
+    request.state.request_context = RequestContext(
+        request.state.request_id, "PUBLIC_CRAWLER", site=context
+    )
+    if path == "/robots.txt":
+        status, body, content_type = await crawler.robots(context)
+    else:
+        status, body, content_type = await crawler.sitemap(context, path)
+    return Response(content=body, status_code=status, media_type=content_type)
+
+
+@router.get("/robots.txt", include_in_schema=False)
+async def robots_txt_resource(request: Request) -> Response:
+    return await _crawler_response(request, "/robots.txt")
+
+
+@router.get("/sitemap.xml", include_in_schema=False)
+async def sitemap_index_resource(request: Request) -> Response:
+    return await _crawler_response(request, "/sitemap.xml")
+
+
+@router.get("/sitemaps/{resource_name}", include_in_schema=False)
+async def sitemap_child_resource(request: Request, resource_name: str) -> Response:
+    if not re.fullmatch(r"[a-z0-9-]+\.xml", resource_name):
+        return Response(status_code=404)
+    return await _crawler_response(request, f"/sitemaps/{resource_name}")
 
 
 @router.get("/api/v1/public/page", operation_id="API15-PUB-001", status_code=200)

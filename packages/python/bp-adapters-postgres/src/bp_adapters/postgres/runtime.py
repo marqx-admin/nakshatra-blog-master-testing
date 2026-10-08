@@ -13,7 +13,7 @@ from datetime import UTC, datetime
 import hashlib
 import json
 import re
-from typing import Any, AsyncIterator, Mapping
+from typing import Any, AsyncIterator, Callable, Mapping
 from urllib.parse import urlsplit
 
 from sqlalchemy import text
@@ -44,6 +44,51 @@ STATIC_ROUTES = {
     "DISCLAIMER": ("PUB-STATIC-DISCLAIMER-01", "/disclaimer", "Disclaimer"),
 }
 STATIC_BY_PATH = {route: (key, page_id, title) for key, (page_id, route, title) in STATIC_ROUTES.items()}
+SAFE_PRESENTATION = {"schema_version": 1, "style_id": "STYLE_01"}
+
+
+def _renderable_static_content(key: str, raw: Any) -> dict[str, Any] | None:
+    """Project stored configuration only when it has public renderable content."""
+    if not isinstance(raw, dict) or raw.get("enabled") is not True:
+        return None
+    title = raw.get("title")
+    sections = raw.get("body_sections")
+    if not isinstance(title, str) or not title.strip() or "<" in title or ">" in title:
+        return None
+    if not isinstance(sections, list) or not sections:
+        return None
+    rendered: list[dict[str, Any]] = []
+    for source in sections:
+        if not isinstance(source, dict):
+            return None
+        paragraphs = source.get("paragraphs")
+        list_items = source.get("list_items")
+        if not isinstance(paragraphs, list) or not isinstance(list_items, list):
+            return None
+        if not paragraphs and not list_items:
+            return None
+        if any(
+            not isinstance(value, str) or not value.strip() or "<" in value or ">" in value
+            for value in paragraphs + list_items
+        ):
+            return None
+        item: dict[str, Any] = {
+            "paragraphs": [{"runs": [{"text": value, "marks": []}]} for value in paragraphs],
+            "list_items": [{"runs": [{"text": value, "marks": []}]} for value in list_items],
+        }
+        heading = source.get("heading")
+        if heading is not None:
+            if not isinstance(heading, str) or "<" in heading or ">" in heading:
+                return None
+            item["heading"] = heading
+        rendered.append(item)
+    content: dict[str, Any] = {"static_key": key, "title": title, "sections": rendered}
+    intro = raw.get("intro_text")
+    if intro is not None:
+        if not isinstance(intro, str) or "<" in intro or ">" in intro:
+            return None
+        content["intro_text"] = intro
+    return content
 PAGE_KIND = {
     "PUB-HOME-01": "HOME",
     "PUB-ARTICLE-01": "ARTICLE",
@@ -183,7 +228,7 @@ class PostgresSiteRegistry:
         return SiteRecord(
             site_id=str(data["site_id"]),
             site_key=str(data["site_key"]),
-            canonical_domain=str(data["canonical_domain"]),
+            canonical_domain=str(data.get("canonical_domain") or ""),
             lifecycle=str(data["status"]),
             timezone=data.get("timezone_id"),
             locale=data.get("locale_code"),
@@ -195,7 +240,7 @@ class PostgresSiteRegistry:
         sql = text(
             "SELECT s.site_id,s.site_key,s.display_name,s.status,s.timezone_id,s.locale_code,s.updated_at,"
             "d.hostname AS canonical_domain "
-            "FROM sites s JOIN domains d ON d.site_id=s.site_id AND d.is_canonical=true AND d.is_active=true "
+            "FROM sites s LEFT JOIN domains d ON d.site_id=s.site_id AND d.is_canonical=true AND d.is_active=true "
             f"WHERE {where} LIMIT 1"
         )
         with self.engine.connect() as connection:
@@ -205,9 +250,9 @@ class PostgresSiteRegistry:
         # Only explicit active rows resolve.  No implicit www/canonical fallback exists.
         sql = text(
             "SELECT s.site_id,s.site_key,s.display_name,s.status,s.timezone_id,s.locale_code,s.updated_at,"
-            "canon.hostname AS canonical_domain "
+            "COALESCE(canon.hostname,requested.hostname) AS canonical_domain "
             "FROM domains requested JOIN sites s ON s.site_id=requested.site_id "
-            "JOIN domains canon ON canon.site_id=s.site_id AND canon.is_canonical=true AND canon.is_active=true "
+            "LEFT JOIN domains canon ON canon.site_id=s.site_id AND canon.is_canonical=true AND canon.is_active=true "
             "WHERE requested.hostname_normalized=:host AND requested.is_active=true LIMIT 1"
         )
         with self.engine.connect() as connection:
@@ -223,7 +268,7 @@ class PostgresSiteRegistry:
         sql = text(
             "SELECT s.site_id,s.site_key,s.display_name,s.status,s.timezone_id,s.locale_code,s.updated_at,"
             "d.hostname AS canonical_domain "
-            "FROM sites s JOIN domains d ON d.site_id=s.site_id AND d.is_canonical=true AND d.is_active=true "
+            "FROM sites s LEFT JOIN domains d ON d.site_id=s.site_id AND d.is_canonical=true AND d.is_active=true "
             "ORDER BY s.site_key"
         )
         with self.engine.connect() as connection:
@@ -438,11 +483,76 @@ class PostgresPublicPageAdapter:
         search: SearchIndexPort | None = None,
         media_cdn_origin: str,
         static_content: Mapping[str, Mapping[str, Any]] | None = None,
+        presentation_validator: Callable[[Any], bool] | None = None,
+        temporary_domain_suffix: str | None = None,
     ) -> None:
         self.site_transactions = site_transactions
         self.search = search
         self.media_cdn_origin = media_cdn_origin.rstrip("/")
         self.static_content = {str(k): dict(v) for k, v in (static_content or {}).items()}
+        self.presentation_validator = presentation_validator
+        self.temporary_domain_suffix = (temporary_domain_suffix or "").lower().rstrip(".")
+
+    def _on_temporary_host(self, context: SiteContext) -> bool:
+        return bool(
+            self.temporary_domain_suffix
+            and context.request_host == f"{context.site_key.lower()}.{self.temporary_domain_suffix}"
+        )
+
+    @staticmethod
+    def _presentation_references_valid(
+        connection: Any, context: SiteContext, config: dict[str, Any]
+    ) -> bool:
+        branding = config.get("branding") or {}
+        hero = config.get("hero") or {}
+        for media_id in (branding.get("logo_media_id"), hero.get("media_id")):
+            if (
+                media_id
+                and connection.execute(
+                    text(
+                        "SELECT 1 FROM media WHERE site_id=:site_id AND media_id=:media_id AND status='ACTIVE'"
+                    ),
+                    {"site_id": context.site_id, "media_id": media_id},
+                ).fetchone()
+                is None
+            ):
+                return False
+        cta = hero.get("cta") or {}
+        if (
+            cta.get("enabled") is True
+            and connection.execute(
+                text(
+                    "SELECT 1 FROM navigation_items i JOIN navigation_menus m "
+                    "ON m.site_id=i.site_id AND m.menu_id=i.menu_id "
+                    "WHERE i.site_id=:site_id AND i.item_id=:item_id AND i.is_enabled=true "
+                    "AND m.menu_key='HEADER' AND i.destination_kind<>'EXTERNAL'"
+                ),
+                {"site_id": context.site_id, "item_id": cta.get("navigation_item_id")},
+            ).fetchone()
+            is None
+        ):
+            return False
+        return True
+
+    def _presentation(
+        self, settings: dict[str, Any], connection: Any, context: SiteContext
+    ) -> dict[str, Any]:
+        stored = _json_object(settings.get("presentation_config"))
+        version_ok = settings.get("presentation_schema_version") == 1
+        valid = bool(
+            version_ok
+            and stored
+            and self.presentation_validator
+            and self.presentation_validator(stored)
+        )
+        if valid and self._presentation_references_valid(connection, context, stored):
+            return {"config": stored, "source": "STORED"}
+        style = stored.get("style_id")
+        if style == "CUSTOM":
+            style = stored.get("base_style_id")
+        if version_ok and style in {"STYLE_01", "STYLE_02", "STYLE_03", "STYLE_04", "STYLE_05"}:
+            return {"config": {"schema_version": 1, "style_id": style}, "source": "PRESET_DEFAULT"}
+        return {"config": dict(SAFE_PRESENTATION), "source": "SAFE_DEFAULT"}
 
     @staticmethod
     def _canonical(context: SiteContext, path: str) -> str:
@@ -1013,8 +1123,11 @@ class PostgresPublicPageAdapter:
         canonical_override: str | None = None,
         post_og_title: str | None = None,
         post_og_description: str | None = None,
+        explicit_title: str | None = None,
+        explicit_description: str | None = None,
         og_image: dict[str, Any] | None = None,
         featured_media: dict[str, Any] | None = None,
+        default_social_image: dict[str, Any] | None = None,
         breadcrumbs: dict[str, Any] | None = None,
         structured_inputs: Any = None,
         author_name: str | None = None,
@@ -1024,22 +1137,27 @@ class PostgresPublicPageAdapter:
     ) -> dict[str, Any]:
         defaults = self._seo_defaults(settings)
         title = resolve_document_title(
-            page_title=page_title,
+            page_title=explicit_title or page_title,
             site_name=site["display_name"],
-            site_template=defaults.get("title_template"),
+            site_template=defaults.get("seo_title") or defaults.get("title_template"),
             allow_site_fallback=page_class == "HOME",
         )
         meta = resolve_meta_description(
-            explicit=None,
+            explicit=explicit_description,
             summary_source=summary,
-            site_template=defaults.get("meta_description_template"),
+            site_template=defaults.get("meta_description")
+            or defaults.get("meta_description_template"),
             site_name=site["display_name"],
         )
+        if meta is None and page_class == "ARTICLE":
+            meta = f"Read {page_title} on {site['display_name']}."
         robots = robots_decision(
             page_id=page_id,
             site_status=site["status"],
             public_status=public_status,
-            site_index_policy=str(defaults.get("index_policy") or "INHERIT"),
+            site_index_policy="NOINDEX"
+            if self._on_temporary_host(context)
+            else str(defaults.get("index_policy") or "INHERIT"),
             object_index_policy=object_index_policy,
             site_link_policy=str(defaults.get("link_robots_policy") or "INHERIT"),
             article_link_policy=article_link_policy,
@@ -1064,7 +1182,7 @@ class PostgresPublicPageAdapter:
             post_og_description=post_og_description,
             post_og_image=og_image,
             featured_media=featured_media,
-            site_default_image=None,
+            site_default_image=default_social_image,
         )
         source = {
             "canonical_url": canonical,
@@ -1077,7 +1195,9 @@ class PostgresPublicPageAdapter:
             "author_url": author_url,
             "date_published": published_at,
             "date_modified": updated_at,
-            "image_url": (og_image or featured_media or {}).get("url") if isinstance(og_image or featured_media, dict) else None,
+            "image_url": (og_image or featured_media or default_social_image or {}).get("url")
+            if isinstance(og_image or featured_media or default_social_image, dict)
+            else None,
             "robots_index": robots.index,
             "locale_code": site.get("locale_code"),
             "default_language": site.get("default_language_code"),
@@ -1099,7 +1219,15 @@ class PostgresPublicPageAdapter:
             breadcrumbs=breadcrumbs,
             supplemental_inputs=supplemental,
         )
-        baseline = "NOINDEX" if page_class in {"SEARCH", "PREVIEW", "404", "410"} else ("CONDITIONAL-INDEX" if page_class in {"CATEGORY", "TAG", "AUTHOR"} else "INDEX-ELIGIBLE")
+        baseline = (
+            "NOINDEX"
+            if self._on_temporary_host(context) or page_class in {"SEARCH", "PREVIEW", "404", "410"}
+            else (
+                "CONDITIONAL-INDEX"
+                if page_class in {"CATEGORY", "TAG", "AUTHOR"}
+                else "INDEX-ELIGIBLE"
+            )
+        )
         result: dict[str, Any] = {
             "baseline_indexability": baseline,
             "title": title,
@@ -1114,7 +1242,16 @@ class PostgresPublicPageAdapter:
             result["open_graph"] = og
         return result
 
-    def _system_page(self, context: SiteContext, *, code: int, site: dict[str, Any] | None = None, settings: dict[str, Any] | None = None, navigation: dict[str, Any] | None = None) -> dict[str, Any]:
+    def _system_page(
+        self,
+        context: SiteContext,
+        *,
+        code: int,
+        site: dict[str, Any] | None = None,
+        settings: dict[str, Any] | None = None,
+        navigation: dict[str, Any] | None = None,
+        presentation: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         gone = code == 410
         page_id = "PUB-SYS-410-01" if gone else "PUB-SYS-404-01"
         title = "Content unavailable" if gone else "Page not found"
@@ -1134,6 +1271,10 @@ class PostgresPublicPageAdapter:
             payload["site"] = self._site_identity(context, site, settings, logo, None)
             payload["settings"] = self._public_settings(settings, None)
             payload["navigation"] = navigation
+            payload["presentation"] = presentation or {
+                "config": dict(SAFE_PRESENTATION),
+                "source": "SAFE_DEFAULT",
+            }
             home = self._destination(context, "HOME", "/", "PUB-HOME-01")
             search = self._destination(context, "SEARCH", "/search", "PUB-SEARCH-01")
             payload["recovery"] = {"home": home, "search": search}
@@ -1223,6 +1364,7 @@ class PostgresPublicPageAdapter:
             site_identity = self._site_identity(context, site, settings, logo, favicon)
             public_settings = self._public_settings(settings, default_social)
             navigation = self._navigation(connection, context)
+            presentation = self._presentation(settings, connection, context)
 
             # Current live route always wins over a redirect row.
             if not self._live_path(connection, context, path):
@@ -1230,9 +1372,25 @@ class PostgresPublicPageAdapter:
                 if redirect:
                     return redirect[0], {}, {"Location": redirect[1]}
                 code = 410 if self._historical_deleted(connection, context, path) else 404
-                return code, self._system_page(context, code=code, site=site, settings=settings, navigation=navigation), {}
+                return (
+                    code,
+                    self._system_page(
+                        context,
+                        code=code,
+                        site=site,
+                        settings=settings,
+                        navigation=navigation,
+                        presentation=presentation,
+                    ),
+                    {},
+                )
 
-            common = {"site": site_identity, "settings": public_settings, "navigation": navigation}
+            common = {
+                "site": site_identity,
+                "settings": public_settings,
+                "navigation": navigation,
+                "presentation": presentation,
+            }
             home_destination = self._destination(context, "HOME", "/", "PUB-HOME-01")
 
             if path == "/":
@@ -1289,8 +1447,25 @@ class PostgresPublicPageAdapter:
                         ]
                     sections.append(item)
                 intro = {"h1": site["display_name"]}
-                seo = self._seo(context, page_id="PUB-HOME-01", page_class="HOME", page_title=site["display_name"], summary=None, path="/", site=site, settings=settings)
-                payload = {"context": _page_context("PUB-HOME-01", locale=site.get("locale_code")), **common, "intro": intro, "sections": sections, "latest_articles": latest, "seo": seo}
+                seo = self._seo(
+                    context,
+                    page_id="PUB-HOME-01",
+                    page_class="HOME",
+                    page_title=site["display_name"],
+                    summary=None,
+                    path="/",
+                    site=site,
+                    settings=settings,
+                    default_social_image=default_social,
+                )
+                payload = {
+                    "context": _page_context("PUB-HOME-01", locale=site.get("locale_code")),
+                    **common,
+                    "intro": intro,
+                    "sections": sections,
+                    "latest_articles": latest,
+                    "seo": seo,
+                }
                 if lead:
                     payload["lead_article"] = lead
                 return 200, payload, {}
@@ -1298,11 +1473,24 @@ class PostgresPublicPageAdapter:
             article_match = re.fullmatch(r"/article/([^/]+)", path)
             if article_match:
                 row = connection.execute(
-                    text("SELECT * FROM posts WHERE site_id=:site_id AND slug=:slug AND status='PUBLISHED'"),
+                    text(
+                        "SELECT * FROM posts WHERE site_id=:site_id AND slug=:slug AND status='PUBLISHED'"
+                    ),
                     {"site_id": context.site_id, "slug": article_match.group(1)},
                 ).fetchone()
                 if row is None:
-                    return 404, self._system_page(context, code=404, site=site, settings=settings, navigation=navigation), {}
+                    return (
+                        404,
+                        self._system_page(
+                            context,
+                            code=404,
+                            site=site,
+                            settings=settings,
+                            navigation=navigation,
+                            presentation=presentation,
+                        ),
+                        {},
+                    )
                 data = _m(row)
                 article = self._article_detail(connection, context, row)
                 primary_category = article["categories"][0] if article.get("categories") else None
@@ -1323,11 +1511,34 @@ class PostgresPublicPageAdapter:
                 ).fetchall()
                 related = [self._article_summary(connection, context, item) for item in related_rows]
                 seo = self._seo(
-                    context, page_id="PUB-ARTICLE-01", page_class="ARTICLE", page_title=data["title"], summary=data.get("excerpt") or _body_text(data.get("body")), path=path,
-                    site=site, settings=settings, object_index_policy=data.get("index_policy"), article_link_policy=data.get("link_robots_policy"), canonical_override=data.get("canonical_override"),
-                    post_og_title=data.get("og_title"), post_og_description=data.get("og_description"), featured_media=article.get("featured_media"), breadcrumbs=breadcrumbs,
-                    structured_inputs=data.get("structured_data_inputs"), author_name=(article.get("author") or {}).get("display_name"), author_url=((article.get("author") or {}).get("destination") or {}).get("url"),
-                    published_at=_iso(data.get("published_at")), updated_at=_iso(data.get("updated_at")),
+                    context,
+                    page_id="PUB-ARTICLE-01",
+                    page_class="ARTICLE",
+                    page_title=data["title"],
+                    summary=data.get("excerpt") or _body_text(data.get("body")),
+                    path=path,
+                    site=site,
+                    settings=settings,
+                    object_index_policy=data.get("index_policy"),
+                    article_link_policy=data.get("link_robots_policy"),
+                    canonical_override=data.get("canonical_override"),
+                    post_og_title=data.get("og_title"),
+                    post_og_description=data.get("og_description"),
+                    explicit_title=data.get("seo_title"),
+                    explicit_description=data.get("meta_description"),
+                    og_image=self._media(
+                        connection,
+                        context,
+                        str(data["og_image_media_id"]) if data.get("og_image_media_id") else None,
+                    ),
+                    featured_media=article.get("featured_media"),
+                    default_social_image=default_social,
+                    breadcrumbs=breadcrumbs,
+                    structured_inputs=data.get("structured_data_inputs"),
+                    author_name=(article.get("author") or {}).get("display_name"),
+                    author_url=((article.get("author") or {}).get("destination") or {}).get("url"),
+                    published_at=_iso(data.get("published_at")),
+                    updated_at=_iso(data.get("updated_at")),
                 )
                 payload = {"context": _page_context("PUB-ARTICLE-01", locale=site.get("locale_code")), **common, "article": article, "seo": seo}
                 if breadcrumbs:
@@ -1344,11 +1555,24 @@ class PostgresPublicPageAdapter:
                 if path.startswith(prefix):
                     slug = path[len(prefix):]
                     entity = connection.execute(
-                        text(f"SELECT * FROM {table} WHERE site_id=:site_id AND slug=:slug AND status='ACTIVE'"),
+                        text(
+                            f"SELECT * FROM {table} WHERE site_id=:site_id AND slug=:slug AND status='ACTIVE'"
+                        ),
                         {"site_id": context.site_id, "slug": slug},
                     ).fetchone()
                     if entity is None:
-                        return 404, self._system_page(context, code=404, site=site, settings=settings, navigation=navigation), {}
+                        return (
+                            404,
+                            self._system_page(
+                                context,
+                                code=404,
+                                site=site,
+                                settings=settings,
+                                navigation=navigation,
+                                presentation=presentation,
+                            ),
+                            {},
+                        )
                     data = _m(entity)
                     relation = {"CATEGORY": ("post_categories", "category_id"), "TAG": ("post_tags", "tag_id")}.get(cls)
                     if relation:
@@ -1391,9 +1615,38 @@ class PostgresPublicPageAdapter:
                         if avatar: detail["avatar_media"] = avatar
                         field = "author"
                         title = data["display_name"]
-                    breadcrumbs = build_breadcrumb_trail(page_class=cls, canonical_domain=context.canonical_domain, current_label=title, home_destination=home_destination)
-                    seo = self._seo(context, page_id=page_id, page_class=cls, page_title=title, summary=data.get("description") or data.get("bio"), path=path, site=site, settings=settings, page=page, object_index_policy=data.get("index_policy"), canonical_override=data.get("canonical_override"), breadcrumbs=breadcrumbs, author_name=title, author_url=self._canonical(context, path))
-                    payload = {"context": _page_context(page_id, locale=site.get("locale_code")), **common, field: detail, "articles": articles, "seo": seo}
+                    breadcrumbs = build_breadcrumb_trail(
+                        page_class=cls,
+                        canonical_domain=context.canonical_domain,
+                        current_label=title,
+                        home_destination=home_destination,
+                    )
+                    seo = self._seo(
+                        context,
+                        page_id=page_id,
+                        page_class=cls,
+                        page_title=title,
+                        summary=data.get("description") or data.get("bio"),
+                        path=path,
+                        site=site,
+                        settings=settings,
+                        page=page,
+                        object_index_policy=data.get("index_policy"),
+                        canonical_override=data.get("canonical_override"),
+                        breadcrumbs=breadcrumbs,
+                        author_name=title,
+                        author_url=self._canonical(context, path),
+                        explicit_title=data.get("seo_title"),
+                        explicit_description=data.get("meta_description"),
+                        default_social_image=default_social,
+                    )
+                    payload = {
+                        "context": _page_context(page_id, locale=site.get("locale_code")),
+                        **common,
+                        field: detail,
+                        "articles": articles,
+                        "seo": seo,
+                    }
                     if breadcrumbs: payload["breadcrumbs"] = breadcrumbs
                     pagination = self._pagination(context, path, page, page_size, has_more)
                     if pagination: payload["pagination"] = pagination
@@ -1431,43 +1684,99 @@ class PostgresPublicPageAdapter:
                 else:
                     articles = []
                 state = "NO_QUERY" if not normalized_q else ("RESULTS" if articles else "EMPTY")
-                result_summary = "Enter a search query." if state == "NO_QUERY" else (f"Search results for {normalized_q}" if state == "RESULTS" else f"No results for {normalized_q}")
-                seo = self._seo(context, page_id="PUB-SEARCH-01", page_class="SEARCH", page_title="Search", summary=result_summary, path="/search", site=site, settings=settings, page=page)
-                payload = {"context": _page_context("PUB-SEARCH-01", locale=site.get("locale_code")), **common, "intro": {"h1": "Search"}, "query": normalized_q, "search_state": state, "articles": articles, "result_summary": result_summary, "seo": seo}
+                result_summary = (
+                    "Enter a search query."
+                    if state == "NO_QUERY"
+                    else (
+                        f"Search results for {normalized_q}"
+                        if state == "RESULTS"
+                        else f"No results for {normalized_q}"
+                    )
+                )
+                seo = self._seo(
+                    context,
+                    page_id="PUB-SEARCH-01",
+                    page_class="SEARCH",
+                    page_title="Search",
+                    summary=result_summary,
+                    path="/search",
+                    site=site,
+                    settings=settings,
+                    page=page,
+                    default_social_image=default_social,
+                )
+                payload = {
+                    "context": _page_context("PUB-SEARCH-01", locale=site.get("locale_code")),
+                    **common,
+                    "intro": {"h1": "Search"},
+                    "query": normalized_q,
+                    "search_state": state,
+                    "articles": articles,
+                    "result_summary": result_summary,
+                    "seo": seo,
+                }
                 pagination = self._pagination(context, "/search", page, page_size, has_more) if normalized_q else None
                 if pagination: payload["pagination"] = pagination
                 return 200, payload, {}
 
             if path in STATIC_BY_PATH:
-                static_key, page_id, default_title = STATIC_BY_PATH[path]
-                source = dict(self.static_content.get(context.site_key, {}).get(static_key) or {})
-                if not source:
-                    return 404, self._system_page(context, code=404, site=site, settings=settings, navigation=navigation), {}
-                title = str(source.get("title") or default_title)
-                raw_sections = source.get("sections") or []
-                sections = []
-                for raw in raw_sections:
-                    if not isinstance(raw, dict):
-                        continue
-                    def rich(value: Any) -> dict[str, Any]:
-                        if isinstance(value, dict) and isinstance(value.get("runs"), list):
-                            return value
-                        return {"runs": [{"text": str(value), "marks": []}]}
-                    section: dict[str, Any] = {"paragraphs": [rich(v) for v in (raw.get("paragraphs") or [])], "list_items": [rich(v) for v in (raw.get("list_items") or [])]}
-                    if raw.get("heading"): section["heading"] = str(raw["heading"])
-                    sections.append(section)
-                if not sections:
-                    raise RuntimeError(f"static content for {context.site_key}/{static_key} has no approved sections")
-                content: dict[str, Any] = {"static_key": static_key, "title": title, "sections": sections}
-                if source.get("intro_text"): content["intro_text"] = str(source["intro_text"])
-                breadcrumbs = build_breadcrumb_trail(page_class="STATIC", canonical_domain=context.canonical_domain, current_label=title, home_destination=home_destination)
-                seo = self._seo(context, page_id=page_id, page_class="STATIC", page_title=title, summary=source.get("intro_text"), path=path, site=site, settings=settings, breadcrumbs=breadcrumbs)
-                payload = {"context": _page_context(page_id, locale=site.get("locale_code")), **common, "content": content, "seo": seo}
+                static_key, page_id, _ = STATIC_BY_PATH[path]
+                source = _json_object(settings.get("static_pages")).get(static_key)
+                content = _renderable_static_content(static_key, source)
+                if content is None:
+                    return (
+                        404,
+                        self._system_page(
+                            context,
+                            code=404,
+                            site=site,
+                            settings=settings,
+                            navigation=navigation,
+                            presentation=presentation,
+                        ),
+                        {},
+                    )
+                title = content["title"]
+                breadcrumbs = build_breadcrumb_trail(
+                    page_class="STATIC",
+                    canonical_domain=context.canonical_domain,
+                    current_label=title,
+                    home_destination=home_destination,
+                )
+                seo = self._seo(
+                    context,
+                    page_id=page_id,
+                    page_class="STATIC",
+                    page_title=title,
+                    summary=content.get("intro_text"),
+                    path=path,
+                    site=site,
+                    settings=settings,
+                    breadcrumbs=breadcrumbs,
+                    default_social_image=default_social,
+                )
+                payload = {
+                    "context": _page_context(page_id, locale=site.get("locale_code")),
+                    **common,
+                    "content": content,
+                    "seo": seo,
+                }
                 if breadcrumbs: payload["breadcrumbs"] = breadcrumbs
                 if static_key == "CONTACT": payload["contact_info"] = self._contact_info(context, settings.get("contact_info"))
                 return 200, payload, {}
 
-            return 404, self._system_page(context, code=404, site=site, settings=settings, navigation=navigation), {}
+            return (
+                404,
+                self._system_page(
+                    context,
+                    code=404,
+                    site=site,
+                    settings=settings,
+                    navigation=navigation,
+                    presentation=presentation,
+                ),
+                {},
+            )
 
     async def resolve_preview(self, context: SiteContext, *, post_id: str, source_snapshot: str) -> dict[str, Any]:
         # Preview authority has already validated site/post/snapshot. Re-read the
@@ -1543,6 +1852,7 @@ class PostgresPublicPageAdapter:
                 "context": _page_context("PUB-SYS-PREVIEW-01", render_mode="PREVIEW", locale=site.get("locale_code")),
                 "site": self._site_identity(context, site, settings, logo, favicon),
                 "settings": self._public_settings(settings, default_social),
+                "presentation": self._presentation(settings, connection, context),
                 "navigation": navigation,
                 "preview": preview,
                 "article": article,
