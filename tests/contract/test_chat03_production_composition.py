@@ -217,7 +217,7 @@ def test_production_runtime_rejects_placeholder_public_media_origin(monkeypatch:
 def _settings(environment: str) -> Settings:
     return Settings(
         environment=environment,
-        canonical_openapi_path="contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml",
+        canonical_openapi_path="contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml",
         admin_origins=("https://admin.example.test",),
         reset_base_url="https://admin.example.test/reset",
         enforce_https=True,
@@ -230,7 +230,7 @@ def test_production_composition_constructs_with_concrete_provider_backed_service
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, environment: str
 ):
     root = Path(__file__).resolve().parents[2]
-    spec = load_openapi(root / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml")
+    spec = load_openapi(root / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml")
     _set_runtime_env(monkeypatch, tmp_path, environment)
     capture: dict = {}
     _install_external_provider_stubs(monkeypatch, capture)
@@ -276,7 +276,7 @@ def test_production_composition_constructs_with_concrete_provider_backed_service
 
 def test_self_hosted_composition_uses_s3_compatible_runtime(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     root = Path(__file__).resolve().parents[2]
-    spec = load_openapi(root / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml")
+    spec = load_openapi(root / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml")
     _set_runtime_env(monkeypatch, tmp_path, "staging")
     monkeypatch.setenv("BP_RUNTIME_COMPOSITION", "self-hosted")
     monkeypatch.setenv("BP_MEDIA_ENDPOINT_URL", "http://minio.internal:9000")
@@ -351,7 +351,7 @@ def test_runtime_selector_keeps_production_off_two_site_and_in_memory_fallbacks(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ):
     root = Path(__file__).resolve().parents[2]
-    spec = load_openapi(root / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml")
+    spec = load_openapi(root / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml")
     settings = _settings("production")
     _set_runtime_env(monkeypatch, tmp_path, "production")
     capture: dict = {}

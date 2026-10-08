@@ -36,20 +36,20 @@ from bp_domain.editorial import (
 from bp_domain.errors import NotFound, ValidationFault, VersionConflict
 from bp_domain.security import AccountState, AdminPrincipal
 
-CANON = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml"
-CANON_SHA = "690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca"
+CANON = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml"
+CANON_SHA = "f0d55354f79d7ff43385f5e761670b3cc8bf30a0a19de1623777be83f23ac172"
 
 
 def test_rc8_canonical_contract_is_self_consistent_and_complete():
     assert hashlib.sha256(CANON.read_bytes()).hexdigest() == CANON_SHA
     spec = yaml.safe_load(CANON.read_text())
-    assert spec["info"]["version"] == "1.0-RC8"
+    assert spec["info"]["version"] == "1.0-RC9"
     authority = spec["x-doc15-authority"]
-    assert authority["version"] == "1.0-RC8"
+    assert authority["version"] == "1.0-RC9"
     assert authority["operation_count"] == 113
     assert authority["unique_route_paths"] == 86
-    assert authority["schema_helper_count"] == 221
-    assert authority["resolved_internal_schema_references"] == 1311
+    assert authority["schema_helper_count"] == 244
+    assert authority["resolved_internal_schema_references"] == 1354
     assert authority["canonical_operation_subtotals"] == {
         "public_and_preview": 2,
         "auth": 12,

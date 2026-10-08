@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "echo \"ESLint execution requires controlled toolchain materialization\""
   },
-  "bpBoundary": "Generated/verified wire-contract home. Empty until canonical DOC-15 RC8 YAML is supplied and verified.",
+  "bpBoundary": "Generated/verified wire-contract home. Empty until canonical DOC-15 RC9 YAML is supplied and verified.",
   "devDependencies": {
     "typescript": "^5.9.0"
   }

@@ -1349,6 +1349,18 @@
         "homepage_lead_post_id": {
           "type": "uuid",
           "nullable": true
+        },
+        "presentation_schema_version": {
+          "type": "integer",
+          "nullable": false
+        },
+        "presentation_config": {
+          "type": "jsonb",
+          "nullable": true
+        },
+        "static_pages": {
+          "type": "jsonb",
+          "nullable": true
         }
       }
     },

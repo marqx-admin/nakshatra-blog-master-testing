@@ -1,6 +1,6 @@
 {
   "project": "NAKSHATRA BLOGGING WEBSITE SYSTEM / Multi-Site Blogging Platform",
-  "checkpoint_input": "C00 — WAVE2_MASTER_INTEGRATED",
+  "checkpoint_input": "C00 \u2014 WAVE2_MASTER_INTEGRATED",
   "selected_authorities": {
     "DOC-00": "v1.0-RC2",
     "DOC-01": "v1.0-RC1",
@@ -37,25 +37,26 @@
     "DOC-07 RC2, DOC-08 RC2, DOC-15 RC8 and DOC-16 RC5 are the semantic Wave-2 reconciliation revisions.",
     "DOC-17 RC3, DOC-18 RC3, DOC-19 RC3, DOC-20 RC2, DOC-21 RC2, DOC-22 RC2, DOC-23 RC3, DOC-24 RC4, DOC-25 RC3, DOC-26 RC2 and DOC-27 RC2 are cross-reference-only source synchronization revisions. Their owned semantics are unchanged.",
     "Any inherited non-owning reference to DOC-15 RC7/RC6, 112 operations, 85 paths, 217 schemas/helpers, 1,297 refs, 11 AUTH operations, DOC-16 RC4, or the RC7 YAML filename is HISTORICAL/SUPERSEDED under DOC-00 RC2.",
-    "DOC-15 RC8 canonical YAML remains the sole executable HTTP authority. FastAPI-generated OpenAPI remains non-canonical."
+    "The selected DOC-15 authority remains RC8; the WU-01 RC9 YAML is the current executable HTTP companion. FastAPI-generated OpenAPI remains non-canonical."
   ],
   "openapi_companion": {
-    "authority": "DOC-15 v1.0-RC8",
-    "canonical_path": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml",
-    "artifact_status": "OWNER_APPROVED_SYNC_LATEST_LOCAL_CONTRACT_RECONCILIATION",
-    "sha256": "690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca",
+    "authority": "DOC-15 v1.0-RC9 executable WU-01 companion to selected RC8 authority",
+    "canonical_path": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml",
+    "artifact_status": "WU01_LOCAL_IMPLEMENTATION_UNCOMMITTED",
+    "sha256": "f0d55354f79d7ff43385f5e761670b3cc8bf30a0a19de1623777be83f23ac172",
     "superseded_rc7_sha256": "b338acb443500f06ed2141db66b416f7f0378d26fc96a57b93bfef50d19eff15",
     "superseded_status": "SUPERSEDED_BY_RC8_RECONCILIATION",
     "operation_count": 113,
     "path_count": 86,
-    "schema_helper_count": 221,
-    "resolved_internal_ref_count": 1312,
+    "schema_helper_count": 244,
+    "resolved_internal_ref_count": 1354,
     "auth_operation_count": 12,
     "public_preview_operation_count": 2,
     "site_operation_count": 63,
-    "global_operation_count": 36
+    "global_operation_count": 36,
+    "superseded_rc8_sha256": "690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca"
   },
-  "checkpoint_output": "C00 — WAVE2_SOURCESET_SYNCHRONIZED",
+  "checkpoint_output": "C00 \u2014 WAVE2_SOURCESET_SYNCHRONIZED",
   "source_sync_date": "2026-09-11",
   "source_sync_type": "DOCUMENTATION_CROSS_REFERENCE_ONLY_NO_SEMANTIC_CHANGE",
   "semantic_wave2_revisions": {

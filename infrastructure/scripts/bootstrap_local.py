@@ -176,7 +176,7 @@ def provision_local_admin(config: LocalBootstrapConfig, password: str) -> str:
                 "posts.revisions.view", "posts.preview", "posts.revisions.restore", "posts.publish",
                 "posts.schedule", "posts.archive", "posts.restore", "posts.trash", "media.view",
                 "media.upload", "media.edit", "authors.view",
-                "categories.view", "seo.view", "seo.edit", "calendar.view", "search.view",
+                "categories.view", "seo.view", "seo.edit", "calendar.view", "search.view", "tags.view",
             }
             full_manager_permissions = content_editor_permissions | {
                 "posts.delete", "categories.create", "categories.edit", "categories.delete",
@@ -184,6 +184,7 @@ def provision_local_admin(config: LocalBootstrapConfig, password: str) -> str:
                 "media.replace", "media.delete",
                 "navigation.manage", "redirects.view", "redirects.create", "redirects.edit",
                 "redirects.delete", "search.reindex", "site_settings.view", "site_settings.edit",
+                "tags.create", "tags.edit", "tags.delete",
             }
             site_roles = []
             for role_name, role_permissions in (

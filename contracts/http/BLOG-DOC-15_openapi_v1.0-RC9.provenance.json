@@ -1,0 +1,14 @@
+{
+  "artifact": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml",
+  "authority": "BLOG-DOC-15 v1.0-RC9 executable WU-01 companion to selected DOC-15 RC8 authority",
+  "status": "WU01_LOCAL_IMPLEMENTATION_UNCOMMITTED",
+  "sha256": "f0d55354f79d7ff43385f5e761670b3cc8bf30a0a19de1623777be83f23ac172",
+  "supersedes": {
+    "artifact": "BLOG-DOC-15_openapi_v1.0-RC8.yaml",
+    "sha256": "690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca"
+  },
+  "scope": [
+    "WU-01-DATABASE-AND-CANONICAL-CONTRACT-FOUNDATION"
+  ],
+  "note": "RC9 adds WU-01 schemas and site-key validation to the selected DOC-15 RC8 executable baseline. No WU-02 runtime implementation; uncommitted and not deployed."
+}

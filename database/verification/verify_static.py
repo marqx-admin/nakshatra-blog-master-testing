@@ -39,6 +39,7 @@ EXPECTED_MIGRATIONS = [
     "0017_DB-MIG-017__wave2-contract-reconciliation.sql",
     "0018_DB-MIG-018__site-identity-settings-write.sql",
     "0019_DB-MIG-019__launch-access-boundaries.sql",
+    "0020_DB-MIG-020__universal-presentation-foundation.sql",
 ]
 SITE_TABLES = {t for t, v in CONTRACT["tables"].items() if v["scope"] == "SITE"}
 GLOBAL_TABLES = set(CONTRACT["tables"]) - SITE_TABLES
@@ -133,7 +134,7 @@ for table, spec in CONTRACT["tables"].items():
         actual == expected,
         f"missing={sorted(set(expected)-set(actual))} extra={sorted(set(actual)-set(expected))} mismatched={sorted(c for c in set(expected)&set(actual) if expected[c]!=actual[c])}",
     )
-check("column_inventory_326", expected_column_count == 326 and sum(map(len, actual_columns.values())) == 326)
+check("column_inventory_329", expected_column_count == 329 and sum(map(len, actual_columns.values())) == 329)
 
 # Every SITE table owns a NOT NULL site_id physically.
 for table in sorted(SITE_TABLES):
@@ -151,8 +152,8 @@ constraint_kinds["uq"] -= len(re.findall(r"(?i)DROP\s+CONSTRAINT\s+uq_[a-z_][a-z
 check("primary_key_count", constraint_kinds["pk"] == 33, str(constraint_kinds))
 check("unique_constraint_count", constraint_kinds["uq"] == 39, str(constraint_kinds))
 check("foreign_key_count", constraint_kinds["fk"] == 73, str(constraint_kinds))
-check("check_constraint_count", constraint_kinds["ck"] == 78, str(constraint_kinds))
-check("named_constraint_count", sum(constraint_kinds.values()) == 223, str(constraint_kinds))
+check("check_constraint_count", constraint_kinds["ck"] == 81, str(constraint_kinds))
+check("named_constraint_count", sum(constraint_kinds.values()) == 226, str(constraint_kinds))
 
 norm = normalize_sql(all_sql)
 same_site_fragments = [
@@ -284,6 +285,21 @@ check("ordinary_global_assignment_database_guard", "trg_account_global_role_assi
 check("system_access_levels_database_protected", "trg_roles__protect_system_access_levels" in launch_access)
 check("system_access_levels_idempotent_initializer", "app.ensure_system_access_levels()" in launch_access)
 check("content_editor_no_destructive_media", "'media.replace','media.delete'" not in launch_access.split("INSERT INTO public.role_permissions", 2)[1])
+universal_foundation = (MIG / EXPECTED_MIGRATIONS[19]).read_text()
+check("wu01_site_settings_only", "ALTER TABLE site_settings" in universal_foundation and "CREATE TABLE" not in universal_foundation)
+def protected_permission_sets(source: str) -> list[set[str]]:
+    arrays = re.findall(r"WHERE permission_key = ANY \(ARRAY\[(.*?)\]\)", source, re.S)
+    return [set(re.findall(r"'([^']+)'", array)) for array in arrays]
+
+
+old_roles = protected_permission_sets(launch_access)
+new_roles = protected_permission_sets(universal_foundation)
+check("wu01_exact_protected_role_delta", len(old_roles) == len(new_roles) == 2
+      and new_roles[0] == old_roles[0] | {"tags.view"}
+      and new_roles[1] == old_roles[1] | {"tags.view", "tags.create", "tags.edit", "tags.delete"})
+local_bootstrap = (ROOT / "infrastructure/scripts/bootstrap_local.py").read_text()
+check("wu01_local_role_seed_tags", '"tags.view"' in local_bootstrap
+      and all(f'"tags.{action}"' in local_bootstrap for action in ("create", "edit", "delete")))
 
 dev = (SEEDS / "development-only.sql").read_text()
 check("development_fixture_guard", "app.environment" in dev and "development" in dev)

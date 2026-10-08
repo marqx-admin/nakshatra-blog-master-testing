@@ -1,15 +1,15 @@
 {
-  "authority": "BLOG-DOC-15 v1.0-RC8",
-  "canonical_repository_path": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml",
+  "authority": "BLOG-DOC-15 v1.0-RC9 executable WU-01 companion",
+  "canonical_repository_path": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml",
   "openapi_version": "3.1.0",
-  "api_version": "1.0-RC8",
-  "sha256": "690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca",
+  "api_version": "1.0-RC9",
+  "sha256": "f0d55354f79d7ff43385f5e761670b3cc8bf30a0a19de1623777be83f23ac172",
   "historical_unavailable_original_sha256": "3376444e141fd16bbf0a440f2828de0e97d04b5f60a49e106b2d07013f8397b2",
   "historical_digest_status": "SUPERSEDED_PROVENANCE_ONLY",
   "operation_count": 113,
   "path_count": 86,
-  "schema_helper_count": 221,
-  "resolved_internal_ref_count": 1312,
+  "schema_helper_count": 244,
+  "resolved_internal_ref_count": 1354,
   "auth_operation_count": 12,
   "public_preview_operation_count": 2,
   "site_operation_count": 63,
@@ -20,7 +20,7 @@
     "202": 3,
     "204": 9
   },
-  "status": "OWNER_APPROVED_SYNC_LATEST_LOCAL_RC8_BOUND",
+  "status": "WU01_LOCAL_IMPLEMENTATION_UNCOMMITTED",
   "forbidden_substitutes": [
     "RC5 YAML",
     "RC6 YAML",
@@ -28,5 +28,6 @@
     "unapproved PDF reconstruction",
     "FastAPI /openapi.json",
     "implementation-inferred schemas"
-  ]
+  ],
+  "superseded_rc8_sha256": "690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca"
 }

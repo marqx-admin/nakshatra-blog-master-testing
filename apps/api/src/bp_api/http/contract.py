@@ -127,7 +127,7 @@ def validate_json(
 def validate_response(spec: dict[str, Any], contract: OperationContract, status: int, payload: Any) -> None:
     if not contract.allows_status(status):
         raise RuntimeError(
-            f"{contract.operation_id} returned status {status}, not declared by canonical RC8"
+            f"{contract.operation_id} returned status {status}, not declared by canonical RC9"
         )
     schema = contract.response_schema(status)
     if schema is None:
@@ -143,7 +143,7 @@ def validate_response(spec: dict[str, Any], contract: OperationContract, status:
         first = errors[0]
         path = ".".join(str(part) for part in first.path)
         raise RuntimeError(
-            f"{contract.operation_id} response violates canonical RC8 schema at {path or '<root>'}: {first.message}"
+            f"{contract.operation_id} response violates canonical RC9 schema at {path or '<root>'}: {first.message}"
         )
 
 
@@ -237,20 +237,20 @@ def validate_parameters(spec: dict[str, Any], contract: OperationContract, reque
 
     return path_values, query_values
 
-def assert_rc8_contract(spec: dict[str, Any]) -> None:
+def assert_rc9_contract(spec: dict[str, Any]) -> None:
     operations = list(iter_operations(spec))
     schemas = spec.get("components", {}).get("schemas", {})
-    if spec.get("openapi") != "3.1.0" or spec.get("info", {}).get("version") != "1.0-RC8":
-        raise RuntimeError("canonical HTTP contract must be BLOG-DOC-15 OpenAPI 1.0-RC8")
-    if len(operations) != 113 or len(spec.get("paths", {})) != 86 or len(schemas) != 221:
-        raise RuntimeError("canonical RC8 estate count mismatch")
+    if spec.get("openapi") != "3.1.0" or spec.get("info", {}).get("version") != "1.0-RC9":
+        raise RuntimeError("canonical HTTP contract must be BLOG-DOC-15 OpenAPI 1.0-RC9")
+    if len(operations) != 113 or len(spec.get("paths", {})) != 86 or len(schemas) != 244:
+        raise RuntimeError("canonical RC9 estate count mismatch")
     operation_ids = [op.operation_id for op in operations]
     pairs = [(op.method, op.path) for op in operations]
     if len(set(operation_ids)) != 113 or len(set(pairs)) != 113:
-        raise RuntimeError("canonical RC8 operation identity is not unique")
+        raise RuntimeError("canonical RC9 operation identity is not unique")
     owned = list(owned_operations(spec))
     if len(owned) != 51:
-        raise RuntimeError("CHAT03/C00 RC8 core ownership set must be 51 operations")
+        raise RuntimeError("CHAT03/C00 RC9 core ownership set must be 51 operations")
 
-# Backward import compatibility for superseded Wave-1 tests; canonical runtime is RC8.
-assert_rc7_contract = assert_rc8_contract
+# Backward import compatibility for superseded Wave-1 tests; canonical runtime is RC9.
+assert_rc7_contract = assert_rc9_contract

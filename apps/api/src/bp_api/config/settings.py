@@ -42,7 +42,7 @@ class Settings:
             environment=os.getenv("BP_ENV", "development"),
             canonical_openapi_path=os.getenv(
                 "BP_OPENAPI_PATH",
-                "contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml",
+                "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml",
             ),
             admin_origins=tuple(
                 value.strip().rstrip("/")

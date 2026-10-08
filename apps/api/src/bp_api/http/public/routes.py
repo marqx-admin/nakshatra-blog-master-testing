@@ -19,7 +19,7 @@ from ..rate_limits import enforce_transport_quota, safe_subject_hash, source_net
 router = APIRouter()
 
 _MEDIA_URL = re.compile(
-    r"^/m/(?P<site_key>SITE-[0-9]{2})/(?P<media_id>[0-9a-fA-F-]{36})/"
+    r"^/m/(?P<site_key>SITE-[0-9]{2,})/(?P<media_id>[0-9a-fA-F-]{36})/"
 )
 
 

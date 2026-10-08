@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
-// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml
-// Source SHA-256: 690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca
+// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml
+// Source SHA-256: f0d55354f79d7ff43385f5e761670b3cc8bf30a0a19de1623777be83f23ac172
 // Wire keys intentionally preserve the canonical OpenAPI spelling/casing.
 
 export interface components {
@@ -83,8 +83,123 @@ export interface components {
           "variants": Array<components["schemas"]["MediaVariant"]>;
           "credit_text"?: string;
         };
+    "PresentationPlainText": string;
+    "PresentationPaletteTokens": {
+          "surface": string;
+          "surface_alt": string;
+          "text": string;
+          "text_muted": string;
+          "accent": string;
+          "accent_text": string;
+          "border": string;
+          "focus": string;
+        };
+    "PresentationPalette": {
+          "mode": "PRESET" | "CUSTOM";
+          "semantic_tokens"?: components["schemas"]["PresentationPaletteTokens"];
+        };
+    "PresentationBranding": {
+          "wordmark"?: components["schemas"]["PresentationPlainText"];
+          "tagline"?: components["schemas"]["PresentationPlainText"];
+          "logo_media_id"?: string;
+        };
+    "PresentationTypography": {
+          "heading_font_id"?: "SYSTEM_SANS" | "SYSTEM_SERIF";
+          "body_font_id"?: "SYSTEM_SANS" | "SYSTEM_SERIF";
+          "scale"?: "COMPACT" | "STANDARD" | "LARGE";
+        };
+    "PresentationLayout": {
+          "content_width"?: "NARROW" | "STANDARD" | "WIDE";
+          "section_spacing"?: "COMPACT" | "STANDARD" | "SPACIOUS";
+          "corner_radius"?: "NONE" | "SMALL" | "MEDIUM";
+        };
+    "PresentationArticleCard": {
+          "variant"?: "STANDARD" | "COMPACT" | "FEATURED";
+          "image_ratio"?: "SQUARE" | "LANDSCAPE" | "WIDE";
+          "show_excerpt"?: boolean;
+          "show_author"?: boolean;
+        };
+    "PresentationCategoryCard": {
+          "variant"?: "TEXT" | "ACCENT";
+        };
+    "PresentationAuthorCard": {
+          "variant"?: "COMPACT" | "PROFILE";
+          "show_bio"?: boolean;
+        };
+    "PresentationCta": {
+          "enabled": boolean;
+          "label"?: components["schemas"]["PresentationPlainText"];
+          "navigation_item_id"?: string;
+        };
+    "PresentationButton": {
+          "shape"?: "SQUARE" | "ROUNDED" | "PILL";
+          "emphasis"?: "SOLID" | "OUTLINE" | "TEXT";
+        };
+    "PresentationHero": {
+          "layout"?: "TEXT_FIRST" | "SPLIT" | "FEATURED_ARTICLE";
+          "media_id"?: string;
+          "cta"?: components["schemas"]["PresentationCta"];
+        };
+    "PresentationHomepage": {
+          "lead_layout"?: "STANDARD" | "EDITORIAL" | "GRID";
+          "section_layout"?: "LIST" | "GRID";
+        };
+    "PresentationArticle": {
+          "layout"?: "STANDARD" | "IMMERSIVE";
+          "measure"?: "NARROW" | "STANDARD" | "WIDE";
+          "headline_scale"?: "STANDARD" | "LARGE" | "DISPLAY";
+          "meta_layout"?: "INLINE" | "STACKED";
+          "featured_media_ratio"?: "LANDSCAPE" | "WIDE";
+          "author_display"?: "COMPACT" | "PROFILE";
+          "related_content_layout"?: "LIST" | "GRID";
+        };
+    "PresentationCollection": {
+          "layout"?: "LIST" | "GRID";
+          "columns"?: number;
+          "show_intro"?: boolean;
+        };
+    "PresentationConfig": {
+          "schema_version": 1;
+          "style_id": "STYLE_01" | "STYLE_02" | "STYLE_03" | "STYLE_04" | "STYLE_05" | "CUSTOM";
+          "base_style_id"?: "STYLE_01" | "STYLE_02" | "STYLE_03" | "STYLE_04" | "STYLE_05";
+          "branding"?: components["schemas"]["PresentationBranding"];
+          "palette"?: components["schemas"]["PresentationPalette"];
+          "typography"?: components["schemas"]["PresentationTypography"];
+          "layout"?: components["schemas"]["PresentationLayout"];
+          "article_card"?: components["schemas"]["PresentationArticleCard"];
+          "category_card"?: components["schemas"]["PresentationCategoryCard"];
+          "author_card"?: components["schemas"]["PresentationAuthorCard"];
+          "hero"?: components["schemas"]["PresentationHero"];
+          "homepage"?: components["schemas"]["PresentationHomepage"];
+          "article"?: components["schemas"]["PresentationArticle"];
+          "collection"?: components["schemas"]["PresentationCollection"];
+          "button"?: components["schemas"]["PresentationButton"];
+        };
+    "TrustedPresentation": {
+          "config": components["schemas"]["PresentationConfig"];
+          "source": "STORED" | "PRESET_DEFAULT" | "SAFE_DEFAULT";
+        };
+    "InformationPageSection": {
+          "heading"?: components["schemas"]["PresentationPlainText"];
+          "paragraphs": Array<components["schemas"]["PresentationPlainText"]>;
+          "list_items": Array<components["schemas"]["PresentationPlainText"]>;
+        };
+    "InformationPage": {
+          "enabled": boolean;
+          "content_version": number;
+          "title": string;
+          "intro_text": components["schemas"]["PresentationPlainText"];
+          "body_sections": Array<components["schemas"]["InformationPageSection"]>;
+        };
+    "StaticPages": {
+          "ABOUT": components["schemas"]["InformationPage"];
+          "CONTACT": components["schemas"]["InformationPage"];
+          "PRIVACY": components["schemas"]["InformationPage"];
+          "TERMS": components["schemas"]["InformationPage"];
+          "DISCLAIMER": components["schemas"]["InformationPage"];
+        };
     "SiteIdentity": {
-          "site_key": "SITE-01" | "SITE-02" | "SITE-03" | "SITE-04" | "SITE-05" | "SITE-06" | "SITE-07" | "SITE-08" | "SITE-09" | "SITE-10" | "SITE-11" | "SITE-12" | "SITE-13" | "SITE-14";
+          "site_key": string;
           "display_name": string;
           "canonical_domain": string;
           "home_destination": components["schemas"]["PublicDestination"];
@@ -386,6 +501,7 @@ export interface components {
           "site": components["schemas"]["SiteIdentity"];
           "settings": components["schemas"]["PublicSettings"];
           "navigation": components["schemas"]["NavigationBundle"];
+          "presentation"?: components["schemas"]["TrustedPresentation"];
           "intro": components["schemas"]["PageIntro"];
           "lead_article"?: components["schemas"]["ArticleSummary"];
           "sections": Array<components["schemas"]["HomeSection"]>;
@@ -397,6 +513,7 @@ export interface components {
           "site": components["schemas"]["SiteIdentity"];
           "settings": components["schemas"]["PublicSettings"];
           "navigation": components["schemas"]["NavigationBundle"];
+          "presentation"?: components["schemas"]["TrustedPresentation"];
           "breadcrumbs"?: components["schemas"]["BreadcrumbTrail"];
           "article": components["schemas"]["ArticleDetail"];
           "related_content"?: components["schemas"]["RelatedContent"];
@@ -407,6 +524,7 @@ export interface components {
           "site": components["schemas"]["SiteIdentity"];
           "settings": components["schemas"]["PublicSettings"];
           "navigation": components["schemas"]["NavigationBundle"];
+          "presentation"?: components["schemas"]["TrustedPresentation"];
           "breadcrumbs"?: components["schemas"]["BreadcrumbTrail"];
           "category": components["schemas"]["CategoryDetail"];
           "articles": Array<components["schemas"]["ArticleSummary"]>;
@@ -418,6 +536,7 @@ export interface components {
           "site": components["schemas"]["SiteIdentity"];
           "settings": components["schemas"]["PublicSettings"];
           "navigation": components["schemas"]["NavigationBundle"];
+          "presentation"?: components["schemas"]["TrustedPresentation"];
           "breadcrumbs"?: components["schemas"]["BreadcrumbTrail"];
           "tag": components["schemas"]["TagDetail"];
           "articles": Array<components["schemas"]["ArticleSummary"]>;
@@ -429,6 +548,7 @@ export interface components {
           "site": components["schemas"]["SiteIdentity"];
           "settings": components["schemas"]["PublicSettings"];
           "navigation": components["schemas"]["NavigationBundle"];
+          "presentation"?: components["schemas"]["TrustedPresentation"];
           "breadcrumbs"?: components["schemas"]["BreadcrumbTrail"];
           "author": components["schemas"]["AuthorDetail"];
           "articles": Array<components["schemas"]["ArticleSummary"]>;
@@ -440,6 +560,7 @@ export interface components {
           "site": components["schemas"]["SiteIdentity"];
           "settings": components["schemas"]["PublicSettings"];
           "navigation": components["schemas"]["NavigationBundle"];
+          "presentation"?: components["schemas"]["TrustedPresentation"];
           "intro": components["schemas"]["PageIntro"];
           "query": string;
           "search_state": "NO_QUERY" | "RESULTS" | "EMPTY";
@@ -453,6 +574,7 @@ export interface components {
           "site": components["schemas"]["SiteIdentity"];
           "settings": components["schemas"]["PublicSettings"];
           "navigation": components["schemas"]["NavigationBundle"];
+          "presentation"?: components["schemas"]["TrustedPresentation"];
           "breadcrumbs"?: components["schemas"]["BreadcrumbTrail"];
           "content": components["schemas"]["StaticContent"];
           "contact_info"?: components["schemas"]["ContactInfo"];
@@ -463,6 +585,7 @@ export interface components {
           "site": components["schemas"]["SiteIdentity"];
           "settings": components["schemas"]["PublicSettings"];
           "navigation": components["schemas"]["NavigationBundle"];
+          "presentation"?: components["schemas"]["TrustedPresentation"];
           "preview": components["schemas"]["PreviewMeta"];
           "article": components["schemas"]["PreviewArticle"];
           "related_content"?: components["schemas"]["RelatedContent"];
@@ -473,6 +596,7 @@ export interface components {
           "site"?: components["schemas"]["SiteIdentity"];
           "settings"?: components["schemas"]["PublicSettings"];
           "navigation"?: components["schemas"]["NavigationBundle"];
+          "presentation"?: components["schemas"]["TrustedPresentation"];
           "message": components["schemas"]["SystemMessage"];
           "recovery"?: components["schemas"]["RecoveryActions"];
           "seo": components["schemas"]["SeoProjection"];
@@ -482,13 +606,14 @@ export interface components {
           "site"?: components["schemas"]["SiteIdentity"];
           "settings"?: components["schemas"]["PublicSettings"];
           "navigation"?: components["schemas"]["NavigationBundle"];
+          "presentation"?: components["schemas"]["TrustedPresentation"];
           "message": components["schemas"]["SystemMessage"];
           "recovery": components["schemas"]["RecoveryActions"];
           "seo": components["schemas"]["SeoProjection"];
         };
     "PublicPageResponse": (components["schemas"]["HomePageData"] | components["schemas"]["ArticlePageData"] | components["schemas"]["CategoryPageData"] | components["schemas"]["TagPageData"] | components["schemas"]["AuthorPageData"] | components["schemas"]["SearchPageData"] | components["schemas"]["StaticPageData"]);
     "AdminSiteContext": {
-          "site_key": "SITE-01" | "SITE-02" | "SITE-03" | "SITE-04" | "SITE-05" | "SITE-06" | "SITE-07" | "SITE-08" | "SITE-09" | "SITE-10" | "SITE-11" | "SITE-12" | "SITE-13" | "SITE-14";
+          "site_key": string;
           "display_name": string;
           "lifecycle_state": string;
           "effective_permissions": Array<"dashboard.view" | "posts.view" | "posts.create" | "posts.edit" | "posts.preview" | "posts.duplicate" | "posts.revisions.view" | "posts.revisions.restore" | "posts.publish" | "posts.schedule" | "posts.archive" | "posts.trash" | "posts.restore" | "posts.delete" | "categories.view" | "categories.create" | "categories.edit" | "categories.delete" | "tags.view" | "tags.create" | "tags.edit" | "tags.delete" | "authors.view" | "authors.create" | "authors.edit" | "authors.retire" | "media.view" | "media.upload" | "media.edit" | "media.replace" | "media.delete" | "navigation.view" | "navigation.manage" | "seo.view" | "seo.edit" | "redirects.view" | "redirects.create" | "redirects.edit" | "redirects.delete" | "search.view" | "search.reindex" | "calendar.view" | "site_settings.view" | "site_settings.edit">;
@@ -1066,7 +1191,7 @@ export interface components {
     "SiteAdminResource": {
           "site_key": string;
           "display_name": string;
-          "lifecycle_state": "ACTIVE" | "DISABLED" | "ARCHIVED";
+          "lifecycle_state": "ACTIVE" | "DISABLED" | "ARCHIVED" | "DELETION_REQUESTED";
           "canonical_domain"?: string;
           "default_language"?: string;
           "locale_code"?: string;
@@ -1080,6 +1205,28 @@ export interface components {
           "default_language"?: string;
           "locale_code"?: string;
           "timezone_id": string;
+        };
+    "CreateWebsiteInput": {
+          "site_key": string;
+          "display_name": string;
+          "default_language"?: string;
+          "locale_code"?: string;
+          "timezone_id": string;
+          "presentation": components["schemas"]["PresentationConfig"];
+          "static_pages": components["schemas"]["StaticPages"];
+        };
+    "WebsiteReadiness": {
+          "overall_ready": boolean;
+          "settings_ready": boolean;
+          "navigation_ready": boolean;
+          "homepage_ready": boolean;
+          "temporary_domain_ready": boolean;
+          "missing_components": Array<"SETTINGS" | "NAVIGATION" | "HOMEPAGE" | "TEMPORARY_DOMAIN">;
+        };
+    "CreateWebsiteResponse": {
+          "site": components["schemas"]["SiteAdminResource"];
+          "temporary_hostname": string;
+          "readiness": components["schemas"]["WebsiteReadiness"];
         };
     "SiteUpdateInput": {
           "display_name"?: string;
@@ -1338,7 +1485,7 @@ export interface components {
     "SettingJsonScalar": (string | number | boolean | null);
     "SettingJsonValue": (components["schemas"]["SettingJsonScalar"] | Array<components["schemas"]["SettingJsonScalar"]> | (Record<string, unknown>) & Record<string, (components["schemas"]["SettingJsonScalar"] | Array<components["schemas"]["SettingJsonScalar"]>)>);
     "SelectableSiteResource": {
-          "site_key": "SITE-01" | "SITE-02" | "SITE-03" | "SITE-04" | "SITE-05" | "SITE-06" | "SITE-07" | "SITE-08" | "SITE-09" | "SITE-10" | "SITE-11" | "SITE-12" | "SITE-13" | "SITE-14";
+          "site_key": string;
           "display_name": string;
           "lifecycle_state": string;
         };
@@ -2892,7 +3039,7 @@ export interface operations {
         };
       requestBody: {
         content: {
-          "application/json": components["schemas"]["SiteCreateInput"];
+          "application/json": components["schemas"]["CreateWebsiteInput"];
         };
       };
       responses: {
@@ -2905,7 +3052,7 @@ export interface operations {
               "Cache-Control"?: "no-store";
             };
             content: {
-              "application/json": components["schemas"]["SiteAdminResponse"];
+              "application/json": components["schemas"]["CreateWebsiteResponse"];
             };
           };
           400: {
@@ -14656,7 +14803,7 @@ export interface OperationRequestMap {
         "X-Request-ID"?: string;
         "Idempotency-Key": string;
       };
-      body: components["schemas"]["SiteCreateInput"];
+      body: components["schemas"]["CreateWebsiteInput"];
     };
   "API15-G-012": {
       path: {
@@ -15625,7 +15772,7 @@ export interface OperationResponseMap {
   "API15-G-002": { status: 200; data: components["schemas"]["NetworkDashboardResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
   "API15-G-003": { status: 200; data: components["schemas"]["NetworkPostListResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
   "API15-G-010": { status: 200; data: components["schemas"]["SiteListResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
-  "API15-G-011": { status: 201; data: components["schemas"]["SiteAdminResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
+  "API15-G-011": { status: 201; data: components["schemas"]["CreateWebsiteResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
   "API15-G-012": { status: 200; data: components["schemas"]["SiteAdminResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
   "API15-G-013": { status: 200; data: components["schemas"]["SiteAdminResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
   "API15-G-014": { status: 200; data: components["schemas"]["SiteAdminResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };

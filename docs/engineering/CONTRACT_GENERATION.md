@@ -1,23 +1,23 @@
-# DOC-15 RC8 contract generation
+# DOC-15 RC9 executable contract generation
 
 ## Canonical source
 
-`contracts/http/BLOG-DOC-15_openapi_v1.0-RC8.yaml`
+`contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml`
 
 Canonical SHA-256:
 
-`690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca`
+`f0d55354f79d7ff43385f5e761670b3cc8bf30a0a19de1623777be83f23ac172`
 
-RC8 is the project-owner-authorized minimum Wave-2 reconciliation revision and supersedes the accepted RC7 executable companion only for the recorded reconciliation decisions. The superseded RC7 artifact remains historical provenance under `evidence/historical/superseded/contracts/`.
+RC9 is the WU-01 executable companion revision derived from the selected DOC-15 RC8 authority. The RC8 executable YAML remains unchanged and historical; the selected DOC-15 RC8 authority remains authoritative for its owned transport semantics.
 
 ## Required checks
 
 `node tooling/scripts/check-openapi-source.mjs` verifies:
 
-- OpenAPI 3.1.0 and API version 1.0-RC8;
-- the canonical RC8 SHA-256;
-- 113 operations / 86 paths / 221 schemas-helpers;
-- 1,312 resolved internal `$ref` occurrences with zero unresolved references;
+- OpenAPI 3.1.0 and API version 1.0-RC9;
+- the canonical RC9 SHA-256;
+- 113 operations / 86 paths / 244 schemas-helpers;
+- 1,354 resolved internal `$ref` occurrences with zero unresolved references;
 - 12 AUTH / 2 PUBLIC-PREVIEW / 63 SITE / 36 GLOBAL operations;
 - success distribution 200x86 / 201x15 / 202x3 / 204x9;
 - exact operation-prefix to `x-site-context` classification.

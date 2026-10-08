@@ -78,27 +78,27 @@
     },
     "http_operations": {
       "expected": 113,
-      "source": "DOC-15 RC8 canonical YAML",
+      "source": "DOC-15 RC9 canonical YAML",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "api_paths": {
       "expected": 86,
-      "source": "DOC-15 RC8 canonical YAML",
+      "source": "DOC-15 RC9 canonical YAML",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "openapi_schemas_helpers": {
-      "expected": 221,
-      "source": "DOC-15 RC8 canonical YAML",
+      "expected": 244,
+      "source": "DOC-15 RC9 canonical YAML",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "openapi_internal_refs": {
-      "expected": 1312,
-      "source": "DOC-15 RC8 canonical YAML",
+      "expected": 1354,
+      "source": "DOC-15 RC9 canonical YAML",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "auth_operations": {
       "expected": 12,
-      "source": "DOC-15 RC8 canonical YAML",
+      "source": "DOC-15 RC9 canonical YAML",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "worker_queues": {
@@ -123,17 +123,17 @@
     },
     "public_preview_operations": {
       "expected": 2,
-      "source": "DOC-15 RC8 canonical YAML",
+      "source": "DOC-15 RC9 canonical YAML",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "site_operations": {
       "expected": 63,
-      "source": "DOC-15 RC8 canonical YAML",
+      "source": "DOC-15 RC9 canonical YAML",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "global_operations": {
       "expected": 36,
-      "source": "DOC-15 RC8 canonical YAML",
+      "source": "DOC-15 RC9 canonical YAML",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "http_success_status_distribution": {
@@ -143,7 +143,7 @@
         "202": 3,
         "204": 9
       },
-      "source": "DOC-15 RC8 canonical YAML",
+      "source": "DOC-15 RC9 canonical YAML",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     }
   }
