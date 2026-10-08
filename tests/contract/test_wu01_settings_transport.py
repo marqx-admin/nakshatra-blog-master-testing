@@ -1,4 +1,4 @@
-"""RC10 correction: complex Site Settings values remain strongly typed."""
+"""RC11 correction: complex Site Settings values remain strongly typed."""
 from __future__ import annotations
 
 from hashlib import sha256
@@ -11,8 +11,8 @@ from jsonschema import Draft202012Validator, RefResolver
 
 ROOT = Path(__file__).resolve().parents[2]
 RC9 = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml"
-RC10 = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml"
-SPEC = yaml.safe_load(RC10.read_text())
+RC11 = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml"
+SPEC = yaml.safe_load(RC11.read_text())
 SCHEMAS = SPEC["components"]["schemas"]
 
 

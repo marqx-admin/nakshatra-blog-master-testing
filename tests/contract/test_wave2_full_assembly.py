@@ -44,9 +44,9 @@ def test_wave2_full_assembly_static_guards():
     assert (ROOT / "apps/api").is_dir()
     assert (ROOT / "apps/worker").is_dir()
 
-    # Canonical RC10 source includes the local WU-01 contract extension.
-    canon = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml"
-    assert _sha256(canon) == "001363acaf1f40d65edde67fb06f36990269e89ed1c699f221c4d545a6ea2e65"
+    # Canonical RC11 source includes the local WU-01 contract extension.
+    canon = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml"
+    assert _sha256(canon) == "4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358"
 
     # CHAT04 frozen content guards.
     from bp_domain.editorial import ARTICLE_BLOCK_TYPES, PERSISTED_POST_STATES
@@ -119,7 +119,7 @@ def test_wave2_api_registration_is_canonical_without_duplicate_routes():
     from bp_api.http.admin_site.derived_routes import CHAT05_OPERATION_IDS
     from bp_test_support.fastapi_routes import iter_effective_fastapi_routes, single_http_method
 
-    canon = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml"
+    canon = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml"
     spec = yaml.safe_load(canon.read_text())
     canonical = {}
     for path, item in spec["paths"].items():

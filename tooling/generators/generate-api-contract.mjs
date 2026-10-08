@@ -15,7 +15,7 @@ const run = spawnSync(python, ['tooling/generators/generate_openapi_artifacts.py
   stdio: 'inherit',
 });
 if (run.error) {
-  console.error(`FAIL deterministic RC10 generator could not start: ${run.error.message}`);
+  console.error(`FAIL deterministic RC11 generator could not start: ${run.error.message}`);
   process.exit(30);
 }
 process.exit(run.status ?? 1);

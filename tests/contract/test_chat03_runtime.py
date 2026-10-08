@@ -160,7 +160,7 @@ def test_protected_http_rejects_non_https_when_enabled():
     app, services, *_ = build()
     settings = Settings(
         "test",
-        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml",
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml",
         ("http://admin.test",),
         "http://admin.test/reset",
         True,
@@ -190,7 +190,7 @@ def test_lifespan_and_health_boundaries_are_explicit_and_outside_canonical_api()
     services.readiness = Ready()
     settings = Settings(
         "test",
-        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml",
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml",
         ("https://admin.test",),
         "https://admin.test/reset",
         False,

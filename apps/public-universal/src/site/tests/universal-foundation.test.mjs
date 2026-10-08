@@ -58,7 +58,7 @@ test("transport or contract failure cannot reuse a previous tenant's PageData or
   assert.equal(validatePageData({ ...home("SITE-100"), presentation: { source: "STORED", config: { schema_version: 2, style_id: "CUSTOM" } } }, 200), undefined);
 });
 
-test("fixed information page and Preview require their frozen RC10 shapes", () => {
+test("fixed information page and Preview require their frozen RC11 shapes", () => {
   const rich = { runs: [{ text: "A paragraph", marks: [] }] };
   const about = { ...home("SITE-15"), context: { page_id: "PUB-STATIC-ABOUT-01", page_kind: "STATIC", render_mode: "PUBLIC" }, content: { static_key: "ABOUT", title: "About", sections: [{ paragraphs: [rich], list_items: [] }] } };
   assert.ok(validatePageData(about, 200, ["PUB-STATIC-ABOUT-01"]));

@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
-// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml
-// Source SHA-256: 001363acaf1f40d65edde67fb06f36990269e89ed1c699f221c4d545a6ea2e65
+// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml
+// Source SHA-256: 4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358
 
 export const operationRegistry = {
   "API15-AUTH-001": {

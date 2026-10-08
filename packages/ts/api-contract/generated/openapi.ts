@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
-// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml
-// Source SHA-256: 001363acaf1f40d65edde67fb06f36990269e89ed1c699f221c4d545a6ea2e65
+// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml
+// Source SHA-256: 4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358
 // Wire keys intentionally preserve the canonical OpenAPI spelling/casing.
 
 export interface components {
@@ -93,9 +93,14 @@ export interface components {
           "accent_text": string;
           "border": string;
           "focus": string;
+          "primary"?: string;
+          "secondary"?: string;
+          "background"?: string;
+          "heading"?: string;
         };
     "PresentationPalette": {
           "mode": "PRESET" | "CUSTOM";
+          "preset_id"?: string;
           "semantic_tokens"?: components["schemas"]["PresentationPaletteTokens"];
         };
     "PresentationBranding": {
@@ -112,6 +117,12 @@ export interface components {
           "content_width"?: "NARROW" | "STANDARD" | "WIDE";
           "section_spacing"?: "COMPACT" | "STANDARD" | "SPACIOUS";
           "corner_radius"?: "NONE" | "SMALL" | "MEDIUM";
+          "width_id"?: "WIDTH-READING" | "WIDTH-NARROW" | "WIDTH-STANDARD" | "WIDTH-WIDE" | "WIDTH-EXTRA-WIDE" | "WIDTH-FLUID-CAPPED";
+          "density_id"?: "DENSITY-COMPACT" | "DENSITY-STANDARD" | "DENSITY-SPACIOUS" | "DENSITY-AIRY";
+          "spacing_id"?: "COMPACT" | "STANDARD" | "SPACIOUS";
+          "radius_id"?: "RADIUS-SQUARE" | "RADIUS-SUBTLE" | "RADIUS-MEDIUM" | "RADIUS-SOFT" | "RADIUS-ROUND";
+          "border_id"?: "BORDER-NONE" | "BORDER-HAIRLINE" | "BORDER-STANDARD" | "BORDER-ACCENT-EDGE" | "BORDER-RULE-DRIVEN";
+          "elevation_id"?: "ELEVATION-FLAT" | "ELEVATION-LOW" | "ELEVATION-MEDIUM" | "ELEVATION-FLOATING";
         };
     "PresentationArticleCard": {
           "variant"?: "STANDARD" | "COMPACT" | "FEATURED";
@@ -126,6 +137,11 @@ export interface components {
           "variant"?: "COMPACT" | "PROFILE";
           "show_bio"?: boolean;
         };
+    "PresentationCards": {
+          "article_card_profile_id"?: string;
+          "category_card_profile_id"?: string;
+          "author_card_profile_id"?: string;
+        };
     "PresentationCta": {
           "enabled": boolean;
           "label"?: components["schemas"]["PresentationPlainText"];
@@ -137,12 +153,15 @@ export interface components {
         };
     "PresentationHero": {
           "layout"?: "TEXT_FIRST" | "SPLIT" | "FEATURED_ARTICLE";
+          "profile_id"?: string;
+          "image_profile_id"?: string;
           "media_id"?: string;
           "cta"?: components["schemas"]["PresentationCta"];
         };
     "PresentationHomepage": {
           "lead_layout"?: "STANDARD" | "EDITORIAL" | "GRID";
           "section_layout"?: "LIST" | "GRID";
+          "recipe_id"?: string;
         };
     "PresentationArticle": {
           "layout"?: "STANDARD" | "IMMERSIVE";
@@ -152,16 +171,30 @@ export interface components {
           "featured_media_ratio"?: "LANDSCAPE" | "WIDE";
           "author_display"?: "COMPACT" | "PROFILE";
           "related_content_layout"?: "LIST" | "GRID";
+          "layout_id"?: string;
+          "image_profile_id"?: string;
+          "related_card_profile_id"?: string;
         };
     "PresentationCollection": {
           "layout"?: "LIST" | "GRID";
           "columns"?: number;
           "show_intro"?: boolean;
         };
+    "PresentationCollections": {
+          "category_layout_id"?: string;
+          "tag_layout_id"?: string;
+          "author_articles_layout_id"?: string;
+          "search_layout_id"?: string;
+          "article_card_profile_id"?: string;
+        };
+    "PresentationControls": {
+          "button_profile_id"?: string;
+        };
     "PresentationConfig": {
           "schema_version": 1;
           "style_id": "STYLE_01" | "STYLE_02" | "STYLE_03" | "STYLE_04" | "STYLE_05" | "CUSTOM";
           "base_style_id"?: "STYLE_01" | "STYLE_02" | "STYLE_03" | "STYLE_04" | "STYLE_05";
+          "typography_id"?: string;
           "branding"?: components["schemas"]["PresentationBranding"];
           "palette"?: components["schemas"]["PresentationPalette"];
           "typography"?: components["schemas"]["PresentationTypography"];
@@ -169,11 +202,14 @@ export interface components {
           "article_card"?: components["schemas"]["PresentationArticleCard"];
           "category_card"?: components["schemas"]["PresentationCategoryCard"];
           "author_card"?: components["schemas"]["PresentationAuthorCard"];
+          "cards"?: components["schemas"]["PresentationCards"];
           "hero"?: components["schemas"]["PresentationHero"];
           "homepage"?: components["schemas"]["PresentationHomepage"];
           "article"?: components["schemas"]["PresentationArticle"];
           "collection"?: components["schemas"]["PresentationCollection"];
+          "collections"?: components["schemas"]["PresentationCollections"];
           "button"?: components["schemas"]["PresentationButton"];
+          "controls"?: components["schemas"]["PresentationControls"];
         };
     "TrustedPresentation": {
           "config": components["schemas"]["PresentationConfig"];

@@ -14,7 +14,7 @@ export function SiteHeader({ site, navigation, requestPath }: { site: SiteIdenti
         <NavigationTree items={navigation.header.items} requestPath={requestPath} idPrefix="desktop-children" />
       </nav>
       <a className="header-search" href="/search" aria-current={requestPath === "/search" ? "page" : undefined}>Search</a>
-      {/* RC10 navigation items have no stable item ID. The optional CTA remains off until a validated same-site destination is projected. */}
+      {/* RC11 navigation items have no stable item ID. The optional CTA remains off until a validated same-site destination is projected. */}
       <MobileNavigation items={navigation.header.items} requestPath={requestPath} />
     </div>
   </header>;

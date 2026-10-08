@@ -1,0 +1,14 @@
+{
+  "artifact": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml",
+  "authority": "BLOG-DOC-15 v1.0-RC11 executable WU-01 PresentationConfig correction",
+  "status": "WU01_RC11_PRESENTATION_CONFIG_CORRECTION",
+  "sha256": "4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358",
+  "supersedes": {
+    "artifact": "BLOG-DOC-15_openapi_v1.0-RC10.yaml",
+    "sha256": "001363acaf1f40d65edde67fb06f36990269e89ed1c699f221c4d545a6ea2e65"
+  },
+  "scope": [
+    "WU-01-DATA-007-PRESENTATION-REGISTRY-ID-CONTRACT-CORRECTION"
+  ],
+  "note": "RC11 adds bounded controlled PresentationConfig identifiers while retaining RC10 Site Settings transport and historical RC10 bytes. No catalogue, runtime renderer, table, or migration is introduced."
+}

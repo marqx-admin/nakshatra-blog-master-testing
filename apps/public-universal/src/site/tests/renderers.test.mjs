@@ -18,7 +18,7 @@ const { StaticInformationBody } = await import(pathToFileURL(resolve(dirname(out
 const rich = (text) => ({ runs: [{ text, marks: [] }] });
 const block = (type, payload) => ({ block_id: type.toLowerCase(), type, payload });
 
-test("the same ArticleBody renderer handles all 12 controlled RC10 block types", () => {
+test("the same ArticleBody renderer handles all 12 controlled RC11 block types", () => {
   const blocks = [
     block("PARAGRAPH", { content: rich("Paragraph text") }),
     block("HEADING", { level: 2, content: rich("Section heading") }),

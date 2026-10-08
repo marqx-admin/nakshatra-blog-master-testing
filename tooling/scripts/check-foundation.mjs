@@ -46,8 +46,8 @@ for (const d of ['database/migrations','database/seeds','database/rls','database
   if (!exists(d)) errors.push(`missing required database ownership root ${d}`);
 }
 if (!errors.some((e)=>e.includes('database ownership root'))) pass.push('database ownership roots preserved for CHAT02/integrated implementation');
-const canonical = 'contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml';
-if (exists(canonical)) pass.push('canonical pinned WU-01 RC10 YAML bound'); else errors.push('canonical RC10 YAML missing');
+const canonical = 'contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml';
+if (exists(canonical)) pass.push('canonical pinned WU-01 RC11 YAML bound'); else errors.push('canonical RC11 YAML missing');
 for (const generated of [
   'packages/ts/api-contract/generated/openapi.ts',
   'packages/ts/api-contract/generated/operation-registry.ts',
@@ -57,7 +57,7 @@ for (const generated of [
 ]) {
   if (!exists(generated)) errors.push(`missing generated contract/client artifact ${generated}`);
 }
-if (!errors.some((e)=>e.includes('generated contract/client'))) pass.push('generated RC10 contract and both typed client sources present');
+if (!errors.some((e)=>e.includes('generated contract/client'))) pass.push('generated RC11 contract and both typed client sources present');
 for (const item of pass) console.log(`PASS ${item}`);
 if (errors.length) {
   console.error(`FAIL foundation structure (${errors.length} error(s))`);

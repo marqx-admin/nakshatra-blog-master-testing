@@ -36,7 +36,7 @@ from .config import Settings
 from .http.admin_global import register as register_global
 from .http.admin_site import router as admin_site_router
 from .http.auth import router as auth_router
-from .http.contract import assert_rc10_contract, load_openapi, operation_index, owned_operations
+from .http.contract import assert_rc11_contract, load_openapi, operation_index, owned_operations
 from .http.errors import generic_error_handler, request_validation_handler, security_fault_handler
 from .http.middleware import RequestSecurityMiddleware
 from .http.public import router as public_router
@@ -58,7 +58,7 @@ SECURITY_ABUSE_POLICIES = {
 def _transport_policies(spec: dict) -> dict[str, LimitPolicy]:
     classes = spec.get("components", {}).get("x-rate-limit-classes", {})
     if not classes:
-        raise RuntimeError("canonical RC10 transport rate-limit registry is missing")
+        raise RuntimeError("canonical RC11 transport rate-limit registry is missing")
     return {
         class_id: LimitPolicy(int(raw["limit"]), int(raw["window_seconds"]))
         for class_id, raw in classes.items()
@@ -116,7 +116,7 @@ def create_app(*, settings: Settings | None = None, services: Services | None = 
         if candidate.exists():
             spec_path = candidate
     spec = load_openapi(spec_path)
-    assert_rc10_contract(spec)
+    assert_rc11_contract(spec)
 
     if services is not None:
         resolved_services = services
@@ -163,7 +163,7 @@ def create_app(*, settings: Settings | None = None, services: Services | None = 
 
     app = Chat03CompatibleFastAPI(
         title="Multi-Site Blogging Platform API",
-        version="1.0-RC10",
+        version="1.0-RC11",
         docs_url=None,
         redoc_url=None,
         openapi_url=None,

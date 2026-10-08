@@ -7,24 +7,25 @@ import test from 'node:test';
 
 const root = process.cwd();
 const python = process.env.BP_PYTHON || (fs.existsSync(path.join(root,'.venv/bin/python')) ? path.join(root,'.venv/bin/python') : 'python3');
-const pinnedSha = '001363acaf1f40d65edde67fb06f36990269e89ed1c699f221c4d545a6ea2e65';
-const supersededRc9Sha = 'f0d55354f79d7ff43385f5e761670b3cc8bf30a0a19de1623777be83f23ac172';
-const source = path.join(root,'contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml');
+const pinnedSha = '4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358';
+const supersededRc10Sha = '001363acaf1f40d65edde67fb06f36990269e89ed1c699f221c4d545a6ea2e65';
+const source = path.join(root,'contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml');
 function run(cmd,args) { return spawnSync(cmd,args,{cwd:root,encoding:'utf8'}); }
 
-test('pinned local RC10 bytes and provenance are bound exactly', () => {
+test('pinned local RC11 bytes and provenance are bound exactly', () => {
   const actual = crypto.createHash('sha256').update(fs.readFileSync(source)).digest('hex');
   assert.equal(actual,pinnedSha);
-  const provenance = JSON.parse(fs.readFileSync(path.join(root,'contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.provenance.json'),'utf8'));
+  const provenance = JSON.parse(fs.readFileSync(path.join(root,'contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.provenance.json'),'utf8'));
   assert.equal(provenance.sha256,pinnedSha);
-  assert.equal(provenance.supersedes.sha256,supersededRc9Sha);
+  assert.equal(provenance.supersedes.sha256,supersededRc10Sha);
+  assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml'))).digest('hex'),supersededRc10Sha);
 });
 
-test('RC10 registry/count/reference/scope/success verification passes', () => {
+test('RC11 registry/count/reference/scope/success verification passes', () => {
   const r = run(python,['tooling/scripts/verify-openapi-contract.py']);
   assert.equal(r.status,0,`${r.stdout}\n${r.stderr}`);
-  assert.match(r.stdout,/operations=113 paths=86 schemas\/helpers=245/);
-  assert.match(r.stdout,/resolved internal references=1357 unresolved=0/);
+  assert.match(r.stdout,/operations=113 paths=86 schemas\/helpers=248/);
+  assert.match(r.stdout,/resolved internal references=1360 unresolved=0/);
   assert.match(r.stdout,/AUTH:12 PUBLIC\/PREVIEW:2 SITE:63 GLOBAL:36/);
   assert.match(r.stdout,/200x86 201x15 202x3 204x9/);
 });

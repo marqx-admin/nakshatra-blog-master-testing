@@ -23,7 +23,7 @@ def build(super_admin=False,mfa=False,require_mfa_on_login=True):
     asyncio.run(state.put_credential(CredentialRecord('admin-1',ids.verifier,'argon2id',{'memory_kib':65536,'iterations':3,'parallelism':1,'salt_bytes':16,'hash_bytes':32},datetime.now(UTC))))
     auth=AuthService(ids,state,secrets,audit,mail,PasswordPolicy(SetWeakPasswordChecker({'password12345'})),codec,require_mfa_on_login=require_mfa_on_login)
     services=Services(TrustedContextService(FakeSites()),AuthorizationService(ids),SessionAuthority(state,ids),auth,FakePublic(),FakeGlobals(),audit,site_context_payload=SiteContextPayload())
-    app=create_app(settings=Settings('test','contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml',('https://admin.test',),'https://admin.test/reset',False),services=services)
+    app=create_app(settings=Settings('test','contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml',('https://admin.test',),'https://admin.test/reset',False),services=services)
     return app,services,ids,state,audit,mail,secrets
 
 def test_login_is_enumeration_safe_and_sets_host_only_session():
