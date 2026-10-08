@@ -1,33 +1,47 @@
 import type { CSSProperties } from "react";
 import type { components } from "@bp/api-contract";
+import { BORDERS, DENSITIES, ELEVATIONS, RADII, SPACINGS, WIDTHS, inverseText, resolveDesign, typography, typographyTokens } from "@bp/presentation-catalogue";
 
 type TrustedPresentation = components["schemas"]["TrustedPresentation"];
 type ThemeStyle = CSSProperties & Record<`--u-${string}`, string>;
 
-const SAFE_COLORS = {
-  surface: "#ffffff", surface_alt: "#f6f7f9", text: "#17202a", text_muted: "#506070",
-  accent: "#174f70", accent_text: "#ffffff", border: "#d2d9df", focus: "#174f70",
-};
-const widths = { NARROW: "960px", STANDARD: "1120px", WIDE: "1280px" } as const;
-const spacing = { COMPACT: "2rem", STANDARD: "3rem", SPACIOUS: "4.5rem" } as const;
-const radii = { NONE: "0px", SMALL: "6px", MEDIUM: "12px" } as const;
-const color = (value: unknown, fallback: string): string => typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback;
+const quote = (value: string): string => value === "system-ui" ? "system-ui" : `"${value.replaceAll('"', '')}"`;
+const devanagariSans = '"Noto Sans Devanagari", "Kohinoor Devanagari", "Nirmala UI", sans-serif';
+const devanagariSerif = '"Noto Serif Devanagari", "Kohinoor Devanagari", "Nirmala UI", serif';
+function stack(value: string, serif: boolean): string {
+  return `${quote(value)}, ${serif ? devanagariSerif : devanagariSans}`;
+}
 
-// Pure projection: each SSR response creates its own style object; no tenant data is stored in a module singleton.
-export function presentationStyle(presentation?: TrustedPresentation): ThemeStyle {
-  const palette = presentation?.config.schema_version === 1 ? presentation.config.palette?.semantic_tokens : undefined;
-  const layout = presentation?.config.schema_version === 1 ? presentation.config.layout : undefined;
+// All values are projected from code-owned tokens for this response. No tenant state is retained.
+export function presentationStyle(presentation?: TrustedPresentation, locale = "en"): ThemeStyle {
+  const { selection, colors } = resolveDesign(presentation?.config, locale);
+  const type = typography[selection.typography];
+  const density = DENSITIES[selection.density];
+  const typeTokens = typographyTokens(selection.typography);
   return {
-    "--u-surface": color(palette?.surface, SAFE_COLORS.surface),
-    "--u-surface-alt": color(palette?.surface_alt, SAFE_COLORS.surface_alt),
-    "--u-text": color(palette?.text, SAFE_COLORS.text),
-    "--u-muted": color(palette?.text_muted, SAFE_COLORS.text_muted),
-    "--u-accent": color(palette?.accent, SAFE_COLORS.accent),
-    "--u-accent-text": color(palette?.accent_text, SAFE_COLORS.accent_text),
-    "--u-border": color(palette?.border, SAFE_COLORS.border),
-    "--u-focus": color(palette?.focus, SAFE_COLORS.focus),
-    "--u-width": widths[layout?.content_width ?? "STANDARD"],
-    "--u-section-gap": spacing[layout?.section_spacing ?? "STANDARD"],
-    "--u-radius": radii[layout?.corner_radius ?? "SMALL"],
+    "--u-surface": colors.surface,
+    "--u-surface-alt": colors.surface_alt,
+    "--u-text": colors.text,
+    "--u-muted": colors.text_muted,
+    "--u-accent": colors.accent,
+    "--u-accent-text": colors.accent_text,
+    "--u-primary": colors.primary ?? colors.accent,
+    "--u-primary-text": inverseText(colors.primary ?? colors.accent),
+    "--u-border": colors.border,
+    "--u-focus": colors.focus,
+    "--u-width": `${WIDTHS[selection.width]}px`,
+    "--u-section-gap": SPACINGS[selection.spacing],
+    "--u-grid-gap": density.gap,
+    "--u-card-padding": density.padding,
+    "--u-radius": RADII[selection.radius],
+    "--u-border-width": BORDERS[selection.border],
+    "--u-elevation": ELEVATIONS[selection.elevation],
+    "--u-font-heading": stack(type.heading, !/sans|inter|manrope|mukta|hind|system-ui/i.test(type.heading)),
+    "--u-font-body": stack(type.body, false),
+    "--u-body-size": typeTokens.bodySize,
+    "--u-body-line": typeTokens.bodyLine,
+    "--u-heading-weight": typeTokens.headingWeight,
+    "--u-heading-tracking": typeTokens.headingTracking,
+    "--u-heading-scale": typeTokens.headingScale,
   };
 }

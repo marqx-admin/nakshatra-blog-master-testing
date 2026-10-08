@@ -4,6 +4,8 @@ One Next.js Pages Router application serves any registered website through the p
 
 The app renders the RC11 PageData response with one fixed Header/Footer shell. Presentation tokens are projected into a new style object for each response. Unknown hosts and untrusted API failures render a neutral state. Preview uses the existing backend handoff and session authority.
 
+WU-04 visual option IDs and safe defaults come from `@bp/presentation-catalogue`. The shared page engines consume per-request resolved configuration; Header/Footer structure, Host authority and Preview authority remain fixed.
+
 Robots and sitemap requests pass through to the WU-02 API crawler routes with the same incoming Host. The backend remains responsible for crawler policy and tenant resolution.
 
 Local static checks:

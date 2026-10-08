@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "jsx": "preserve",
     "baseUrl": "../..",
     "plugins": [
@@ -17,6 +18,9 @@
       ],
       "@bp/api-client-public": [
         "packages/ts/api-client-public/src/index.ts"
+      ],
+      "@bp/presentation-catalogue": [
+        "packages/ts/presentation-catalogue/src/index.ts"
       ]
     }
   },

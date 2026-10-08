@@ -53,7 +53,7 @@ test("transport or contract failure cannot reuse a previous tenant's PageData or
   assert.equal(second?.site.site_key, "SITE-100");
   assert.equal(presentationStyle(first?.presentation)["--u-accent"], "#123456");
   assert.equal(presentationStyle(second?.presentation)["--u-accent"], "#654321");
-  assert.equal(presentationStyle(undefined)["--u-accent"], "#174f70");
+  assert.equal(presentationStyle(undefined)["--u-accent"], "#B08A42");
   assert.equal(validatePageData({ ...home("SITE-100"), navigation: undefined }, 200), undefined);
   assert.equal(validatePageData({ ...home("SITE-100"), presentation: { source: "STORED", config: { schema_version: 2, style_id: "CUSTOM" } } }, 200), undefined);
 });
@@ -68,7 +68,7 @@ test("fixed information page and Preview require their frozen RC11 shapes", () =
   assert.equal(validatePageData(preview, 200, ["PUB-ARTICLE-01"]), undefined);
 });
 
-test("one route tree and fixed shell; no compiled tenant identity or design catalogue", () => {
+test("one route tree and fixed shell; no compiled tenant identity", () => {
   for (const path of ["pages/index.tsx", "pages/article/[post_slug].tsx", "pages/category/[category_slug].tsx", "pages/tag/[tag_slug].tsx", "pages/author/[author_slug].tsx", "pages/search.tsx", "pages/about.tsx", "pages/contact.tsx", "pages/privacy-policy.tsx", "pages/terms-of-use.tsx", "pages/disclaimer.tsx", "pages/_preview/post/[post_id].tsx", "pages/[...path].tsx", "pages/404.tsx", "pages/_error.tsx"]) assert.ok(existsSync(resolve(app, "src", path)), path);
   const ssr = source("src/site/lib/ssr.ts");
   assert.match(ssr, /ctx\.req\.headers\.host/);
@@ -80,7 +80,7 @@ test("one route tree and fixed shell; no compiled tenant identity or design cata
   const shell = source("src/site/shell/navigation/site-shell.tsx");
   assert.match(shell, /SiteHeader/);
   assert.match(shell, /SiteFooter/);
-  assert.match(shell, /presentationStyle\(presentation\)/);
+  assert.match(shell, /presentationStyle\(presentation, locale\)/);
   const header = source("src/site/shell/header/site-header.tsx");
   assert.match(header, /href="\/search"/);
   assert.match(header, /site\.logo_media/);

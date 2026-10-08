@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24 <25" },
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,6 +15,25 @@
   "dependencies": {
     "@bp/api-client-public": "workspace:*",
     "@bp/api-contract": "workspace:*",
+    "@bp/presentation-catalogue": "workspace:*",
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/fraunces": "^5.3.0",
+    "@fontsource/hind": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/karma": "^5.3.0",
+    "@fontsource/libre-baskerville": "^5.3.0",
+    "@fontsource/literata": "^5.3.0",
+    "@fontsource/lora": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
+    "@fontsource/merriweather": "^5.3.0",
+    "@fontsource/mukta": "^5.3.0",
+    "@fontsource/nunito-sans": "^5.3.0",
+    "@fontsource/playfair-display": "^5.3.0",
+    "@fontsource/source-sans-3": "^5.3.0",
+    "@fontsource/space-grotesk": "^5.3.0",
+    "@fontsource/spectral": "^5.3.0",
+    "@fontsource/tiro-devanagari-hindi": "^5.3.0",
     "next": "^16.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
