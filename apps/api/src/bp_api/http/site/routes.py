@@ -62,9 +62,9 @@ def chat04_operations(spec: dict[str, Any]) -> list[OperationContract]:
     if found != CHAT04_OPERATION_IDS:
         missing = sorted(CHAT04_OPERATION_IDS - found)
         extra = sorted(found - CHAT04_OPERATION_IDS)
-        raise RuntimeError(f"CHAT04 canonical RC9 operation mismatch: missing={missing}, extra={extra}")
+        raise RuntimeError(f"CHAT04 canonical RC10 operation mismatch: missing={missing}, extra={extra}")
     if len(operations) != 42:
-        raise RuntimeError(f"CHAT04 must own exactly 42 RC9 operations, found {len(operations)}")
+        raise RuntimeError(f"CHAT04 must own exactly 42 RC10 operations, found {len(operations)}")
     return operations
 
 
@@ -123,7 +123,7 @@ async def _idempotent_execute(
 
     store = transport.idempotency
     if store is None:
-        # A process-local hidden fallback would violate the RC9 24-hour replay
+        # A process-local hidden fallback would violate the RC10 24-hour replay
         # guarantee once the API is replicated. CHAT00/CHAT05 must inject the
         # approved shared implementation; CHAT04 does not implement Redis here.
         raise Unavailable("idempotency service unavailable")
@@ -244,7 +244,7 @@ def build_router(
     *,
     state_attr: str = "chat04_editorial",
 ) -> APIRouter:
-    """Build exactly the CHAT04 RC9 SITE transport router.
+    """Build exactly the CHAT04 RC10 SITE transport router.
 
     CHAT00 integrates the returned router into ``bp_api.app`` and assigns an
     ``EditorialTransportServices`` instance to ``app.state.<state_attr>``. This

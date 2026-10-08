@@ -27,7 +27,7 @@ from bp_api.config import Settings
 from bp_api.http.site import CHAT04_OPERATION_IDS
 from bp_api.http.admin_site.derived_routes import CHAT05_OPERATION_IDS
 
-CANON = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml"
+CANON = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml"
 
 
 def _canonical_operations(spec):

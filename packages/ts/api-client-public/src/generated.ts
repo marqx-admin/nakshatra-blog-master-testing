@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
-// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml
-// Source SHA-256: f0d55354f79d7ff43385f5e761670b3cc8bf30a0a19de1623777be83f23ac172
+// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml
+// Source SHA-256: 001363acaf1f40d65edde67fb06f36990269e89ed1c699f221c4d545a6ea2e65
 
 import { operationRegistry } from "@bp/api-contract";
 import type { OperationRequestMap, OperationResponseMap } from "@bp/api-contract";

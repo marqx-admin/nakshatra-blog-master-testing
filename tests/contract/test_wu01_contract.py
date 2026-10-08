@@ -10,7 +10,7 @@ from jsonschema import Draft202012Validator, RefResolver
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = yaml.safe_load(
-    (ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml").read_text()
+    (ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml").read_text()
 )
 SCHEMAS = SPEC["components"]["schemas"]
 

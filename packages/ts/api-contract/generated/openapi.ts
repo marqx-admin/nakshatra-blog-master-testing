@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
-// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml
-// Source SHA-256: f0d55354f79d7ff43385f5e761670b3cc8bf30a0a19de1623777be83f23ac172
+// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml
+// Source SHA-256: 001363acaf1f40d65edde67fb06f36990269e89ed1c699f221c4d545a6ea2e65
 // Wire keys intentionally preserve the canonical OpenAPI spelling/casing.
 
 export interface components {
@@ -1176,11 +1176,21 @@ export interface components {
           "key": string;
           "value": components["schemas"]["SettingJsonValue"];
         };
+    "SiteSettingEntry": ({
+          "key": "presentation_config";
+          "value": components["schemas"]["PresentationConfig"];
+        } | {
+          "key": "static_pages";
+          "value": components["schemas"]["StaticPages"];
+        } | {
+          "key": "display_name" | "locale_code" | "default_language_code" | "timezone_id" | "logo_media_id" | "favicon_media_id" | "default_social_image_media_id" | "copyright_text" | "contact_info" | "social_profiles" | "seo_defaults" | "analytics_verification";
+          "value": components["schemas"]["SettingJsonValue"];
+        });
     "SiteSettingsInput": {
-          "settings": Array<components["schemas"]["SettingEntry"]>;
+          "settings": Array<components["schemas"]["SiteSettingEntry"]>;
         };
     "SiteSettingsResponse": {
-          "settings": Array<components["schemas"]["SettingEntry"]>;
+          "settings": Array<components["schemas"]["SiteSettingEntry"]>;
         };
     "PlatformSettingsInput": {
           "settings": Array<components["schemas"]["SettingEntry"]>;

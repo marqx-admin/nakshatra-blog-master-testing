@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-EXPECTED_OPENAPI_SHA = "f0d55354f79d7ff43385f5e761670b3cc8bf30a0a19de1623777be83f23ac172"
+EXPECTED_OPENAPI_SHA = "001363acaf1f40d65edde67fb06f36990269e89ed1c699f221c4d545a6ea2e65"
 EXPECTED_SITES = [
     "site-01-whats-your-rashi",
     "site-02-apki-rashi",
@@ -51,9 +51,9 @@ check("single API application folder", (ROOT / "apps/api").is_dir())
 check("single Worker application folder", (ROOT / "apps/worker").is_dir())
 
 # Canonical OpenAPI source custody.
-openapi = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC9.yaml"
+openapi = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC10.yaml"
 actual_sha = hashlib.sha256(openapi.read_bytes()).hexdigest() if openapi.is_file() else "MISSING"
-check("owner-approved RC9 OpenAPI byte identity", actual_sha == EXPECTED_OPENAPI_SHA, actual_sha)
+check("owner-approved RC10 OpenAPI byte identity", actual_sha == EXPECTED_OPENAPI_SHA, actual_sha)
 
 # DOC-08 source baseline counts (source verification only, not live PostgreSQL PASS).
 contract_path = ROOT / "database/verification/doc08-contract.json"
