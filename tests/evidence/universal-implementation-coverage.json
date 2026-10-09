@@ -1,0 +1,2642 @@
+{
+  "title": "Final Universal local/static implementation coverage",
+  "baseline_commit": "c3f049fbb6cc5eacad4c1f6b1ff84fd384e2093c",
+  "canonical_contract": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml",
+  "scope": "WU-00 171 requirement rows reviewed against current repository; no historical BLOG-DOC PDFs or audits used as target authority",
+  "status_totals": {
+    "IMPLEMENTED": 171,
+    "INTENTIONALLY_DEFERRED_BY_LOCK": 0,
+    "BLOCKED": 0
+  },
+  "limitations": [
+    "No live PostgreSQL, browser, Docker image, DNS, Coolify runtime, or deployment proof.",
+    "Repository-wide Ruff and root format findings predate WU-07 and are reported in the final gate."
+  ],
+  "requirements": [
+    {
+      "requirement_id": "CORE-001",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Retain exactly one Central Admin application for GLOBAL and SITE workspaces.",
+      "implementation_files": [
+        "apps/admin/src/app/router/AdminRouter.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-002",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Retain one reusable Website Dashboard/Site Workspace implementation for N SiteContexts.",
+      "implementation_files": [
+        "apps/admin/src/app/router/AdminRouter.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-003",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Create one target Universal Public Frontend codebase/image that renders all tenants by authoritative Host/SiteContext.",
+      "implementation_files": [
+        "infrastructure/images/public-universal.Dockerfile"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-004",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep one shared FastAPI API architecture; do not create per-site API instances or codebases.",
+      "implementation_files": [
+        "infrastructure/coolify/compose.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-005",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep one shared worker system and existing worker profiles; no per-site workers.",
+      "implementation_files": [
+        "infrastructure/coolify/compose.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-006",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep one shared PostgreSQL platform with site_id ownership and FORCE RLS as tenant data authority.",
+      "implementation_files": [
+        "database/migrations/0013_DB-MIG-013__rls-policies.sql"
+      ],
+      "validation_evidence": [
+        "tests/isolation/test_chat03_context.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-007",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep shared Redis, OpenSearch, MinIO/object storage, and existing security-state architecture.",
+      "implementation_files": [
+        "infrastructure/coolify/compose.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-008",
+      "owning_wu": "WU-00",
+      "status": "IMPLEMENTED",
+      "requirement": "Enforce WEBSITE != APPLICATION: a website is tenant identity/settings/content/navigation/media/permissions/presentation/domains.",
+      "implementation_files": [
+        "infrastructure/coolify/compose.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-009",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Universal Frontend = fixed ready-made functional core + controlled visual configuration; never a page builder.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-010",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Forbid arbitrary HTML, CSS, JS, JSX/React, arbitrary components/templates/imports/font URLs in tenant presentation/content configuration.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-011",
+      "owning_wu": "WU-06",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep all 14 legacy public apps/services during implementation as reference, parity and rollback targets; do not delete them in coding phase.",
+      "implementation_files": [
+        "infrastructure/coolify/compose.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-012",
+      "owning_wu": "WU-00",
+      "status": "IMPLEMENTED",
+      "requirement": "Use source-of-truth order: current repo -> audits 1-14 -> current owner target decisions; old original PDFs cannot override.",
+      "implementation_files": [
+        "tests/evidence/universal-implementation-coverage.json"
+      ],
+      "validation_evidence": [
+        "tests/contract/source-baseline-guard.py"
+      ],
+      "notes": "Owner authority reset supersedes WU-00 audit-order wording. This review used current four authorities and repository evidence; no audits or historical PDFs were target authority."
+    },
+    {
+      "requirement_id": "CORE-013",
+      "owning_wu": "WU-00",
+      "status": "IMPLEMENTED",
+      "requirement": "Implementation pack authorizes code updates/local validation only; no live deployment, DNS, production DB operation, traffic cutover, or live Coolify mutation.",
+      "implementation_files": [
+        "tests/evidence/universal-implementation-coverage.json"
+      ],
+      "validation_evidence": [
+        "tests/contract/source-baseline-guard.py"
+      ],
+      "notes": "This is a local/static gate. No live operations were performed."
+    },
+    {
+      "requirement_id": "CORE-014",
+      "owning_wu": "WU-06",
+      "status": "IMPLEMENTED",
+      "requirement": "Future SITE-N must not create a per-site frontend app, Dashboard app, API, database, or Docker/Coolify frontend service.",
+      "implementation_files": [
+        "infrastructure/images/public-universal.Dockerfile"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "CORE-015",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Preserve public authority chain Host -> Domain -> trusted SiteContext -> site_id -> transaction -> FORCE RLS; frontend config never selects tenant.",
+      "implementation_files": [
+        "database/migrations/0013_DB-MIG-013__rls-policies.sql"
+      ],
+      "validation_evidence": [
+        "tests/isolation/test_chat03_context.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-001",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Final GLOBAL launch navigation exposes Dashboard, Websites/Sites & Domains, Admin Users, Audit, Platform Settings; Roles/Permission Registry stay hidden from normal launch navigation.",
+      "implementation_files": [
+        "apps/admin/src/app/router/admin-pages.json"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-002",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Global Dashboard remains simple/high-level: total/active/disabled-testing sites, recent sites/activity, high-level platform status; no cross-site editorial CMS.",
+      "implementation_files": [
+        "apps/admin/src/modules/global/GlobalPages.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-003",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Canonical Create Website route remains GLOBAL `/global/sites/new`.",
+      "implementation_files": [
+        "apps/admin/src/modules/global/CreateWebsitePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-004",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Create Website flow order: Identity -> 5 styles or Custom -> customization -> visual preview -> review/confirm -> atomic provisioning -> temp Host -> readiness -> existing Dashboard -> configure/test -> production domain later.",
+      "implementation_files": [
+        "apps/admin/src/modules/global/CreateWebsitePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-005",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Expose exactly five user-facing Ready-made Website Styles: Modern Magazine, Classic Editorial, Minimal Clean, Bold News, Warm / Spiritual Editorial.",
+      "implementation_files": [
+        "apps/admin/src/modules/global/CreateWebsitePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-006",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Expose Start Custom and allow customization of a selected ready-made style using approved controls only.",
+      "implementation_files": [
+        "apps/admin/src/modules/global/CreateWebsitePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-007",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Appearance selection is visual-first with thumbnails/representative previews; internal IDs are not primary UX.",
+      "implementation_files": [
+        "apps/admin/src/modules/global/CreateWebsitePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-008",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Provide two preview levels: in-Admin representative appearance preview before provisioning, and real temporary-host Universal site after provisioning/enablement.",
+      "implementation_files": [
+        "apps/admin/src/modules/global/CreateWebsitePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-009",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Add Appearance inside reusable SITE workspace, conceptually `/site/:siteKey/appearance`; do not create a new Admin app.",
+      "implementation_files": [
+        "apps/admin/src/modules/site/AppearancePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-010",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Appearance UI covers Ready-made Styles, Custom Appearance, Branding, Colors, Typography, Cards, Hero, Homepage style, Article style, Collection style, Image treatment, global tokens, conditional Button/CTA, Information Pages, visual preview, and open-temp-site action.",
+      "implementation_files": [
+        "apps/admin/src/modules/site/AppearancePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-011",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Do not expose Header or Footer structural profile selectors in V1; one fixed shell consumes runtime content/branding/tokens.",
+      "implementation_files": [
+        "apps/admin/src/modules/site/AppearancePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-012",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Provide controlled editor for exactly five information pages: About, Contact, Privacy, Terms, Disclaimer.",
+      "implementation_files": [
+        "apps/admin/src/modules/appearance/AppearanceControls.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-013",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Reuse existing `site_settings.view/edit` authority for Appearance and fixed information pages; do not add `appearance.*` or new page permission family in V1.",
+      "implementation_files": [
+        "apps/admin/src/modules/appearance/AppearanceControls.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-014",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Production/canonical domain management remains GLOBAL/Super-Admin-only and never appears in ordinary Site Workspace/Appearance.",
+      "implementation_files": [
+        "apps/admin/src/app/router/AdminRouter.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-015",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "SITE workspace remains editorial/site-local: posts, categories, tags, authors, media, nav/home, appearance, SEO, redirects, search, calendar, settings.",
+      "implementation_files": [
+        "apps/admin/src/app/router/AdminRouter.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-016",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep ordinary-user assigned-sites landing selector and server-side assignment denial; extend only so future sites can appear when assigned.",
+      "implementation_files": [
+        "apps/admin/src/app/router/AdminRouter.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-017",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Do not create role-specific dashboards; Super Admin, FWM and CE use same Site Dashboard with permission-filtered actions.",
+      "implementation_files": [
+        "apps/admin/src/app/router/AdminRouter.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-018",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Audit is explicitly visible in final GLOBAL launch UX; this supersedes older hide-Audit launch notes.",
+      "implementation_files": [
+        "apps/admin/src/app/router/admin-pages.json"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-019",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep Platform Settings but render structured controls rather than raw JSON-style editing.",
+      "implementation_files": [
+        "apps/admin/src/modules/global/PlatformSettingsPage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-020",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep Global All Posts non-primary and do not expand it into cross-site editorial management.",
+      "implementation_files": [
+        "apps/admin/src/modules/global/GlobalPages.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-021",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Never expose an Appearance control unless UI -> type -> OpenAPI -> validation -> auth -> persistence -> PageData -> renderer -> responsive fallback -> tests all exist.",
+      "implementation_files": [
+        "apps/admin/src/modules/site/AppearancePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-022",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Custom palette UI uses semantic color pickers with visible contrast validation errors; invalid combinations cannot save.",
+      "implementation_files": [
+        "apps/admin/src/modules/appearance/AppearanceControls.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-023",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Image-based category-card choices remain hidden/unavailable until a real end-to-end category-image contract exists; do not add such contract in V1 solely for appearance.",
+      "implementation_files": [
+        "apps/admin/src/modules/site/AppearancePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "ADM-024",
+      "owning_wu": "WU-05",
+      "status": "IMPLEMENTED",
+      "requirement": "Header CTA is optional/default OFF and only exposed if existing structured navigation can support a validated same-site destination end-to-end; otherwise keep control hidden.",
+      "implementation_files": [
+        "apps/admin/src/modules/site/AppearancePage.tsx"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": "Header CTA Appearance control remains hidden pending end-to-end structured destination support."
+    },
+    {
+      "requirement_id": "DATA-001",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Create only a new migration after DB-MIG-019; never edit DB-MIG-001..019.",
+      "implementation_files": [
+        "database/migrations/0020_DB-MIG-020__universal-presentation-foundation.sql"
+      ],
+      "validation_evidence": [
+        "database/verification/verify_static.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-002",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Extend existing RLS-protected `site_settings` with validated presentation/static-page fields (e.g. presentation_schema_version, presentation_config JSONB, static_pages JSONB).",
+      "implementation_files": [
+        "database/migrations/0020_DB-MIG-020__universal-presentation-foundation.sql"
+      ],
+      "validation_evidence": [
+        "database/verification/verify_static.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-003",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Do not add `site_presentations` table in V1.",
+      "implementation_files": [
+        "database/migrations/0020_DB-MIG-020__universal-presentation-foundation.sql"
+      ],
+      "validation_evidence": [
+        "database/verification/verify_static.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-004",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Do not add `site_static_pages` table in V1.",
+      "implementation_files": [
+        "database/migrations/0020_DB-MIG-020__universal-presentation-foundation.sql"
+      ],
+      "validation_evidence": [
+        "database/verification/verify_static.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-005",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Do not add `SETUP` lifecycle state in V1; retain ACTIVE, DISABLED, ARCHIVED, DELETION_REQUESTED.",
+      "implementation_files": [
+        "database/migrations/0020_DB-MIG-020__universal-presentation-foundation.sql"
+      ],
+      "validation_evidence": [
+        "database/verification/verify_static.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-006",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Generalize contract/application site-key validation beyond fixed SITE-01..SITE-14 using repository-consistent grammar compatible with DB `^SITE-[0-9]{2,}$`.",
+      "implementation_files": [
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml"
+      ],
+      "validation_evidence": [
+        "tests/contract/test_wu01_contract.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-007",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Define canonical PresentationConfig contract covering ready-made style, branding, palette, typography, layout tokens, cards, hero, homepage, article, collections, button/CTA; intentionally no Header/Footer structural profile fields.",
+      "implementation_files": [
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml"
+      ],
+      "validation_evidence": [
+        "tests/contract/test_wu01_contract.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-008",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Define validated static_pages contract for exactly ABOUT, CONTACT, PRIVACY, TERMS, DISCLAIMER with enabled/version/title/intro/body_sections structure.",
+      "implementation_files": [
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml"
+      ],
+      "validation_evidence": [
+        "tests/contract/test_wu01_contract.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-009",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Custom palette contract supports semantic tokens only; no freeform style strings.",
+      "implementation_files": [
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml"
+      ],
+      "validation_evidence": [
+        "tests/contract/test_wu01_contract.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-010",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Schema forbids raw CSS/selectors/style strings/HTML/JS/JSX/React/arbitrary font URLs/component names/import paths/server templates.",
+      "implementation_files": [
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml"
+      ],
+      "validation_evidence": [
+        "tests/contract/test_wu01_contract.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-011",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Presentation fallback chain is stored config -> validate version/IDs -> selected preset defaults -> platform SAFE_DEFAULT; never another tenant config.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/presentation.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-012",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Referenced media/navigation IDs in presentation settings must be same-site validated server-side.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/presentation.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-013",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Extend common public PageData envelope to include trusted presentation alongside context/site/settings/navigation/SEO/page payload.",
+      "implementation_files": [
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml"
+      ],
+      "validation_evidence": [
+        "tests/contract/test_wu01_contract.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-014",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Unknown Host responses must not fabricate known-site PageData/presentation envelope.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/presentation.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-015",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Define Create Website request/response/readiness contract sufficient for one server-owned atomic provisioning operation.",
+      "implementation_files": [
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml"
+      ],
+      "validation_evidence": [
+        "tests/contract/test_wu01_contract.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-016",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Regenerate canonical TS contract/admin/public clients deterministically after OpenAPI changes; downstream units consume generated artifacts and do not hand-edit them.",
+      "implementation_files": [
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml"
+      ],
+      "validation_evidence": [
+        "tests/contract/test_wu01_contract.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-017",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Correct launch role definitions: CE gets `tags.view`; FWM gets `tags.view/create/edit/delete`.",
+      "implementation_files": [
+        "database/migrations/0020_DB-MIG-020__universal-presentation-foundation.sql"
+      ],
+      "validation_evidence": [
+        "database/verification/verify_static.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-018",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Lifecycle enum/contract remains existing four site statuses; Admin eligibility behavior changes in backend, not enum expansion.",
+      "implementation_files": [
+        "database/migrations/0020_DB-MIG-020__universal-presentation-foundation.sql"
+      ],
+      "validation_evidence": [
+        "database/verification/verify_static.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-019",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Provision homepage baseline using exact existing registry keys/kinds/contract versions discovered from repository; do not invent a parallel homepage schema.",
+      "implementation_files": [
+        "database/migrations/0021_DB-MIG-021__atomic-website-provisioning.sql"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": "Current Universal V1 baseline is two contract-owned rows: featured-posts and featured-categories, not a legacy row set."
+    },
+    {
+      "requirement_id": "DATA-020",
+      "owning_wu": "WU-01",
+      "status": "IMPLEMENTED",
+      "requirement": "Do not introduce category-image DB/API fields solely to unlock image card variants in V1.",
+      "implementation_files": [
+        "database/migrations/0020_DB-MIG-020__universal-presentation-foundation.sql"
+      ],
+      "validation_evidence": [
+        "database/verification/verify_static.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-021",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Temporary hostname is an ordinary explicit domain mapping tied to the same site_id; production domain promotion changes address/canonical state, not tenant identity.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/global_postgres.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DATA-022",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Readiness is computed response/state, not a new durable lifecycle value.",
+      "implementation_files": [
+        "database/migrations/0021_DB-MIG-021__atomic-website-provisioning.sql"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-001",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Replace row-only Create Site with one backend-owned all-or-nothing provisioning transaction.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/global_postgres.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-002",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Allow authorized Super Admin/assigned users to configure DISABLED sites through Admin SiteContext according to permissions.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/context.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-003",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep DISABLED public sites fail-closed.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/context.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-004",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "When temporary-site whole-site testing is explicitly enabled via existing lifecycle, temporary-host output is publicly reachable but forced noindex/crawler-disallow; noindex is not privacy.",
+      "implementation_files": [
+        "apps/api/src/bp_api/http/public/routes.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-005",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Decouple Admin site lookup/configuration from requirement for an active canonical domain while preserving public Host/domain authority.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/context.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-006",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Public API resolves tenant strictly from incoming Host/domain mapping to trusted SiteContext; no client-selected site_id authority or default tenant.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/context.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-007",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Unknown/unregistered Host returns neutral response with no tenant identity/theme/navigation/canonical metadata.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/context.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-008",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Known-site 404/410 retain tenant PageData/shell context and correct HTTP semantics.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/context.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-009",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Project validated public site identity/settings/navigation/presentation/SEO into PageData under authoritative SiteContext.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/presentation.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-010",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Repair existing SEO wiring: Admin/runtime title and meta naming, stored post/category/author SEO consumption, post OG image, default social image, dedicated social/Twitter projection as supported.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/seo.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-011",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Implement article SEO precedence: post-specific -> content fallback -> site defaults -> generated fallback; OG image: post OG -> featured -> site default social -> none.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/seo.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-012",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Expose/serve Host-aware robots.txt, sitemap.xml and sitemap resources using existing crawler/sitemap architecture where repository currently lacks proven HTTP serving.",
+      "implementation_files": [
+        "apps/api/src/bp_api/http/public/routes.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-013",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Remove exact-two-digit SITE parser assumptions from media/preview/runtime paths without weakening ownership/grant checks.",
+      "implementation_files": [
+        "apps/api/src/bp_api/media_delivery.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-014",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Preserve existing Preview authority (single-use handoff, host/site/post/source binding, secure session, no-store/no-referrer/noindex, media grants).",
+      "implementation_files": [
+        "apps/api/src/bp_api/media_delivery.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-015",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep OpenSearch derived/site-aware; future site creation must not create a new OpenSearch service and zero-doc sites are valid.",
+      "implementation_files": [
+        "packages/python/bp-adapters-search/src/bp_adapters_search/adapter.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-016",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep Redis/cache keys tenant-aware; any Universal page/render cache must include authoritative Host/Site identity, never pathname alone.",
+      "implementation_files": [
+        "packages/python/bp-adapters-redis/src/bp_adapters_redis/adapter.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-017",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Workers remain shared and carry/revalidate site-aware job context; presentation changes never create per-site workers.",
+      "implementation_files": [
+        "apps/worker/src/bp_worker/runtime.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-018",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Generate/register temporary Host only during actual provisioning after owner confirmation; no pre-creation temporary domain for appearance preview.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/global_postgres.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-019",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Provision site row, locale/timezone, site_settings, presentation/static defaults, HEADER/FOOTER menus, homepage baseline, temp domain, audit event and readiness in transaction.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/global_postgres.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-020",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Rollback all mandatory provisioning DB changes on any failure; Admin must not orchestrate partial multi-call provisioning.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/global_postgres.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-021",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Run site-aware search/index/bootstrap work post-commit only if current adapters actually require it; do not invent synthetic per-site infra.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/global_postgres.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-022",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Production domain add/verify/promote uses existing GLOBAL domain authority and immediately drives canonical SEO through same site_id/domain model.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/seo.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-023",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Enforce corrected tag capabilities server-side, not merely in UI.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/editorial.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-024",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "Fixed information pages read from site_settings.static_pages; disabled/missing page returns known-site 404; unknown Host stays neutral.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/presentation.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "BE-025",
+      "owning_wu": "WU-02",
+      "status": "IMPLEMENTED",
+      "requirement": "If Header CTA is supported, validate it as a same-site enabled navigation destination; do not invent an arbitrary CTA URL/HTML model.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/presentation.py"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": "Header CTA remains hidden/default off because stable structured navigation binding is unavailable."
+    },
+    {
+      "requirement_id": "UF-001",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Create proposed `apps/public-universal` (or repository-convention equivalent only if concretely required) as one Pages Router/SSR Universal app.",
+      "implementation_files": [
+        "apps/public-universal/src/site/lib/ssr.ts"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/ssr.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-002",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Preserve one Universal route tree for Home, Article, Category, Tag, Author, Search, five information pages, Preview, catch-all, 404/410/system/framework states.",
+      "implementation_files": [
+        "apps/public-universal/src/site/lib/ssr.ts"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/ssr.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-003",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Universal SSR reads incoming Host, forwards effective Host to API, handles redirect/status/cache/preview, and fails closed on transport/contract errors.",
+      "implementation_files": [
+        "apps/public-universal/src/site/lib/ssr.ts"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/ssr.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-004",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Remove compiled `EXPECTED_SITE_KEY` and `EXPECTED_DOMAIN` checks only in Universal app; legacy apps remain untouched as references.",
+      "implementation_files": [
+        "apps/public-universal/src/site/lib/ssr.ts"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/ssr.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-005",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Implement one Universal SiteShell with fixed Universal Header and fixed Universal Footer for trusted known-site pages.",
+      "implementation_files": [
+        "apps/public-universal/src/site/shell/header/site-header.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/shell.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-006",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Fixed Header contains BrandIdentity, PrimaryNavigation, SearchEntry, optional validated CTA slot default OFF, MobileNavigation; no structural selector.",
+      "implementation_files": [
+        "apps/public-universal/src/site/shell/header/site-header.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/shell.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-007",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Header renders ordered enabled nav and supported child items through one accessible dropdown/expand behavior; no arbitrary menu HTML.",
+      "implementation_files": [
+        "apps/public-universal/src/site/shell/header/site-header.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/shell.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-008",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Search page/functionality is fixed core and Header provides search access; it is not a per-site app feature toggle.",
+      "implementation_files": [
+        "apps/public-universal/src/site/shell/header/site-header.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/shell.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-009",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Logo uses site media or display-name fallback; Header mobile behavior/focus/Escape/aria/touch/overflow/contrast are deterministic and accessible.",
+      "implementation_files": [
+        "apps/public-universal/src/site/shell/header/site-header.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/shell.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-010",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Fixed Footer contains brand, navigation, social/contact, legal in deterministic semantic order; no structural selector.",
+      "implementation_files": [
+        "apps/public-universal/src/site/shell/footer/site-footer.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/shell.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-011",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Footer omits missing optional groups cleanly, keeps valid minimal known-site shell, stacks accessibly on small screens, and never borrows another tenant.",
+      "implementation_files": [
+        "apps/public-universal/src/site/shell/footer/site-footer.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/shell.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-012",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Known-site 404/410 use site shell/presentation; unknown Host and untrusted transport/contract failures use neutral system surface.",
+      "implementation_files": [
+        "apps/public-universal/src/site/components/runtime-states.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/universal-foundation.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-013",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Render secure Preview through same Universal article/shell/presentation engine without becoming Preview authority.",
+      "implementation_files": [
+        "apps/public-universal/src/site/pages/preview/preview-page.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/ssr.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-014",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Universal SeoHead consumes corrected trusted backend SEO projection; frontend does not guess canonical site from appearance config.",
+      "implementation_files": [
+        "apps/public-universal/src/site/components/seo-head.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/universal-foundation.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-015",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Theme/presentation mapping is request-local with no tenant-global mutable singleton/state leakage.",
+      "implementation_files": [
+        "apps/public-universal/src/site/lib/ssr.ts"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/ssr.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-016",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Universal renderer has no default-tenant fallback and never uses previous request/another site presentation on invalid data.",
+      "implementation_files": [
+        "apps/public-universal/src/site/lib/ssr.ts"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/ssr.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-017",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Consolidate existing common semantic components and 12-block renderer rather than redesigning them for cosmetic reasons.",
+      "implementation_files": [
+        "apps/public-universal/src/site/components/article-body.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/renderers.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "UF-018",
+      "owning_wu": "WU-03",
+      "status": "IMPLEMENTED",
+      "requirement": "Foundation respects shared responsive classes MOBILE <768, TABLET 768-1199, DESKTOP >=1200 and allows safe container queries without tenant-configured breakpoints.",
+      "implementation_files": [
+        "apps/public-universal/src/site/styles/globals.css"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/design-engines.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-001",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Implement/organize the 40-component Universal design catalogue as shared engines/primitives, not one codebase per profile.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/catalogue-data.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-002",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support 30 approved ArticleCard profiles with specified fallback/compatibility rules; profiles are config over shared renderer.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/catalogue-data.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-003",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support 26 approved Hero/Featured treatments over the same lead data; no profile may require undeclared data.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/catalogue-data.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-004",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Define/support 25 category-card treatments only to extent data exists; image-based variants remain unavailable in Admin without end-to-end category imagery.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/catalogue-data.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": "Image-dependent category treatments remain catalogue-known but unavailable without category image data."
+    },
+    {
+      "requirement_id": "DS-005",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support 25 approved AuthorCard/AuthorProfile treatments with safe avatar/monogram fallback.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/catalogue-data.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": "AUTH-12 is catalogue-known but unavailable; it safely falls back to AUTH-05 because public total count is absent."
+    },
+    {
+      "requirement_id": "DS-006",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support 25 curated Homepage compositions as configuration of shared section primitives, never separate home page files.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/catalogue-data.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-007",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support 16 controlled Article-layout profiles over existing article content/data.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/catalogue-data.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-008",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support 12 Collection layouts for category/tag/author/search collections.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/catalogue-data.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-009",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Provide 28 code-owned typography presets with safe fallback stacks/weights/scales/line-height/letter-spacing; no arbitrary font URLs.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-010",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Only expose typography presets whose loaded stacks correctly support site script/locale; preserve Devanagari-capable behavior for Hindi-first sites.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-011",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Provide 30 palette presets including exact first-14 parity-source principal tokens and platform semantic status tokens.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-012",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Validate all selectable/custom palette usages for text, large text, focus, inverse/button contrast; invalid mappings are unavailable/rejected.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-013",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support 12 controlled Button/CTA visual profiles; maintain touch/contrast/focus requirements.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-014",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support 12 controlled image treatments; article-body media stays intrinsic/contained and is not silently cropped by card settings.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-015",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support code-owned density systems COMPACT/STANDARD/SPACIOUS/AIRY with readability minimums overriding compactness.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-016",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support radius systems SQUARE/SUBTLE/MEDIUM/SOFT/ROUND with semantic exceptions such as circular avatars.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-017",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support border systems NONE/HAIRLINE/STANDARD/ACCENT-EDGE/RULE-DRIVEN as code-owned tokens.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-018",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support elevation systems FLAT/LOW/MEDIUM/FLOATING; no Admin-entered box-shadow strings.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-019",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support container systems 760/960/1120/1200/1280/1360 capped variants; article measure remains independent.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-020",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Implement internal 42-recipe compatibility registry as configuration/composition only; it must not create 42 apps/pages/services or expose invalid combinations.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-021",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Implement the exact five user-facing ready-made styles as starting configs mapped to internal palette/type/home/hero/card/article/collection/image/token defaults.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-022",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Create 14 legacy parity starting configurations using locked palette/type/home/article/card/collection/density/container/radius mapping; fixed Universal shell replaces legacy structural shell differences.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-023",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Keep Header/Footer reference catalogues internal/reference-only; do not make runtime structural options or persist header/footer profile IDs.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-024",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Homepage keeps current runtime content model (intro, optional lead, POST_SELECTION, CATEGORY_SELECTION, TOGGLE_ONLY, latest) and separates content selection from visual presentation.",
+      "implementation_files": [
+        "apps/public-universal/src/site/pages/home/home-page.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/design-engines.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-025",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support seven homepage layout families and four lead variants, controlled card/grid/density/image/spacing behavior, and prescribed empty-section/latest fallbacks.",
+      "implementation_files": [
+        "apps/public-universal/src/site/pages/home/home-page.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/design-engines.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-026",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Article retains exact 12 structured block types and content structure; no arbitrary new blocks/HTML; tables/media keep safe responsive behavior.",
+      "implementation_files": [
+        "apps/public-universal/src/site/components/article-body.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/renderers.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-027",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Support controlled Article presentation fields for layout, measure, headline scale, meta layout, featured-media ratio, author and related-content presentation.",
+      "implementation_files": [
+        "apps/public-universal/src/site/pages/article/article-page.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/renderers.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-028",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Render article SEO/OG structured metadata using backend precedence and canonical authority.",
+      "implementation_files": [
+        "apps/public-universal/src/site/pages/article/article-page.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/renderers.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-029",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Category and Tag share one collection renderer with GRID/LIST/MAGAZINE/COMPACT semantics, intentional empty states, pagination and site-scoped queries.",
+      "implementation_files": [
+        "apps/public-universal/src/site/pages/collection/collection-page.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/design-engines.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-030",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Author page keeps identity/avatar fallback/designation/bio/expertise/articles/pagination and shares presentation system; no private fields.",
+      "implementation_files": [
+        "apps/public-universal/src/site/pages/author/author-page.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/design-engines.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-031",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Search keeps NO_QUERY/EMPTY/RESULTS/pagination semantics and site-scoped backend search; no client-selected tenant index.",
+      "implementation_files": [
+        "apps/public-universal/src/site/pages/search/search-page.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/design-engines.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-032",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Render five fixed information pages through controlled common page engine using site_settings.static_pages; no arbitrary HTML/forms/scripts.",
+      "implementation_files": [
+        "apps/public-universal/src/site/pages/static/static-page.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/renderers.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-033",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Implement Preview/404/410/system-state page contracts with correct status/noindex/known-site shell vs neutral unknown-host behavior.",
+      "implementation_files": [
+        "apps/public-universal/src/site/pages/system/system-page.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/universal-foundation.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-034",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Responsive grids reduce safely (4-><=2->1/2, 3->2->1, 2->2/1->1); large split layouts stack when minimum width fails.",
+      "implementation_files": [
+        "apps/public-universal/src/site/styles/profiles.css"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/design-engines.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-035",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Mobile interactive targets are at least 44 CSS px where applicable; focus visible; hover is never sole affordance.",
+      "implementation_files": [
+        "apps/public-universal/src/site/styles/profiles.css"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/design-engines.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-036",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Article tables use controlled horizontal scroll with header semantics; images use existing responsive variants and article-body images are not globally cropped.",
+      "implementation_files": [
+        "apps/public-universal/src/site/styles/profiles.css"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/design-engines.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "DS-037",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Centralize design option IDs/display metadata so Admin and Universal renderer share one authoritative vocabulary; do not duplicate divergent ID lists.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/index.ts"
+      ],
+      "validation_evidence": [
+        "apps/admin/src/tests/wu05.test.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "OPS-001",
+      "owning_wu": "WU-06",
+      "status": "IMPLEMENTED",
+      "requirement": "During repository migration state keep site-01..site-14 services/builds available and add Universal public build/service beside them; no live routing change.",
+      "implementation_files": [
+        "infrastructure/coolify/compose.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "OPS-002",
+      "owning_wu": "WU-06",
+      "status": "IMPLEMENTED",
+      "requirement": "Final target is one Universal frontend image/logical multi-host service (with N identical replicas if needed), not one public service per tenant.",
+      "implementation_files": [
+        "infrastructure/coolify/compose.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "OPS-003",
+      "owning_wu": "WU-06",
+      "status": "IMPLEMENTED",
+      "requirement": "Do not remove legacy 14 services/apps during these work units; removal belongs to later accepted live migration.",
+      "implementation_files": [
+        "infrastructure/coolify/compose.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "OPS-004",
+      "owning_wu": "WU-06",
+      "status": "IMPLEMENTED",
+      "requirement": "Add/register Universal frontend Docker/build/workspace/turbo/package configuration using repo conventions.",
+      "implementation_files": [
+        "infrastructure/coolify/compose.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "OPS-005",
+      "owning_wu": "WU-06",
+      "status": "IMPLEMENTED",
+      "requirement": "Future site creation must not depend on `SITE_01_TIMEZONE`...`SITE_14_TIMEZONE` or other exact-14 bootstrap environment variables; legacy fresh-seed compatibility may remain.",
+      "implementation_files": [
+        "infrastructure/config/runtime-schema.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "OPS-006",
+      "owning_wu": "WU-06",
+      "status": "IMPLEMENTED",
+      "requirement": "Generalize exact-estate tooling/scripts/fixtures/search/bootstrap parsers that enumerate only 14 sites while preserving site-aware behavior.",
+      "implementation_files": [
+        "infrastructure/config/runtime-schema.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "OPS-007",
+      "owning_wu": "WU-06",
+      "status": "IMPLEMENTED",
+      "requirement": "Do not implement live wildcard DNS/TLS/provider operations in code-update phase; repository may define configurable preview-base-domain inputs only where needed.",
+      "implementation_files": [
+        "infrastructure/config/runtime-schema.yaml"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "OPS-008",
+      "owning_wu": "WU-06",
+      "status": "IMPLEMENTED",
+      "requirement": "Existing 14 sites require no new creation flow and remain existing tenants; use them for visual/content/SEO/Preview/responsive parity checks later.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "OPS-009",
+      "owning_wu": "WU-04",
+      "status": "IMPLEMENTED",
+      "requirement": "Recognizable legacy identity is preserved via runtime parity configs/tokens/page recipes, not duplicated shell branches.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "OPS-010",
+      "owning_wu": "WU-00",
+      "status": "IMPLEMENTED",
+      "requirement": "Do not push/commit/deploy unless a later explicit owner instruction authorizes it; this pack focuses on repository working-tree code updates and local validation.",
+      "implementation_files": [
+        "tests/evidence/universal-implementation-coverage.json"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": "Current WU-07 explicitly forbids commit/push/deploy; earlier checkpoint commits were owner-authorized."
+    },
+    {
+      "requirement_id": "QA-001",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Every user-facing Appearance option must be proven end-to-end across contract, backend, persistence, PageData, renderer, responsive fallback and automated tests.",
+      "implementation_files": [
+        "apps/admin/src/modules/appearance/AppearanceControls.tsx",
+        "packages/ts/presentation-catalogue/src/registry.ts",
+        "apps/public-universal/src/site/lib/presentation.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-002",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify tenant isolation remains Host/SiteContext/site_id/FORCE-RLS based for new site_settings fields and all new runtime paths.",
+      "implementation_files": [
+        "database/migrations/0013_DB-MIG-013__rls-policies.sql",
+        "database/migrations/0020_DB-MIG-020__universal-presentation-foundation.sql"
+      ],
+      "validation_evidence": [
+        "tests/isolation/test_chat03_context.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-003",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify OpenAPI/runtime/generated clients are consistent and no generated client is hand-edited.",
+      "implementation_files": [
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml"
+      ],
+      "validation_evidence": [
+        "tests/contract/openapi-contract.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-004",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify DB-MIG-001..019 are byte-unchanged and new migration is forward-only after 019.",
+      "implementation_files": [
+        "database/verification/verify_static.py"
+      ],
+      "validation_evidence": [
+        "tests/contract/source-baseline-guard.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-005",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Add/verify SITE-15 and SITE-100 (or equivalent future-site fixtures) contract/parser/provisioning coverage without new app/service.",
+      "implementation_files": [
+        "apps/public-universal/src/site/lib/ssr.ts",
+        "infrastructure/coolify/compose.yaml"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/universal-foundation.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-006",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify unknown Host has neutral response and never falls back to SITE-01; known-site 404/410 keep correct site shell/status.",
+      "implementation_files": [
+        "apps/public-universal/src/site/lib/ssr.ts",
+        "apps/public-universal/src/site/pages/system/system-page.tsx"
+      ],
+      "validation_evidence": [
+        "tests/application/test_wu02_foundation.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-007",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify Preview handoff/session/site/post/host/media/no-store/noindex security remains intact through Universal frontend.",
+      "implementation_files": [
+        "apps/public-universal/src/site/pages/preview/preview-page.tsx",
+        "apps/api/src/bp_api/media_delivery.py"
+      ],
+      "validation_evidence": [
+        "tests/isolation/test_chat03_context.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-008",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify CE/FWM/Super Admin permission behavior for tags, Appearance, fixed pages and domain-management separation.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/editorial.py",
+        "apps/admin/src/app/router/AdminRouter.tsx"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-009",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify exactly five user-facing styles + Custom, visual-first selection, no Header/Footer structural selector, and no technical-ID-first UX.",
+      "implementation_files": [
+        "apps/admin/src/modules/global/CreateWebsitePage.tsx",
+        "apps/admin/src/modules/appearance/AppearanceControls.tsx"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-010",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify invalid custom palette/config IDs/raw-code fields are rejected or safely defaulted according to locked validation/fallback rules.",
+      "implementation_files": [
+        "apps/admin/src/modules/appearance/appearance-model.ts",
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-011",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify image-based category choices are not exposed unless end-to-end category imagery exists; V1 default is hidden.",
+      "implementation_files": [
+        "packages/ts/presentation-catalogue/src/registry.ts"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-012",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify Universal V1 has one fixed Header and one fixed Footer structure and PresentationConfig persists no structural profile IDs.",
+      "implementation_files": [
+        "apps/public-universal/src/site/shell/navigation/site-shell.tsx"
+      ],
+      "validation_evidence": [
+        "packages/ts/presentation-catalogue/tests/registry.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-013",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Search repository for fixed SITE-01..SITE-14/exact-two-digit assumptions; every remaining occurrence must be either legacy-reference/seed compatibility or documented intentional.",
+      "implementation_files": [
+        "infrastructure/scripts/affected_apps.py",
+        "tooling/scripts/check-foundation.mjs"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/universal-foundation.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-014",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify all 14 legacy apps remain available/buildable/referenceable and are not silently deleted/rewritten.",
+      "implementation_files": [
+        "apps/sites/site-01-whats-your-rashi/package.json",
+        "infrastructure/coolify/compose.yaml"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/universal-foundation.test.mjs"
+      ],
+      "notes": "All 14 legacy packages passed typecheck and tests; build outcome recorded separately in WU-07 final report."
+    },
+    {
+      "requirement_id": "QA-015",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify Universal frontend builds once and has no site-specific business switch/compiled expected identity.",
+      "implementation_files": [
+        "infrastructure/images/public-universal.Dockerfile",
+        "apps/public-universal/src/site/lib/ssr.ts"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/universal-foundation.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-016",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify SEO fixes: stored SEO consumption, OG/default social precedence, canonical domain authority, temporary noindex, crawler endpoints, social metadata.",
+      "implementation_files": [
+        "packages/python/bp-application/src/bp_application/seo.py",
+        "apps/public-universal/src/site/components/seo-head.tsx"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/universal-foundation.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-017",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify Desktop/Tablet/Mobile, keyboard/focus/touch, table overflow, media crop and Devanagari/typography constraints for selectable visual options.",
+      "implementation_files": [
+        "apps/public-universal/src/site/styles/globals.css",
+        "apps/public-universal/src/site/styles/profiles.css"
+      ],
+      "validation_evidence": [
+        "apps/public-universal/src/site/tests/design-engines.test.mjs"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-018",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Verify provisioning is transactionally complete, rolls back on failure, produces readiness, and creates no per-site infrastructure.",
+      "implementation_files": [
+        "apps/api/src/bp_api/composition/global_postgres.py",
+        "database/migrations/0021_DB-MIG-021__atomic-website-provisioning.sql"
+      ],
+      "validation_evidence": [
+        "tests/isolation/test_chat03_context.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-019",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Cross-check all final lock summary items and architecture-change-ledger decisions against implemented tree before completion.",
+      "implementation_files": [
+        "tests/evidence/universal-implementation-coverage.json"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": ""
+    },
+    {
+      "requirement_id": "QA-020",
+      "owning_wu": "WU-07",
+      "status": "IMPLEMENTED",
+      "requirement": "Run only practical local/static validation available in repository (typecheck/lint/unit/contract/build/migration/static tests); no live VPS/Coolify/DNS/browser acceptance required in this phase.",
+      "implementation_files": [
+        "tests/evidence/universal-implementation-coverage.json"
+      ],
+      "validation_evidence": [
+        "tests/infrastructure/test_wu06_universal_coexistence.py"
+      ],
+      "notes": "Local/static evidence only. Root formatting and broad Ruff baseline failures are recorded separately; live acceptance is not claimed."
+    }
+  ],
+  "validation_commands_by_prefix": {
+    "CORE": "node tooling/scripts/check-foundation.mjs; .venv/bin/python -m pytest -q tests/infrastructure/test_wu06_universal_coexistence.py",
+    "ADM": "corepack pnpm --filter @bp/admin test; corepack pnpm --filter @bp/admin typecheck; corepack pnpm --filter @bp/admin build",
+    "DATA": "node tooling/scripts/check-openapi-source.mjs; node tooling/scripts/check-generated-drift.mjs; .venv/bin/python database/verification/verify_static.py",
+    "BE": "uv run --frozen --all-packages python -m pytest -q",
+    "UF": "corepack pnpm --filter @bp/public-universal test; corepack pnpm --filter @bp/public-universal typecheck; corepack pnpm --filter @bp/public-universal build",
+    "DS": "corepack pnpm --filter @bp/presentation-catalogue test; corepack pnpm --filter @bp/public-universal test",
+    "OPS": ".venv/bin/python -m pytest -q tests/infrastructure/test_wu06_universal_coexistence.py tests/infrastructure/test_coolify_8gb_profile.py; .venv/bin/python infrastructure/scripts/validate_all.py",
+    "QA": "uv run --frozen --all-packages python -m pytest -q; corepack pnpm --filter @bp/admin test; corepack pnpm --filter @bp/public-universal test"
+  },
+  "validation_summary": {
+    "python": "191 passed",
+    "admin": "70 passed (20 static + 50 Vitest)",
+    "universal_public": "28 passed",
+    "presentation_catalogue": "9 passed",
+    "legacy": "14/14 typecheck, test, and build passed",
+    "database_static": "293 checks passed",
+    "infrastructure": "7 focused tests passed"
+  },
+  "final_architecture_lock_crosscheck": [
+    {
+      "lock": 1,
+      "requirement_ids": [
+        "CORE-001"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 2,
+      "requirement_ids": [
+        "CORE-002"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 3,
+      "requirement_ids": [
+        "CORE-003"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 4,
+      "requirement_ids": [
+        "CORE-004"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 5,
+      "requirement_ids": [
+        "CORE-005",
+        "CORE-006",
+        "CORE-007"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 6,
+      "requirement_ids": [
+        "CORE-008",
+        "CORE-014"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 7,
+      "requirement_ids": [
+        "CORE-009"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 8,
+      "requirement_ids": [
+        "ADM-011",
+        "UF-005",
+        "UF-006",
+        "UF-010"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 9,
+      "requirement_ids": [
+        "DATA-007",
+        "DS-001"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 10,
+      "requirement_ids": [
+        "ADM-005",
+        "DS-021"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 11,
+      "requirement_ids": [
+        "ADM-006",
+        "DATA-009"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 12,
+      "requirement_ids": [
+        "ADM-007"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 13,
+      "requirement_ids": [
+        "ADM-008"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 14,
+      "requirement_ids": [
+        "ADM-008",
+        "BE-004"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 15,
+      "requirement_ids": [
+        "BE-018"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 16,
+      "requirement_ids": [
+        "BE-004"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 17,
+      "requirement_ids": [
+        "ADM-014",
+        "BE-022"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 18,
+      "requirement_ids": [
+        "DATA-021"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 19,
+      "requirement_ids": [
+        "CORE-011",
+        "OPS-008"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 20,
+      "requirement_ids": [
+        "CORE-014"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 21,
+      "requirement_ids": [
+        "CORE-014"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 22,
+      "requirement_ids": [
+        "CORE-014",
+        "OPS-002"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 23,
+      "requirement_ids": [
+        "CORE-010",
+        "DATA-010"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 24,
+      "requirement_ids": [
+        "CORE-006",
+        "CORE-015",
+        "QA-002"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "lock": 25,
+      "requirement_ids": [
+        "CORE-009",
+        "CORE-010"
+      ],
+      "status": "IMPLEMENTED"
+    }
+  ],
+  "architecture_change_ledger_crosscheck": [
+    {
+      "decision": "Executive decision / Universal model",
+      "requirement_ids": [
+        "CORE-008",
+        "CORE-009"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Universal Header",
+      "requirement_ids": [
+        "ADM-011",
+        "UF-005",
+        "UF-006"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Universal Footer",
+      "requirement_ids": [
+        "ADM-011",
+        "UF-005",
+        "UF-010"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Header/Footer catalogues",
+      "requirement_ids": [
+        "DS-023"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Website creation appearance",
+      "requirement_ids": [
+        "ADM-005",
+        "ADM-006"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Appearance selection UX",
+      "requirement_ids": [
+        "ADM-007"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Preview",
+      "requirement_ids": [
+        "ADM-008"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Create Website order",
+      "requirement_ids": [
+        "ADM-004",
+        "BE-018"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Temporary-site privacy",
+      "requirement_ids": [
+        "BE-004"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Palette customization",
+      "requirement_ids": [
+        "ADM-022",
+        "DATA-009",
+        "DS-012"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Header CTA",
+      "requirement_ids": [
+        "ADM-024",
+        "BE-025"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Category imagery",
+      "requirement_ids": [
+        "ADM-023",
+        "DATA-020",
+        "DS-004"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Domain ownership",
+      "requirement_ids": [
+        "ADM-014",
+        "DATA-021",
+        "BE-022"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Global launch UX",
+      "requirement_ids": [
+        "ADM-001",
+        "ADM-018"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Global Dashboard",
+      "requirement_ids": [
+        "ADM-002"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Lifecycle",
+      "requirement_ids": [
+        "DATA-005",
+        "DATA-018",
+        "BE-002",
+        "BE-003"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Presentation persistence",
+      "requirement_ids": [
+        "DATA-002",
+        "DATA-003"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Static page persistence",
+      "requirement_ids": [
+        "DATA-002",
+        "DATA-004",
+        "DATA-008"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "42 recipes",
+      "requirement_ids": [
+        "DS-020"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Existing 14 sites",
+      "requirement_ids": [
+        "CORE-011",
+        "DS-022",
+        "OPS-008",
+        "OPS-009"
+      ],
+      "status": "IMPLEMENTED"
+    },
+    {
+      "decision": "Implementation plan",
+      "requirement_ids": [
+        "CORE-013",
+        "QA-020"
+      ],
+      "status": "IMPLEMENTED"
+    }
+  ]
+}
