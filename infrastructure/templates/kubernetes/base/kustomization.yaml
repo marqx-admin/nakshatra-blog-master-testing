@@ -13,6 +13,7 @@ resources:
   - worker-cache.yaml
   - worker-maintenance.yaml
   - worker-scheduler.yaml
+  - public-universal.yaml
   - site-01.yaml
   - site-02.yaml
   - site-03.yaml

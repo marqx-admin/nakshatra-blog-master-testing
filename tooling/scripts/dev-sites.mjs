@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
 
+// Original fourteen standalone apps remain runnable for parity and rollback.
+// Future SITE-N uses the single public-universal process instead.
 const sites = [
   ["@bp/site-01-whats-your-rashi", 3001, "WhatsYourRashi.in"],
   ["@bp/site-02-apki-rashi", 3002, "ApkiRashi.com"],

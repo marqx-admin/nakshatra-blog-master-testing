@@ -1,10 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+// Legacy reference-app scaffold only. Website creation is API15-G-011 data
+// provisioning and never invokes this generator for a future SITE-N.
+
 const args = Object.fromEntries(process.argv.slice(2).map((arg) => {
   const [k, ...rest] = arg.replace(/^--/, '').split('=');
   return [k, rest.join('=')];
 }));
+if (!Object.hasOwn(args, 'legacy-reference')) {
+  console.error('Legacy reference-app scaffold only: pass --legacy-reference explicitly. Universal websites are provisioned by API15-G-011 without creating an app or service.');
+  process.exit(2);
+}
 const required = ['app-id','site-id','domain','folder','package'];
 for (const key of required) {
   if (!args[key]) {
@@ -41,5 +48,5 @@ function walk(dir) {
   }
 }
 walk(target);
-console.log(`PASS neutral site scaffold created: ${target}`);
+console.log(`PASS legacy reference-app scaffold created: ${target}`);
 console.log('No DB/domain registry row, permission, content, deployment resource or runtime shared visual dependency was created.');

@@ -14,6 +14,8 @@ from typing import Any
 
 MIG_RE = re.compile(r"^(\d{4})_(DB-MIG-\d{3})__[a-z0-9][a-z0-9-]*\.sql$")
 CHAIN_IR_RE = re.compile(r"^\s*\\ir\s+\.\./migrations/([^\s]+)\s*$", re.MULTILINE)
+# Fixed inputs are needed only to replay the original fourteen-site fresh-seed
+# migration chain. API15-G-011 provisions SITE-N from persisted request data.
 TIMEZONE_NAMES = tuple(f"SITE_{i:02d}_TIMEZONE" for i in range(1, 15))
 POST_VERIFY_FILES = (
     "verify-schema.sql",

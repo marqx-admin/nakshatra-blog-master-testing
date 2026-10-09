@@ -107,6 +107,7 @@ services:
       BP_SERVICE_NAME: api
       BP_HTTP_PORT: 8080
       BP_LOG_LEVEL: INFO
+      BP_TEMP_DOMAIN_SUFFIX: ${BP_TEMP_DOMAIN_SUFFIX:-}
     ports: ["8080:8080"]
   worker:
     profiles: [app-worker]
@@ -140,6 +141,7 @@ services:
       BP_POSTGRES_SSL_MODE: disable
       BP_MIGRATION_DATABASE_USER: bp_owner
       BP_MIGRATION_CREDENTIAL_FILE: /run/secrets/bp/migration
+      # Original fourteen-site fresh seed only; not a future-site runtime input.
       SITE_01_TIMEZONE: ${SITE_01_TIMEZONE:-}
       SITE_02_TIMEZONE: ${SITE_02_TIMEZONE:-}
       SITE_03_TIMEZONE: ${SITE_03_TIMEZONE:-}
@@ -158,6 +160,7 @@ services:
       - "${BP_LOCAL_MIGRATION_CREDENTIAL_FILE:-./.secrets/migration}:/run/secrets/bp/migration:ro"
     depends_on:
       postgres: {condition: service_healthy}
+  # Legacy reference-app runner only; a new website uses public-universal below.
   site:
     profiles: [app-site]
     build:
@@ -174,6 +177,14 @@ services:
       BP_HTTP_PORT: 3000
       BP_LOG_LEVEL: INFO
     ports: ["3000:3000"]
+  public-universal:
+    profiles: [app-public-universal]
+    build:
+      context: ../..
+      dockerfile: infrastructure/images/public-universal.Dockerfile
+    environment:
+      BP_API_INTERNAL_ORIGIN: http://api:8080
+    ports: ["3015:3000"]
 volumes:
   postgres-data: {}
   redis-broker-data: {}

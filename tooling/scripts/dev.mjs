@@ -6,6 +6,7 @@ const adminOrigins = [
   `http://localhost:${adminPort}`,
   `http://127.0.0.1:${adminPort}`,
 ].join(",");
+// Legacy reference-app links only; Universal SSR takes the incoming Host.
 const localSiteOrigins = Object.fromEntries(
   Array.from({ length: 14 }, (_, index) => [
     `SITE-${String(index + 1).padStart(2, "0")}`,

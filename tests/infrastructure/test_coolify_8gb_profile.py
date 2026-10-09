@@ -36,8 +36,10 @@ def test_long_running_services_fit_the_8gb_budget() -> None:
 
     assert all("mem_limit" in service for service in long_running.values())
     total = sum(_memory_bytes(service["mem_limit"]) for service in long_running.values())
-    assert total == 7168 * 1024**2
-    assert total <= 7 * 1024**3
+    # Migration coexistence retains fourteen legacy services and adds one 160 MiB
+    # Universal service. Leave at least 512 MiB of the 8 GiB host unallocated.
+    assert total == (7168 + 160) * 1024**2
+    assert total <= (8 * 1024 - 512) * 1024**2
 
 
 def test_worker_profile_uses_one_solo_process_per_queue() -> None:

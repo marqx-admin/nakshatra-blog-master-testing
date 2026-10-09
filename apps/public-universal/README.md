@@ -16,4 +16,6 @@ corepack pnpm --filter @bp/public-universal test
 corepack pnpm --filter @bp/public-universal build
 ```
 
-WU-04 will supply the visual catalogue and site parity styles. This app does not configure deployment or traffic cutover.
+WU-06 registers this existing package as one generic image/service beside the legacy fourteen. For local development, start the shared API separately, then run `corepack pnpm dev:public-universal`; it defaults `BP_API_INTERNAL_ORIGIN` to `http://127.0.0.1:8080` and listens on port 3015. The incoming HTTP Host determines the site through the API domain registry. No site key or domain is compiled into this package or its Dockerfile.
+
+The committed WU-04 catalogue supplies visual profiles and legacy parity configurations. WU-06 adds repository deployment definitions without changing traffic routing.

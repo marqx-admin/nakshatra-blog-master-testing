@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 const siteRegistry = JSON.parse(fs.readFileSync(path.join(root,'tooling/configs/site-registry.json'),'utf8'));
-const expectedTs = ['api-contract','api-client-public','api-client-admin','public-contracts','shared-utils','tooling-config'];
+const expectedTs = ['api-contract','api-client-public','api-client-admin','public-contracts','presentation-catalogue','shared-utils','tooling-config'];
 const expectedPy = ['bp-domain','bp-ports','bp-application','bp-background-contracts','bp-adapters-postgres','bp-adapters-redis','bp-adapters-queue','bp-adapters-search','bp-adapters-object-storage','bp-adapters-media','bp-adapters-security-store','bp-adapters-secrets','bp-adapters-mail','bp-observability','bp-test-support'];
 const errors = [];
 const pass = [];
@@ -13,7 +13,7 @@ function exists(rel) { return fs.existsSync(path.join(root,rel)); }
 const siteRoot = path.join(root,'apps/sites');
 const actualSites = fs.readdirSync(siteRoot,{withFileTypes:true}).filter((e)=>e.isDirectory()).map((e)=>e.name).sort();
 const expectedSites = siteRegistry.map((s)=>s.folder).sort();
-if (JSON.stringify(actualSites) !== JSON.stringify(expectedSites)) errors.push(`site folder registry mismatch actual=${actualSites.length} expected=14`); else pass.push('exact 14 public site folders');
+if (JSON.stringify(actualSites) !== JSON.stringify(expectedSites)) errors.push(`legacy reference-app folder registry mismatch actual=${actualSites.length} expected=14`); else pass.push('exact 14 legacy reference-app folders');
 for (const s of siteRegistry) {
   const pkgPath = path.join(root,'apps/sites',s.folder,'package.json');
   if (!fs.existsSync(pkgPath)) { errors.push(`missing ${path.relative(root,pkgPath)}`); continue; }
@@ -21,6 +21,7 @@ for (const s of siteRegistry) {
   if (pkg.name !== s.package || pkg.bp?.appId !== s.app_id || pkg.bp?.siteId !== s.site_id || pkg.bp?.canonicalDomain !== s.canonical_domain) errors.push(`identity mismatch ${s.folder}`);
 }
 if (['apps/admin','apps/api','apps/worker'].every(exists)) pass.push('Admin + API + Worker containers'); else errors.push('Admin/API/Worker container missing');
+if (exists('apps/public-universal/package.json')) pass.push('one Universal public package registered beside legacy apps'); else errors.push('Universal public package missing');
 for (const p of expectedTs) if (!exists(`packages/ts/${p}/package.json`)) errors.push(`missing TS package ${p}`);
 if (!errors.some((e)=>e.startsWith('missing TS'))) pass.push(`required TS package containers (${expectedTs.length})`);
 for (const p of expectedPy) if (!exists(`packages/python/${p}/pyproject.toml`)) errors.push(`missing Python package ${p}`);

@@ -1,5 +1,8 @@
 version: 1
 prefix: BP_
+# SITE_01..SITE_14 timezone inputs below belong only to the historical fresh-seed
+# migration chain. Provisioning future sites reads timezone from the Create Website
+# request and persists it in sites; it does not consume another SITE_N variable.
 explicit_non_bp_deployment_inputs:
   - SITE_01_TIMEZONE
   - SITE_02_TIMEZONE
@@ -19,13 +22,14 @@ variables:
   BP_ENV: {consumers: [all], required: true, exposure: nonsecret, enum: [development, test, staging, production]}
   BP_RUNTIME_COMPOSITION: {consumers: [api, worker], required: false, exposure: nonsecret, enum: [two-site-e2e], note: e2e_only_runtime_wiring}
   BP_RELEASE_SHA: {consumers: [all], required: true, exposure: nonsecret, pattern: '^[0-9a-f]{7,64}$'}
-  BP_SERVICE_NAME: {consumers: [server], required: true, exposure: nonsecret, pattern: '^(api|worker|admin|site-[0-9]{2}.*|migrate)$'}
+  BP_SERVICE_NAME: {consumers: [server], required: true, exposure: nonsecret, pattern: '^(api|worker|admin|public-universal|site-[0-9]{2}.*|migrate)$'}
   BP_HTTP_PORT: {consumers: [http], required: true, exposure: nonsecret, type: integer, minimum: 1, maximum: 65535}
   BP_LOG_LEVEL: {consumers: [server], required: true, exposure: nonsecret, enum: [DEBUG, INFO, WARNING, ERROR, CRITICAL]}
   BP_OTEL_EXPORTER_OTLP_ENDPOINT: {consumers: [server], required_in: [staging, production], exposure: nonsecret, type: uri}
-  BP_SITE_APP_KEY: {consumers: [site], required: true, exposure: nonsecret, pattern: '^SITE-[0-9]{2}$', note: diagnostic_only_never_authority}
+  BP_SITE_APP_KEY: {consumers: [site], required: false, exposure: nonsecret, pattern: '^SITE-[0-9]{2,}$', note: legacy_site_diagnostic_only_never_universal_tenant_authority}
   BP_API_BASE_PATH: {consumers: [browser], required: true, exposure: browser_allowlist, const: /api/v1}
   BP_API_INTERNAL_ORIGIN: {consumers: [site], required: false, exposure: server_nonsecret, type: uri}
+  BP_TEMP_DOMAIN_SUFFIX: {consumers: [api], required: false, exposure: server_nonsecret, type: string, note: one_platform_temporary_host_suffix_for_server_owned_provisioning_no_DNS_automation}
   BP_TRUSTED_PROXY_MODE: {consumers: [api], required_in: [staging, production], exposure: nonsecret, type: string}
   BP_POSTGRES_HOST: {consumers: [api, worker, migrate], required: true, exposure: server_nonsecret, type: string}
   BP_POSTGRES_PORT: {consumers: [api, worker, migrate], required: true, exposure: server_nonsecret, type: integer, const: 5432}

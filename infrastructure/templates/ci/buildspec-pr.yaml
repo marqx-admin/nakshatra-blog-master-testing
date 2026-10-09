@@ -17,6 +17,9 @@ phases:
       - pnpm foundation:check
       - pnpm foundation:typecheck
       - pnpm foundation:test
+      - pnpm --filter @bp/public-universal typecheck
+      - pnpm --filter @bp/public-universal test
+      - pnpm --filter @bp/public-universal build
       - python3 infrastructure/scripts/check_migrations.py --database-root database
 artifacts:
   files: ["evidence/**/*"]

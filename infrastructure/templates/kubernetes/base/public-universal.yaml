@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: public-universal, labels: {app: public-universal, component: public-site}}
+spec:
+  replicas: 1
+  strategy: {type: RollingUpdate, rollingUpdate: {maxUnavailable: 0, maxSurge: 1}}
+  selector: {matchLabels: {app: public-universal}}
+  template:
+    metadata: {labels: {app: public-universal, component: public-site}}
+    spec:
+      containers:
+      - name: public-universal
+        image: bp/public-universal@sha256:REPLACE_DIGEST
+        ports: [{containerPort: 3000}]
+        env:
+        - {name: BP_API_INTERNAL_ORIGIN, value: 'http://api:8080'}
+        readinessProbe: {tcpSocket: {port: 3000}, failureThreshold: 3, successThreshold: 2}
+        livenessProbe: {tcpSocket: {port: 3000}}
+        securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, runAsNonRoot: true, runAsUser: 10001}
+        volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: public-universal}
+spec: {selector: {app: public-universal}, ports: [{port: 3000, targetPort: 3000}]}

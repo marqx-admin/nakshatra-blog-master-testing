@@ -40,7 +40,8 @@ const importRe = /(?:import|export)\s+(?:[^'";]*?\s+from\s+)?['"]([^'"]+)['"]|re
 for (const file of files) {
   const rel = path.relative(root,file).replaceAll('\\\\','/');
   const sourceSite = siteOf(rel);
-  const isFrontend = rel.startsWith('apps/sites/') || rel.startsWith('apps/admin/');
+  const isUniversal = rel.startsWith('apps/public-universal/');
+  const isFrontend = rel.startsWith('apps/sites/') || isUniversal || rel.startsWith('apps/admin/');
   const isSharedTs = rel.startsWith('packages/ts/');
   const text = fs.readFileSync(file,'utf8');
   for (const match of text.matchAll(importRe)) {
@@ -58,7 +59,10 @@ for (const file of files) {
       if (rel.startsWith('apps/admin/') && targetRel.startsWith('apps/sites/')) {
         violations.push(`${rel}: Admin imports public-site source: ${spec}`);
       }
-      if (isSharedTs && (targetRel.startsWith('apps/sites/') || targetRel.startsWith('apps/admin/'))) {
+      if (isUniversal && (targetRel.startsWith('apps/sites/') || targetRel.startsWith('apps/admin/') || targetRel.startsWith('apps/api/') || targetRel.startsWith('apps/worker/') || targetRel.startsWith('packages/python/') || targetRel.startsWith('database/') || targetRel.startsWith('infrastructure/'))) {
+        violations.push(`${rel}: Universal frontend import crosses into tenant-specific/backend/Admin/infrastructure source: ${spec}`);
+      }
+      if (isSharedTs && (targetRel.startsWith('apps/sites/') || targetRel.startsWith('apps/public-universal/') || targetRel.startsWith('apps/admin/'))) {
         violations.push(`${rel}: shared TS package imports app source: ${spec}`);
       }
     } else if (isFrontend && providerImports.has(packageRoot(spec))) {

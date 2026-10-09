@@ -79,11 +79,19 @@ test('pinned RC12 source verifies and deterministic contract/client generation h
   assert.ok(manifest.admin_operation_ids.every((id)=>/^API15-(AUTH|S|G)-/.test(id)));
 });
 
-test('neutral future-site scaffold copies local ownership only', () => {
+test('legacy reference-app scaffold requires an explicit opt-in and copies local ownership only', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(),'bp-site-scaffold-'));
   try {
+    const withoutOptIn = run(process.execPath,[
+      'tooling/generators/create-public-site.mjs',
+      '--app-id=APP-15','--site-id=SITE-15','--domain=ExampleFutureSite.invalid',
+      '--folder=site-15-example-future-site','--package=@bp/site-15-example-future-site',`--output=${tmp}`,
+    ]);
+    assert.notEqual(withoutOptIn.status,0);
+    assert.match(withoutOptIn.stderr,/Legacy reference-app scaffold only/);
     const r = run(process.execPath,[
       'tooling/generators/create-public-site.mjs',
+      '--legacy-reference',
       '--app-id=APP-15','--site-id=SITE-15','--domain=ExampleFutureSite.invalid',
       '--folder=site-15-example-future-site','--package=@bp/site-15-example-future-site',`--output=${tmp}`,
     ]);

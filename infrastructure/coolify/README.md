@@ -1,6 +1,8 @@
 # Coolify deployment runbook
 
-This is the active production target for a Hostinger VPS running Coolify. It deploys the API, Central Admin, 14 independent public sites, seven worker profiles, PostgreSQL with internal TLS, two isolated Redis planes, OpenSearch, private MinIO object storage, and a ScyllaDB Alternator security-state store. No AWS cloud service is required. `boto3` remains only as the protocol client for the self-hosted S3- and Dynamo-compatible services.
+The checked-in migration-state composition targets a Hostinger VPS running Coolify. It contains the API, Central Admin, 14 legacy public services, one Host-driven `public-universal` service, seven worker profiles, PostgreSQL with internal TLS, two isolated Redis planes, OpenSearch, private MinIO object storage, and a ScyllaDB Alternator security-state store. No AWS cloud service is required; `boto3` remains the protocol client for the self-hosted S3- and Dynamo-compatible services. This is repository configuration only; adding the Universal service here does not deploy it or route traffic to it. The legacy services remain for parity and rollback.
+
+`BP_TEMP_DOMAIN_SUFFIX` is one platform-level provisioning input. The temporary Host still requires separately approved DNS/TLS and ingress configuration before live use. No `SITE_N_*` variable or extra frontend service is needed when a website is created.
 
 ## 1. VPS prerequisites
 
@@ -35,6 +37,7 @@ The 8 GB profile runs one solo Celery process for each queue, caps the 14 Next.j
 | `site-12` | `https://RashiRemedies.com` | 3000 |
 | `site-13` | `https://ApkaPandit.in` | 3000 |
 | `site-14` | `https://VastuShastra360.in` | 3000 |
+| `public-universal` | no public route during coexistence; ingress is a later decision | 3000 |
 
 Coolify domain values must include the internal port suffix when entered, for example `https://admin.example.com:8080` and `https://WhatsYourRashi.in:3000`.
 

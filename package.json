@@ -13,6 +13,8 @@
     "dev:api": "uv run --frozen --package bp-api python -m bp_api",
     "dev:full": "node --env-file=infrastructure/local/.env.local tooling/scripts/dev.mjs",
     "dev:sites": "node --env-file=infrastructure/local/.env.local tooling/scripts/dev-sites.mjs",
+    "dev:public-universal": "node tooling/scripts/dev-public-universal.mjs",
+    "build:public-universal": "corepack pnpm --filter @bp/public-universal build",
     "local:up": "docker compose --parallel 1 -f infrastructure/local/compose.yaml --profile core --profile search --profile media --profile security up -d",
     "test": "uv run --frozen python -m pytest -q",
     "foundation:check": "node tooling/scripts/check-foundation.mjs",
