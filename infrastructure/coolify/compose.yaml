@@ -4,7 +4,7 @@ x-api-environment: &api-environment
   BP_ENV: production
   BP_RUNTIME_COMPOSITION: self-hosted
   BP_HTTP_PORT: "8080"
-  BP_OPENAPI_PATH: /workspace/contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml
+  BP_OPENAPI_PATH: /workspace/contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml
   BP_ADMIN_ORIGINS: ${BP_ADMIN_ORIGIN:?Set the public HTTPS Central Admin origin}
   BP_RESET_BASE_URL: ${BP_ADMIN_ORIGIN:?Set the public HTTPS Central Admin origin}/reset
   BP_INVITE_SETUP_BASE_URL: ${BP_ADMIN_ORIGIN:?Set the public HTTPS Central Admin origin}/setup

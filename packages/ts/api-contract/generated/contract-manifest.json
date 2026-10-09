@@ -112,7 +112,7 @@
     "API15-S-096",
     "API15-S-097"
   ],
-  "api_version": "1.0-RC11",
+  "api_version": "1.0-RC12",
   "generator": "tooling/generators/generate_openapi_artifacts.py",
   "generator_contract": "deterministic YAML-only generation; no PDF/FastAPI/code-first inference",
   "operations": 113,
@@ -122,6 +122,6 @@
     "API15-PUB-002"
   ],
   "schemas_helpers": 248,
-  "source": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml",
-  "source_sha256": "4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358"
+  "source": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml",
+  "source_sha256": "f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd"
 }

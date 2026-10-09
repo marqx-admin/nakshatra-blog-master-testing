@@ -414,6 +414,7 @@ class PostgresAuditAdapter:
 @dataclass(slots=True)
 class PostgresAdminSiteContextPayload:
     site_transactions: SiteTransactionPort
+    temporary_domain_suffix: str | None = None
 
     async def build(self, principal: AdminPrincipal, context: SiteContext) -> dict[str, Any]:
         if principal.is_super_admin:
@@ -423,12 +424,29 @@ class PostgresAdminSiteContextPayload:
                 ).fetchall()]
         else:
             effective = sorted(principal.site_permissions.get(context.site_key, frozenset()))
-        return {
+        payload = {
             "site_key": context.site_key,
             "display_name": context.display_name or context.site_key,
             "lifecycle_state": context.site_status,
             "effective_permissions": effective,
         }
+        # The public URL can become a production canonical domain. Resolve the
+        # provisioning-created temporary domain independently under this site's
+        # trusted context, and expose it only to Appearance readers.
+        suffix = (self.temporary_domain_suffix or "").lower().rstrip(".")
+        if suffix and "site_settings.view" in effective:
+            expected_host = f"{context.site_key.lower()}.{suffix}"
+            async with self.site_transactions.transaction(context) as connection:
+                row = connection.execute(
+                    text(
+                        "SELECT hostname FROM domains WHERE site_id=:site_id "
+                        "AND hostname_normalized=:hostname AND is_active=true LIMIT 1"
+                    ),
+                    {"site_id": context.site_id, "hostname": expected_host},
+                ).fetchone()
+            if row is not None:
+                payload["temporary_site_url"] = f"https://{_m(row)['hostname']}"
+        return payload
 
 
 @dataclass(slots=True)

@@ -59,10 +59,10 @@ test('Python import namespaces resolve through declared src roots', () => {
   assert.equal(r.status,0,`${r.stdout}\n${r.stderr}`);
 });
 
-test('pinned RC11 source verifies and deterministic contract/client generation has zero drift', () => {
+test('pinned RC12 source verifies and deterministic contract/client generation has zero drift', () => {
   const source = run(process.execPath,['tooling/scripts/check-openapi-source.mjs']);
   assert.equal(source.status,0,`${source.stdout}\n${source.stderr}`);
-  assert.match(`${source.stdout}\n${source.stderr}`,/pinned canonical RC11 source verified/);
+  assert.match(`${source.stdout}\n${source.stderr}`,/pinned canonical RC12 source verified/);
 
   const gen = run(process.execPath,['tooling/generators/generate-api-contract.mjs']);
   assert.equal(gen.status,0,`${gen.stdout}\n${gen.stderr}`);
@@ -70,7 +70,7 @@ test('pinned RC11 source verifies and deterministic contract/client generation h
   assert.equal(drift.status,0,`${drift.stdout}\n${drift.stderr}`);
 
   const manifest = JSON.parse(fs.readFileSync(path.join(root,'packages/ts/api-contract/generated/contract-manifest.json'),'utf8'));
-  assert.equal(manifest.source_sha256,'4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358');
+  assert.equal(manifest.source_sha256,'f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd');
   assert.equal(manifest.operations,113);
   assert.equal(manifest.paths,86);
   assert.equal(manifest.schemas_helpers,248);

@@ -58,12 +58,12 @@ def main() -> int:
     baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
     source = ROOT / baseline["canonical_repository_path"]
     if not source.exists():
-        fail(f"canonical RC11 source missing: {baseline['canonical_repository_path']}", 20)
+        fail(f"canonical RC12 source missing: {baseline['canonical_repository_path']}", 20)
 
     raw = source.read_bytes()
     sha = hashlib.sha256(raw).hexdigest()
     if sha != baseline["sha256"]:
-        fail(f"pinned RC11 contract SHA mismatch: expected={baseline['sha256']} actual={sha}", 21)
+        fail(f"pinned RC12 contract SHA mismatch: expected={baseline['sha256']} actual={sha}", 21)
 
     document = yaml.safe_load(raw)
     if not isinstance(document, dict):
@@ -194,8 +194,8 @@ def main() -> int:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
-    print(f"PASS pinned RC11 contract SHA-256 {sha}")
-    print("PASS OpenAPI 3.1.0 / API 1.0-RC11")
+    print(f"PASS pinned RC12 contract SHA-256 {sha}")
+    print("PASS OpenAPI 3.1.0 / API 1.0-RC12")
     print(f"PASS operations={checks['operation_count']} paths={checks['path_count']} schemas/helpers={checks['schema_helper_count']}")
     print(f"PASS resolved internal references={checks['resolved_internal_ref_count']} unresolved=0")
     print(

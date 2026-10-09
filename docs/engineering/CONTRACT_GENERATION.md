@@ -1,21 +1,21 @@
-# DOC-15 RC11 executable contract generation
+# RC12 executable contract generation
 
 ## Canonical source
 
-`contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml`
+`contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml`
 
 Canonical SHA-256:
 
-`4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358`
+`f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd`
 
-RC11 is the WU-01 executable companion revision derived from the selected DOC-15 RC8 authority. The RC8 executable YAML remains unchanged and historical; the selected DOC-15 RC8 authority remains authoritative for its owned transport semantics.
+RC12 adds only the optional read-only SITE temporary URL projection. RC11 and earlier executable artifacts remain unchanged as historical revisions. The current Universal implementation rules, work unit, and final Blueprint control target behavior.
 
 ## Required checks
 
 `node tooling/scripts/check-openapi-source.mjs` verifies:
 
-- OpenAPI 3.1.0 and API version 1.0-RC11;
-- the canonical RC11 SHA-256;
+- OpenAPI 3.1.0 and API version 1.0-RC12;
+- the canonical RC12 SHA-256;
 - 113 operations / 86 paths / 248 schemas-helpers;
 - 1,360 resolved internal `$ref` occurrences with zero unresolved references;
 - 12 AUTH / 2 PUBLIC-PREVIEW / 63 SITE / 36 GLOBAL operations;

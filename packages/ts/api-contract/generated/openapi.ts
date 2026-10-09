@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
-// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml
-// Source SHA-256: 4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358
+// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml
+// Source SHA-256: f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd
 // Wire keys intentionally preserve the canonical OpenAPI spelling/casing.
 
 export interface components {
@@ -652,6 +652,7 @@ export interface components {
           "site_key": string;
           "display_name": string;
           "lifecycle_state": string;
+          "temporary_site_url"?: string;
           "effective_permissions": Array<"dashboard.view" | "posts.view" | "posts.create" | "posts.edit" | "posts.preview" | "posts.duplicate" | "posts.revisions.view" | "posts.revisions.restore" | "posts.publish" | "posts.schedule" | "posts.archive" | "posts.trash" | "posts.restore" | "posts.delete" | "categories.view" | "categories.create" | "categories.edit" | "categories.delete" | "tags.view" | "tags.create" | "tags.edit" | "tags.delete" | "authors.view" | "authors.create" | "authors.edit" | "authors.retire" | "media.view" | "media.upload" | "media.edit" | "media.replace" | "media.delete" | "navigation.view" | "navigation.manage" | "seo.view" | "seo.edit" | "redirects.view" | "redirects.create" | "redirects.edit" | "redirects.delete" | "search.view" | "search.reindex" | "calendar.view" | "site_settings.view" | "site_settings.edit">;
         };
     "AdminGlobalContext": {

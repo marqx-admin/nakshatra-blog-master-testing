@@ -127,7 +127,7 @@ def validate_json(
 def validate_response(spec: dict[str, Any], contract: OperationContract, status: int, payload: Any) -> None:
     if not contract.allows_status(status):
         raise RuntimeError(
-            f"{contract.operation_id} returned status {status}, not declared by canonical RC11"
+            f"{contract.operation_id} returned status {status}, not declared by canonical RC12"
         )
     schema = contract.response_schema(status)
     if schema is None:
@@ -143,7 +143,7 @@ def validate_response(spec: dict[str, Any], contract: OperationContract, status:
         first = errors[0]
         path = ".".join(str(part) for part in first.path)
         raise RuntimeError(
-            f"{contract.operation_id} response violates canonical RC11 schema at {path or '<root>'}: {first.message}"
+            f"{contract.operation_id} response violates canonical RC12 schema at {path or '<root>'}: {first.message}"
         )
 
 
@@ -240,18 +240,18 @@ def validate_parameters(spec: dict[str, Any], contract: OperationContract, reque
 def assert_rc11_contract(spec: dict[str, Any]) -> None:
     operations = list(iter_operations(spec))
     schemas = spec.get("components", {}).get("schemas", {})
-    if spec.get("openapi") != "3.1.0" or spec.get("info", {}).get("version") != "1.0-RC11":
-        raise RuntimeError("canonical HTTP contract must be BLOG-DOC-15 OpenAPI 1.0-RC11")
+    if spec.get("openapi") != "3.1.0" or spec.get("info", {}).get("version") != "1.0-RC12":
+        raise RuntimeError("canonical HTTP contract must be BLOG-DOC-15 OpenAPI 1.0-RC12")
     if len(operations) != 113 or len(spec.get("paths", {})) != 86 or len(schemas) != 248:
-        raise RuntimeError("canonical RC11 estate count mismatch")
+        raise RuntimeError("canonical RC12 estate count mismatch")
     operation_ids = [op.operation_id for op in operations]
     pairs = [(op.method, op.path) for op in operations]
     if len(set(operation_ids)) != 113 or len(set(pairs)) != 113:
-        raise RuntimeError("canonical RC11 operation identity is not unique")
+        raise RuntimeError("canonical RC12 operation identity is not unique")
     owned = list(owned_operations(spec))
     if len(owned) != 51:
-        raise RuntimeError("CHAT03/C00 RC11 core ownership set must be 51 operations")
+        raise RuntimeError("CHAT03/C00 RC12 core ownership set must be 51 operations")
 
-# Backward import compatibility; canonical runtime is RC11.
+# Backward import compatibility; canonical runtime is RC12.
 assert_rc10_contract = assert_rc11_contract
 assert_rc7_contract = assert_rc11_contract

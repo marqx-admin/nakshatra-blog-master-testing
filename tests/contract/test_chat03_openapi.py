@@ -7,7 +7,7 @@ from bp_api.config import Settings
 from bp_api.http.contract import iter_operations, load_openapi, owned_operations
 from bp_test_support.fastapi_routes import iter_effective_fastapi_routes, single_http_method
 
-CANON = Path("contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml")
+CANON = Path("contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml")
 
 
 def test_chat03_route_method_operation_and_success_status_parity():

@@ -36,16 +36,16 @@ from bp_domain.editorial import (
 from bp_domain.errors import NotFound, ValidationFault, VersionConflict
 from bp_domain.security import AccountState, AdminPrincipal
 
-CANON = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml"
-CANON_SHA = "4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358"
+CANON = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml"
+CANON_SHA = "f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd"
 
 
 def test_rc11_canonical_contract_is_self_consistent_and_complete():
     assert hashlib.sha256(CANON.read_bytes()).hexdigest() == CANON_SHA
     spec = yaml.safe_load(CANON.read_text())
-    assert spec["info"]["version"] == "1.0-RC11"
+    assert spec["info"]["version"] == "1.0-RC12"
     authority = spec["x-doc15-authority"]
-    assert authority["version"] == "1.0-RC11"
+    assert authority["version"] == "1.0-RC12"
     assert authority["operation_count"] == 113
     assert authority["unique_route_paths"] == 86
     assert authority["schema_helper_count"] == 248

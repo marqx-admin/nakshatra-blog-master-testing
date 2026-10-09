@@ -286,7 +286,7 @@ def build_openapi_ts(document: dict[str, Any], operations: list[dict[str, Any]],
     op_by_path_method = {(op["__path"], op["__method"].lower()): op for op in operations}
     lines = [
         "// GENERATED FILE — DO NOT EDIT.",
-        "// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml",
+        "// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml",
         f"// Source SHA-256: {source_sha}",
         "// Wire keys intentionally preserve the canonical OpenAPI spelling/casing.",
         "",
@@ -347,7 +347,7 @@ def build_registry_ts(operations: list[dict[str, Any]], source_sha: str) -> str:
     registry = {str(op["operationId"]): operation_metadata(op) for op in operations}
     return "\n".join([
         "// GENERATED FILE — DO NOT EDIT.",
-        "// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml",
+        "// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml",
         f"// Source SHA-256: {source_sha}",
         "",
         "export const operationRegistry = " + json.dumps(registry, ensure_ascii=False, indent=2, sort_keys=True) + " as const;",
@@ -372,7 +372,7 @@ def build_client_ts(kind: str, operations: list[dict[str, Any]], source_sha: str
 
     allowed_json = json.dumps(allowed, ensure_ascii=False, indent=2)
     return f'''// GENERATED FILE — DO NOT EDIT.
-// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml
+// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml
 // Source SHA-256: {source_sha}
 
 import {{ operationRegistry }} from "@bp/api-contract";
@@ -495,7 +495,7 @@ def build_client_index(kind: str) -> str:
 
 def outputs(document: dict[str, Any], operations: list[dict[str, Any]], sha: str) -> dict[Path, str]:
     manifest = {
-        "source": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml",
+        "source": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml",
         "source_sha256": sha,
         "api_version": str((document.get("info") or {}).get("version")),
         "generator": "tooling/generators/generate_openapi_artifacts.py",
@@ -510,7 +510,7 @@ def outputs(document: dict[str, Any], operations: list[dict[str, Any]], sha: str
         ROOT / "packages/ts/api-contract/generated/openapi.ts": build_openapi_ts(document, operations, sha),
         ROOT / "packages/ts/api-contract/generated/operation-registry.ts": build_registry_ts(operations, sha),
         ROOT / "packages/ts/api-contract/generated/contract-manifest.json": json.dumps(manifest, indent=2, sort_keys=True) + "\n",
-        ROOT / "packages/ts/api-contract/generated/README.md": "GENERATED FROM contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml. DO NOT EDIT.\n",
+        ROOT / "packages/ts/api-contract/generated/README.md": "GENERATED FROM contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml. DO NOT EDIT.\n",
         ROOT / "packages/ts/api-contract/src/index.ts": 'export * from "../generated/openapi";\nexport * from "../generated/operation-registry";\n',
         ROOT / "packages/ts/api-client-public/src/generated.ts": build_client_ts("public", operations, sha),
         ROOT / "packages/ts/api-client-public/src/index.ts": build_client_index("public"),
@@ -529,11 +529,11 @@ def main() -> int:
     baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
     source = ROOT / baseline["canonical_repository_path"]
     if not source.exists():
-        fail(f"canonical RC11 source missing: {baseline['canonical_repository_path']}", 20)
+        fail(f"canonical RC12 source missing: {baseline['canonical_repository_path']}", 20)
     raw = source.read_bytes()
     sha = hashlib.sha256(raw).hexdigest()
     if sha != baseline["sha256"]:
-        fail(f"pinned RC11 source SHA mismatch: expected={baseline['sha256']} actual={sha}", 21)
+        fail(f"pinned RC12 source SHA mismatch: expected={baseline['sha256']} actual={sha}", 21)
 
     document = yaml.safe_load(raw)
     if not isinstance(document, dict):
@@ -545,7 +545,7 @@ def main() -> int:
         for path, content in generated.items():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8", newline="\n")
-        print(f"PASS generated {len(generated)} deterministic TypeScript contract/client artifacts from pinned RC11 YAML")
+        print(f"PASS generated {len(generated)} deterministic TypeScript contract/client artifacts from pinned RC12 YAML")
         print(f"PASS public operations=2 admin operations={len(operations)-2} source_sha256={sha}")
         return 0
 

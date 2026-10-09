@@ -1,4 +1,4 @@
-"""Frozen RC11 presentation/configuration validation shared by API adapters."""
+"""Frozen RC12 presentation/configuration validation shared by API adapters."""
 
 from __future__ import annotations
 
@@ -28,11 +28,11 @@ class PresentationPolicy:
 
     def require_presentation(self, value: Any) -> None:
         if not self.presentation_valid(value):
-            raise ValidationFault("presentation does not satisfy canonical RC11")
+            raise ValidationFault("presentation does not satisfy canonical RC12")
 
     def require_static_pages(self, value: Any) -> None:
         if not self.static_pages.is_valid(value):
-            raise ValidationFault("fixed information pages do not satisfy canonical RC11")
+            raise ValidationFault("fixed information pages do not satisfy canonical RC12")
 
 
 def presentation_references(value: dict[str, Any]) -> tuple[set[str], set[str]]:

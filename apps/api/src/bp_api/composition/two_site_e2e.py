@@ -416,7 +416,7 @@ def build_two_site_e2e_services(settings: Settings, spec: dict[str, Any]) -> Ser
         audit=audit,
         derived_operations=derived_ops,
         preview_authority=preview_authority,
-        site_context_payload=PostgresAdminSiteContextPayload(site_transactions),
+        site_context_payload=PostgresAdminSiteContextPayload(site_transactions, settings.temporary_domain_suffix),
         site_dashboard_payload=PostgresSiteDashboardPayload(site_transactions),
         transport_throttle=transport,
         security_abuse=abuse,

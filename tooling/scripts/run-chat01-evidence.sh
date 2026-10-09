@@ -15,4 +15,4 @@ uv lock --offline --check
 uv sync --offline --frozen --all-packages
 node --test tests/dependency/foundation.test.mjs tests/contract/openapi-contract.test.mjs
 
-printf '%s\n' 'CHAT01 foundation + approved RC11 contract checks complete.'
+printf '%s\n' 'CHAT01 foundation + approved RC12 contract checks complete.'

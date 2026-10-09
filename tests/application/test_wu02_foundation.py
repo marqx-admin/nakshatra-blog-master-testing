@@ -32,7 +32,7 @@ from bp_api.composition.presentation import PresentationPolicy
 from bp_api.http.public.routes import _trusted_preview_media_reference
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = yaml.safe_load((ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC11.yaml").read_text())
+SPEC = yaml.safe_load((ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml").read_text())
 
 
 def _context(*, site_id: str = "site-a", host: str = "site-100.example.test") -> SiteContext:
