@@ -61,18 +61,18 @@ def test_wave2_full_assembly_static_guards():
     assert len(CANONICAL_JOB_TYPES) == 11
     assert len(RETRY_PROFILES) == 7
 
-    # CHAT06 canonical Admin estate.
+    # Existing Admin estate plus the Universal Appearance workspace page.
     pages = json.loads((ROOT / "apps/admin/src/app/router/admin-pages.json").read_text())
-    assert len(pages) == 36
+    assert len(pages) == 37
     site_pages = [p for p in pages if p["scope"] == "SITE"]
     global_pages = [p for p in pages if p["scope"] == "GLOBAL"]
-    assert len(site_pages) == 20
+    assert len(site_pages) == 21
     assert len(global_pages) == 16
     site_modules = {p["moduleId"] for p in site_pages}
     global_modules = {p["moduleId"] for p in global_pages}
-    assert len(site_modules) == 12
+    assert len(site_modules) == 13
     assert len(global_modules) == 7
-    assert len(site_modules | global_modules) == 19
+    assert len(site_modules | global_modules) == 20
 
     # CHAT05 provider/adaptor implementation homes exist exactly where DOC-23/CHAT00 assigns them.
     required_dirs = [

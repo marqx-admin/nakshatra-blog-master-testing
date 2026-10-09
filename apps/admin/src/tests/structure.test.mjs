@@ -15,17 +15,17 @@ function walk(dir){for(const ent of fs.readdirSync(dir,{withFileTypes:true})){co
 walk(path.join(root,'src'));
 const all=sources.map(([,text])=>text).join('\n');
 
-const SITE_IDS=['ADM-S-DASH-01','ADM-S-POST-01','ADM-S-POST-02','ADM-S-POST-03','ADM-S-POST-04','ADM-S-CAT-01','ADM-S-CAT-02','ADM-S-TAG-01','ADM-S-TAG-02','ADM-S-AUTHOR-01','ADM-S-AUTHOR-02','ADM-S-MEDIA-01','ADM-S-MEDIA-02','ADM-S-NAV-01','ADM-S-SEO-01','ADM-S-REDIR-01','ADM-S-REDIR-02','ADM-S-SEARCH-01','ADM-S-CAL-01','ADM-S-SET-01'];
+const SITE_IDS=['ADM-S-DASH-01','ADM-S-POST-01','ADM-S-POST-02','ADM-S-POST-03','ADM-S-POST-04','ADM-S-CAT-01','ADM-S-CAT-02','ADM-S-TAG-01','ADM-S-TAG-02','ADM-S-AUTHOR-01','ADM-S-AUTHOR-02','ADM-S-MEDIA-01','ADM-S-MEDIA-02','ADM-S-NAV-01','ADM-S-SEO-01','ADM-S-REDIR-01','ADM-S-REDIR-02','ADM-S-SEARCH-01','ADM-S-CAL-01','ADM-S-SET-01','ADM-S-APP-01'];
 const GLOBAL_IDS=['ADM-G-NET-01','ADM-G-NET-02','ADM-G-SITE-01','ADM-G-SITE-02','ADM-G-SITE-03','ADM-G-SITE-04','ADM-G-USER-01','ADM-G-USER-02','ADM-G-USER-03','ADM-G-ROLE-01','ADM-G-ROLE-02','ADM-G-ROLE-03','ADM-G-PERM-01','ADM-G-AUDIT-01','ADM-G-AUDIT-02','ADM-G-PLAT-01'];
 const BLOCKS=['PARAGRAPH','HEADING','LIST','QUOTE','SEPARATOR','MEDIA','TABLE','EMBED','CALLOUT','CTA','DISCLAIMER','SOURCES_REFERENCES'];
 
-test('exact DOC-06 operational estate is preserved',()=>{
-  assert.equal(pages.length,36);
+test('existing operational estate plus one Universal Appearance page is preserved',()=>{
+  assert.equal(pages.length,37);
   assert.deepEqual(pages.filter(p=>p.scope==='SITE').map(p=>p.pageId),SITE_IDS);
   assert.deepEqual(pages.filter(p=>p.scope==='GLOBAL').map(p=>p.pageId),GLOBAL_IDS);
-  assert.equal(new Set(pages.map(p=>p.pageId)).size,36);
-  assert.equal(new Set(pages.map(p=>p.moduleId)).size,19);
-  assert.equal(pages.filter(p=>p.primary&&p.scope==='SITE').length,11);
+  assert.equal(new Set(pages.map(p=>p.pageId)).size,37);
+  assert.equal(new Set(pages.map(p=>p.moduleId)).size,20);
+  assert.equal(pages.filter(p=>p.primary&&p.scope==='SITE').length,13);
   assert.equal(pages.filter(p=>p.primary&&p.scope==='GLOBAL').length,7);
 });
 
@@ -74,7 +74,7 @@ test('ordinary users share the main dashboard presentation while authority remai
   assert.equal(router.includes('<h1>My Websites</h1>'),false);
   assert.ok(globalPages.includes('export function WebsiteDashboardOverview'));
   assert.ok(globalPages.includes('Open Dashboard'));
-  assert.ok(router.includes('Full Website Manager'));
+  assert.equal(router.includes('effective.has("tags.view")'),false);
   assert.ok(router.includes('response.headers.get("X-BP-Public-Url")'));
   assert.ok(shell.includes('← Back to Dashboard'));
 });

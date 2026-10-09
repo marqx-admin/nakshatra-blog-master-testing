@@ -1,13 +1,10 @@
 import { createContext, useContext, type PropsWithChildren } from "react";
+import type { components } from "@bp/api-contract";
 
-export interface SiteContextData {
-  site_key: string;
-  display_name: string;
-  lifecycle_state: string;
-  timezone_id?: string;
+export type SiteContextData = Omit<components["schemas"]["AdminSiteContext"], "effective_permissions"> & {
   effective_permissions: string[];
-  access_level: "SUPER_ADMIN" | "CONTENT_EDITOR" | "FULL_WEBSITE_MANAGER";
-}
+  timezone_id?: string;
+};
 export interface GlobalContextData { effective_permissions: string[] }
 
 interface ContextValue {

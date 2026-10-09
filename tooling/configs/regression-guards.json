@@ -22,12 +22,12 @@
       "chat01_check": "DERIVED_FROM_REPOSITORY"
     },
     "admin_modules": {
-      "expected": 19,
+      "expected": 20,
       "source": "DOC-03 RC2/DOC-06",
       "chat01_check": "HOOK_ONLY"
     },
     "admin_page_ids": {
-      "expected": 36,
+      "expected": 37,
       "source": "DOC-06/DOC-10",
       "chat01_check": "HOOK_ONLY"
     },

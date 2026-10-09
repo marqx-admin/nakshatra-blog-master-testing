@@ -16,6 +16,9 @@ importers:
       '@bp/api-contract':
         specifier: workspace:*
         version: link:../../packages/ts/api-contract
+      '@bp/presentation-catalogue':
+        specifier: workspace:*
+        version: link:../../packages/ts/presentation-catalogue
       '@tanstack/react-query':
         specifier: ^5.0.0
         version: 5.102.8(react@19.3.0)

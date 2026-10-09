@@ -21,6 +21,7 @@
   "dependencies": {
     "@bp/api-client-admin": "workspace:*",
     "@bp/api-contract": "workspace:*",
+    "@bp/presentation-catalogue": "workspace:*",
     "@tanstack/react-query": "^5.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -41,7 +42,7 @@
   "bp": {
     "role": "central-admin",
     "frameworkLine": "React 19.x + TypeScript 5.x + Vite 7.x + React Router 7.x + TanStack Query 5.x",
-    "authority": "BLOG-DOC-06/DOC-10/DOC-25 RC2; RC11 generated Admin client",
+    "authority": "BLOG-DOC-06/DOC-10/DOC-25 RC2; RC12 generated Admin client",
     "owner": "CHAT06"
   }
 }

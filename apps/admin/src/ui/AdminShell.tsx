@@ -3,11 +3,9 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAdminContext, useEffectivePermissions } from "../app/site-context/AdminContext";
 import { globalPrimaryPages, sitePrimaryPages, routeForPage } from "../app/router/pageRegistry";
 import { Button } from "./components";
-import { useAdminQuery } from "../app/query-client/hooks";
-import { asRecords, asRecord } from "../modules/recordUtils";
 
 const moduleSymbols: Record<string, string> = {
-  "MOD-S-01":"◇","MOD-S-02":"▤","MOD-S-03":"⌁","MOD-S-04":"#","MOD-S-05":"◉","MOD-S-06":"▧","MOD-S-07":"☰","MOD-S-08":"◎","MOD-S-09":"↗","MOD-S-10":"⌕","MOD-S-11":"□","MOD-S-12":"⚙",
+  "MOD-S-01":"◇","MOD-S-02":"▤","MOD-S-03":"⌁","MOD-S-04":"#","MOD-S-05":"◉","MOD-S-06":"▧","MOD-S-07":"☰","MOD-S-08":"◎","MOD-S-09":"↗","MOD-S-10":"⌕","MOD-S-11":"□","MOD-S-12":"⚙","MOD-S-13":"✦",
   "MOD-G-01":"◈","MOD-G-02":"◫","MOD-G-03":"♙","MOD-G-04":"♜","MOD-G-05":"≡","MOD-G-06":"⚙","MOD-G-07":"⌘",
 };
 
@@ -19,16 +17,10 @@ function primaryHref(pageId: string, siteKey?: string): string {
 function Sidebar({ onNavigate, drawerRef }: { onNavigate(): void; drawerRef: RefObject<HTMLElement | null> }) {
   const context = useAdminContext();
   const permissions = useEffectivePermissions();
-  const platformSettings = useAdminQuery<Record<string, unknown>>("API15-G-060", {}, context.scope === "GLOBAL" && permissions.includes("platform_settings.view"));
   const siteKey = context.site?.site_key;
-  const editorModules = new Set(["MOD-S-01", "MOD-S-02", "MOD-S-06", "MOD-S-11"]);
-  const visibleSite = sitePrimaryPages.filter((page) =>
-    page.access.every((permission) => permissions.includes(permission)) &&
-    (context.site?.access_level !== "CONTENT_EDITOR" || editorModules.has(page.moduleId))
-  );
-  const hiddenGlobalModules = new Set(["MOD-G-04", "MOD-G-05", "MOD-G-07"]);
-  const hasPlatformSettings = asRecords(asRecord(platformSettings.data).settings).length > 0;
-  const visibleGlobal = globalPrimaryPages.filter((page) => context.scope === "GLOBAL" && !hiddenGlobalModules.has(page.moduleId) && (page.moduleId !== "MOD-G-06" || hasPlatformSettings) && page.access.every((permission) => permissions.includes(permission)));
+  const visibleSite = sitePrimaryPages.filter((page) => page.access.every((permission) => permissions.includes(permission)));
+  const hiddenGlobalModules = new Set(["MOD-G-04", "MOD-G-07"]);
+  const visibleGlobal = globalPrimaryPages.filter((page) => context.scope === "GLOBAL" && !hiddenGlobalModules.has(page.moduleId) && page.access.every((permission) => permissions.includes(permission)));
   return (
     <aside id="bp-primary-navigation" ref={drawerRef} className="bp-sidebar" aria-label="Central Admin primary navigation" tabIndex={-1}>
       <div className="bp-brand"><span className="bp-brand-mark" aria-hidden="true">✦</span><div><strong>Nakshatra Admin</strong><span>Blogging Platform</span></div></div>
@@ -71,7 +63,7 @@ export function AdminShell({ children }: PropsWithChildren) {
     {navOpen ? <button className="bp-nav-backdrop" type="button" aria-label="Close navigation" onClick={() => { closeNavigation(); menuButtonRef.current?.focus(); }} /> : null}
     <header className="bp-topbar">
       <div className="bp-topbar-left"><button ref={menuButtonRef} type="button" className="bp-icon-button bp-mobile-menu-button" aria-label={navOpen ? "Close navigation" : "Open navigation"} aria-expanded={navOpen} aria-controls="bp-primary-navigation" onClick={() => setNavOpen((value) => !value)}>☰</button><span className="bp-topbar-title">{workspaceLabel}</span></div>
-      <div className="bp-topbar-actions">{context.scope === "SITE" ? <Button variant="secondary" onClick={() => navigate(context.site?.access_level === "SUPER_ADMIN" ? "/global/network" : "/")}>{context.site?.access_level === "SUPER_ADMIN" ? "← Back to Global Dashboard" : "← Back to Dashboard"}</Button> : null}<Button variant="tertiary" onClick={() => navigate("/security", { state: { returnTo: location.pathname || securityHref } })}>Security</Button><Button variant="tertiary" onClick={() => navigate("/logout")}>Sign out</Button></div>
+      <div className="bp-topbar-actions">{context.scope === "SITE" ? <Button variant="secondary" onClick={() => navigate("/")}>← Back to Dashboard</Button> : null}<Button variant="tertiary" onClick={() => navigate("/security", { state: { returnTo: location.pathname || securityHref } })}>Security</Button><Button variant="tertiary" onClick={() => navigate("/logout")}>Sign out</Button></div>
     </header>
     <main className="bp-main"><div className="bp-content">{children}</div></main>
   </div>;

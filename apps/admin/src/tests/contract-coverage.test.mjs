@@ -102,12 +102,12 @@ test("keyboard/focus requirements have concrete Modal and mobile drawer behavior
   assert.ok(shell.includes("menuButtonRef.current?.focus()"));
 });
 
-test("breadcrumbs and access-level projection are present without becoming authorization", () => {
+test("breadcrumbs and server permission checks remain authorization-aware", () => {
   const frame = fs.readFileSync(path.join(adminRoot, "src/modules/PageFrame.tsx"), "utf8");
   assert.ok(frame.includes("<Breadcrumbs"));
   assert.ok(frame.includes("hasAllPermissions"));
   const router = fs.readFileSync(path.join(adminRoot, "src/app/router/AdminRouter.tsx"), "utf8");
-  assert.ok(router.includes('managerOnly'));
+  assert.equal(router.includes('managerOnly'), false);
   assert.ok(router.includes('API15-S-001'));
   assert.ok(router.includes('API15-AUTH-012'));
   assert.ok(router.includes('WebsiteDashboardOverview'));
