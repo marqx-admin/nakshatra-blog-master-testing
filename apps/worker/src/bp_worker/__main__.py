@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import asyncio
 import os
+
+from bp_worker.async_bridge import run_worker_async
 
 _SUPPORTED_WORKER_POOLS = {"prefork", "solo", "threads"}
 
@@ -29,9 +30,14 @@ def _select_runtime():
 
 
 def _close(runtime: object) -> None:
+    from bp_worker.async_bridge import close_worker_loop, run_worker_async
+
     close = getattr(runtime, "close", None)
-    if close is not None:
-        asyncio.run(close())
+    try:
+        if close is not None:
+            run_worker_async(close())
+    finally:
+        close_worker_loop()
 
 
 def _worker_arguments(*, queue_name: str, loglevel: str) -> list[str]:
@@ -67,7 +73,7 @@ def main() -> None:
     composition, runtime = _select_runtime()
     try:
         if composition in {"production", "self-hosted"} and runtime.is_scheduler:
-            asyncio.run(runtime.run_scheduler_forever())
+            run_worker_async(runtime.run_scheduler_forever())
             return
         loglevel = os.getenv("BP_LOG_LEVEL", "INFO")
         runtime.celery_app.worker_main(
