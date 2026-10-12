@@ -1,0 +1,16 @@
+{
+  "artifact": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml",
+  "authority": "BLOG-DOC-15 v1.0-RC13 executable server-authored temporary-site URL correction",
+  "status": "WU05_RC13_SERVER_AUTHORED_TEMPORARY_SITE_URL",
+  "sha256": "5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef",
+  "supersedes": {
+    "artifact": "BLOG-DOC-15_openapi_v1.0-RC12.yaml",
+    "sha256": "f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd"
+  },
+  "scope": [
+    "ONE_REUSABLE_TEMPORARY_SITE_URL_SCHEMA",
+    "OPTIONAL_CREATE_WEBSITE_RESPONSE_TEMPORARY_SITE_URL",
+    "LOCALHOST_ONLY_HTTP_VALIDATION"
+  ],
+  "note": "RC13 adds one reusable URL schema, applies it to AdminSiteContext, and adds optional CreateWebsiteResponse.temporary_site_url. RC12 remains byte-unchanged. No operation, permission, table, or migration is added."
+}

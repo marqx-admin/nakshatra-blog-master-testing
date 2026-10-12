@@ -7,7 +7,7 @@ import { PageFrame } from "../PageFrame";
 import { QueryState } from "../QueryStates";
 import { Alert, Button, FormSection, SuccessState } from "../../ui/components";
 import { MediaPicker } from "./EditorAssist";
-import { AppearanceControls, AppearancePreview, InformationPagesEditor, StyleChooser, appearanceValidation } from "../appearance/AppearanceControls";
+import { AppearanceControls, InformationPagesEditor, StyleChooser, appearanceValidation } from "../appearance/AppearanceControls";
 import { startingPages, startingPresentation, type PresentationConfig, type StaticPages } from "../appearance/appearance-model";
 
 type SettingsResponse = components["schemas"]["SiteSettingsResponse"];
@@ -60,12 +60,11 @@ export function AppearancePage() {
   return <PageFrame pageId="ADM-S-APP-01" context={`${site.display_name} · controlled website presentation`}><QueryState isLoading={query.isLoading} error={query.error} hasData={Boolean(query.data)} retry={() => void query.refetch()}>
     <form className="bp-form" onSubmit={event => void submit(event)}>
       <FormSection title="Temporary website" description="This testing destination comes from the current site's server-validated context.">
-        {site.temporary_site_url ? <><a className="bp-button bp-button--secondary" href={site.temporary_site_url} target="_blank" rel="noreferrer">Open Temporary Website</a><p>{site.lifecycle_state === "DISABLED" ? "This website is disabled and remains unavailable to public visitors until authorized activation." : "Public temporary-site testing follows the backend noindex and crawler policy."}</p></> : <p>No active temporary website destination is registered for this site.</p>}
+        {site.temporary_site_url ? <><p>Server-provided URL: <strong>{site.temporary_site_url}</strong></p>{site.lifecycle_state === "ACTIVE" ? <a className="bp-button bp-button--secondary" href={site.temporary_site_url} target="_blank" rel="noreferrer">Open Temporary Website</a> : null}<p>{site.lifecycle_state === "DISABLED" ? "This website is disabled and remains unavailable to public visitors until authorized activation." : site.lifecycle_state === "ACTIVE" ? "Public temporary-site testing follows the backend noindex and crawler policy." : "This website is not publicly available in its current lifecycle state."}</p></> : <p>No active temporary website destination is registered for this site.</p>}
       </FormSection>
-      <StyleChooser value={config} onChange={changeConfig} disabled={!editable}/>
+      <StyleChooser value={config} name={site.display_name} locale={locale} showSelectedPreview={false} onChange={changeConfig} disabled={!editable}/>
       <FormSection title="Branding" description="The site name is managed in Site Settings. The logo remains a same-site media selection.">{permissions.includes("media.view") ? <MediaPicker siteKey={site.site_key} value={logoMediaId} onSelect={id => { setLogoMediaId(id); setLogoTouched(true); dirty.setDirty(true); dirty.setDirtyLabel("Logo change"); }} label="Website logo" disabled={!editable}/> : <p>Logo selection requires media access.</p>}</FormSection>
-      <AppearanceControls config={config} onChange={changeConfig} locale={locale} disabled={!editable}/>
-      <h2>Representative preview</h2><AppearancePreview config={config} name={site.display_name} locale={locale}/>
+      <AppearanceControls config={config} name={site.display_name} onChange={changeConfig} locale={locale} disabled={!editable}/>
       <InformationPagesEditor pages={pages} onChange={changePages} disabled={!editable}/>
       {errors.length ? <Alert tone="danger" title="Appearance cannot be saved"><ul>{errors.map((message, index) => <li key={`${message}-${index}`}>{message}</li>)}</ul></Alert> : null}
       {save.isError ? <Alert tone="danger" title="Save failed">The server did not accept these settings. {save.error instanceof Error ? save.error.message : ""}</Alert> : null}

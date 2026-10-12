@@ -1,15 +1,15 @@
 {
-  "authority": "BLOG-DOC-15 v1.0-RC12 executable WU-05 temporary-site context correction",
-  "canonical_repository_path": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml",
+  "authority": "BLOG-DOC-15 v1.0-RC13 executable server-authored temporary-site URL correction",
+  "canonical_repository_path": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml",
   "openapi_version": "3.1.0",
-  "api_version": "1.0-RC12",
-  "sha256": "f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd",
+  "api_version": "1.0-RC13",
+  "sha256": "5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef",
   "historical_unavailable_original_sha256": "3376444e141fd16bbf0a440f2828de0e97d04b5f60a49e106b2d07013f8397b2",
   "historical_digest_status": "SUPERSEDED_PROVENANCE_ONLY",
   "operation_count": 113,
   "path_count": 86,
-  "schema_helper_count": 248,
-  "resolved_internal_ref_count": 1360,
+  "schema_helper_count": 249,
+  "resolved_internal_ref_count": 1362,
   "auth_operation_count": 12,
   "public_preview_operation_count": 2,
   "site_operation_count": 63,
@@ -20,7 +20,7 @@
     "202": 3,
     "204": 9
   },
-  "status": "WU05_RC12_TEMPORARY_SITE_CONTEXT_CORRECTION",
+  "status": "WU05_RC13_SERVER_AUTHORED_TEMPORARY_SITE_URL",
   "forbidden_substitutes": [
     "RC5 YAML",
     "RC6 YAML",
@@ -32,5 +32,6 @@
   "superseded_rc8_sha256": "690a99b8580e63359527b719fe4826f45f7a1f8f3fd753beaefb45978ab4a5ca",
   "superseded_rc9_sha256": "f0d55354f79d7ff43385f5e761670b3cc8bf30a0a19de1623777be83f23ac172",
   "superseded_rc10_sha256": "001363acaf1f40d65edde67fb06f36990269e89ed1c699f221c4d545a6ea2e65",
-  "superseded_rc11_sha256": "4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358"
+  "superseded_rc11_sha256": "4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358",
+  "superseded_rc12_sha256": "f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd"
 }

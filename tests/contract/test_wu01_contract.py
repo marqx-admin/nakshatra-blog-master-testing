@@ -10,7 +10,7 @@ from jsonschema import Draft202012Validator, RefResolver
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = yaml.safe_load(
-    (ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml").read_text()
+    (ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml").read_text()
 )
 SCHEMAS = SPEC["components"]["schemas"]
 
@@ -108,6 +108,8 @@ def test_create_website_contract_and_trusted_page_projection() -> None:
     assert accepts("CreateWebsiteInput", request)
     assert not accepts("CreateWebsiteInput", {**request, "canonical_domain": "example.invalid"})
     assert "readiness" in SCHEMAS["CreateWebsiteResponse"]["required"]
+    assert "temporary_site_url" not in SCHEMAS["CreateWebsiteResponse"]["required"]
+    assert SCHEMAS["CreateWebsiteResponse"]["properties"]["temporary_site_url"] == {"$ref": "#/components/schemas/TemporarySiteUrl"}
     assert "SETUP" not in SCHEMAS["SiteAdminResource"]["properties"]["lifecycle_state"]["enum"]
     for name in (
         "HomePageData", "ArticlePageData", "CategoryPageData", "TagPageData",
@@ -117,3 +119,54 @@ def test_create_website_contract_and_trusted_page_projection() -> None:
         assert SCHEMAS[name]["properties"]["presentation"] == {
             "$ref": "#/components/schemas/TrustedPresentation"
         }
+
+
+@pytest.mark.parametrize("url", [
+    "https://site.preview.example.com/",
+    "http://site-15.preview.localhost:3015/",
+    "http://site-100.preview.localhost/",
+])
+def test_rc13_temporary_site_url_accepts_deployed_and_local_roots(url: str) -> None:
+    assert accepts("TemporarySiteUrl", url)
+
+
+@pytest.mark.parametrize("url", [
+    "http://site.preview.example.com/",
+    "http://site-15.preview.localhost:3015/page",
+    "http://site-15.preview.localhost:3015/?token=x",
+    "https://site.preview.example.com/#fragment",
+    "http://-bad.preview.localhost/",
+    "ftp://site.preview.example.com/",
+])
+def test_rc13_temporary_site_url_rejects_unsafe_or_malformed_values(url: str) -> None:
+    assert not accepts("TemporarySiteUrl", url)
+
+
+def test_create_website_response_accepts_optional_server_url() -> None:
+    response = {
+        "site": {
+            "site_key": "SITE-15", "display_name": "Site 15", "lifecycle_state": "DISABLED",
+            "timezone_id": "Asia/Kolkata", "created_at": "2026-10-09T00:00:00Z",
+            "updated_at": "2026-10-09T00:00:00Z",
+        },
+        "temporary_hostname": "site-15.preview.localhost",
+        "readiness": {
+            "overall_ready": True, "settings_ready": True, "navigation_ready": True,
+            "homepage_ready": True, "temporary_domain_ready": True, "missing_components": [],
+        },
+    }
+    assert accepts("CreateWebsiteResponse", response)
+    assert accepts("CreateWebsiteResponse", {**response, "temporary_site_url": "http://site-15.preview.localhost:3015/"})
+    assert not accepts("CreateWebsiteResponse", {**response, "temporary_site_url": "http://site.preview.example.com/"})
+
+
+def test_rc13_keeps_rc12_operations_and_permissions_exact() -> None:
+    predecessor = yaml.safe_load((ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml").read_text())
+    for path, path_item in predecessor["paths"].items():
+        for method, operation in path_item.items():
+            if not isinstance(operation, dict) or "operationId" not in operation:
+                continue
+            current = SPEC["paths"][path][method]
+            assert current["operationId"] == operation["operationId"]
+            assert current.get("x-permissions") == operation.get("x-permissions")
+    assert SPEC["paths"].keys() == predecessor["paths"].keys()

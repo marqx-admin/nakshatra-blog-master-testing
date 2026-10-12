@@ -38,7 +38,7 @@
     },
     {
       "id": "DEP-C01-009",
-      "rule": "FastAPI-generated OpenAPI is derived diagnostic output only; canonical file remains DOC-15 RC12 YAML."
+      "rule": "FastAPI-generated OpenAPI is derived diagnostic output only; canonical file remains DOC-15 RC13 YAML."
     },
     {
       "id": "DEP-C01-010",

@@ -1,23 +1,23 @@
-# RC12 executable contract generation
+# RC13 executable contract generation
 
 ## Canonical source
 
-`contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml`
+`contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml`
 
 Canonical SHA-256:
 
-`f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd`
+`5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef`
 
-RC12 adds only the optional read-only SITE temporary URL projection. RC11 and earlier executable artifacts remain unchanged as historical revisions. The current Universal implementation rules, work unit, and final Blueprint control target behavior.
+RC13 adds one reusable temporary URL schema and an optional Create Website response URL, while retaining the optional read-only SITE context URL. RC12 and earlier executable artifacts remain unchanged as historical revisions. The current Universal implementation rules, work unit, and final Blueprint control target behavior.
 
 ## Required checks
 
 `node tooling/scripts/check-openapi-source.mjs` verifies:
 
-- OpenAPI 3.1.0 and API version 1.0-RC12;
-- the canonical RC12 SHA-256;
-- 113 operations / 86 paths / 248 schemas-helpers;
-- 1,360 resolved internal `$ref` occurrences with zero unresolved references;
+- OpenAPI 3.1.0 and API version 1.0-RC13;
+- the canonical RC13 SHA-256;
+- 113 operations / 86 paths / 249 schemas-helpers;
+- 1,362 resolved internal `$ref` occurrences with zero unresolved references;
 - 12 AUTH / 2 PUBLIC-PREVIEW / 63 SITE / 36 GLOBAL operations;
 - success distribution 200x86 / 201x15 / 202x3 / 204x9;
 - exact operation-prefix to `x-site-context` classification.

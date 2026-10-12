@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "echo \"ESLint execution requires controlled toolchain materialization\""
   },
-  "bpBoundary": "Public transport client generated from the canonical DOC-15 RC12 YAML; operation exposure is prefix-restricted by DOC-23.",
+  "bpBoundary": "Public transport client generated from the canonical DOC-15 RC13 YAML; operation exposure is prefix-restricted by DOC-23.",
   "dependencies": {
     "@bp/api-contract": "workspace:*"
   },

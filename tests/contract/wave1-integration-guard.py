@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-EXPECTED_OPENAPI_SHA = "f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd"
+EXPECTED_OPENAPI_SHA = "5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef"
 EXPECTED_SITES = [
     "site-01-whats-your-rashi",
     "site-02-apki-rashi",
@@ -51,9 +51,9 @@ check("single API application folder", (ROOT / "apps/api").is_dir())
 check("single Worker application folder", (ROOT / "apps/worker").is_dir())
 
 # Canonical OpenAPI source custody.
-openapi = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml"
+openapi = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml"
 actual_sha = hashlib.sha256(openapi.read_bytes()).hexdigest() if openapi.is_file() else "MISSING"
-check("owner-approved RC12 OpenAPI byte identity", actual_sha == EXPECTED_OPENAPI_SHA, actual_sha)
+check("owner-approved RC13 OpenAPI byte identity", actual_sha == EXPECTED_OPENAPI_SHA, actual_sha)
 
 # DOC-08 source baseline counts (source verification only, not live PostgreSQL PASS).
 contract_path = ROOT / "database/verification/doc08-contract.json"
@@ -68,7 +68,7 @@ rls_list = ROOT / "database/rls/site_owned_tables.txt"
 rls_tables = [x.strip() for x in rls_list.read_text(encoding="utf-8").splitlines() if x.strip() and not x.lstrip().startswith("#")] if rls_list.is_file() else []
 check("RLS registry covers the exact 20 SITE tables", sorted(rls_tables) == site_tables, f"found={len(rls_tables)}")
 migrations = sorted((ROOT / "database/migrations").glob("[0-9][0-9][0-9][0-9]_DB-MIG-*.sql"))
-check("exactly 19 ordered migration source files", len(migrations) == 19 and [p.name[:4] for p in migrations] == [f"{i:04d}" for i in range(1, 20)], f"found={len(migrations)}")
+check("exactly 21 ordered migration source files", len(migrations) == 21 and [p.name[:4] for p in migrations] == [f"{i:04d}" for i in range(1, 22)], f"found={len(migrations)}")
 perms = contract.get("permission_registry", [])
 check("DOC-08 contract has 69 fixed permissions", len(perms) == 69, f"found={len(perms)}")
 site_seeds = (ROOT / "database/seeds/initial-sites.sql").read_text(encoding="utf-8") if (ROOT / "database/seeds/initial-sites.sql").is_file() else ""

@@ -289,6 +289,8 @@ def build_production_services(settings: Settings, spec: dict[str, Any]) -> Servi
         site_transactions,
         contexts,
         temporary_domain_suffix=settings.temporary_domain_suffix,
+        allow_local_temporary_hosts=settings.environment in {"development", "test"},
+        temporary_site_url_config=settings.temporary_site_url_config,
         presentation_policy=PresentationPolicy(spec),
     )
 
@@ -342,7 +344,7 @@ def build_production_services(settings: Settings, spec: dict[str, Any]) -> Servi
         audit=audit,
         derived_operations=derived_ops,
         preview_authority=preview_authority,
-        site_context_payload=PostgresAdminSiteContextPayload(site_transactions, settings.temporary_domain_suffix),
+        site_context_payload=PostgresAdminSiteContextPayload(site_transactions, settings.temporary_domain_suffix, settings.temporary_site_url_config),
         site_dashboard_payload=PostgresSiteDashboardPayload(site_transactions),
         transport_throttle=transport,
         security_abuse=abuse,

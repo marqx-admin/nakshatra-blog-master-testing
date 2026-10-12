@@ -13,7 +13,7 @@ const destination = (url = "/") => ({ kind: "HOME", url, is_external: false });
 const site = (site_key) => ({ site_key, display_name: site_key, canonical_domain: `${site_key.toLowerCase()}.example.test`, home_destination: destination(), timezone_id: "UTC" });
 const navigation = { header: { menu_key: "HEADER", items: [] }, footer: { menu_key: "FOOTER", items: [] } };
 const seo = { baseline_indexability: "INDEX-ELIGIBLE", title: "Home", robots: { index: true, follow: true }, structured_data: [] };
-const presentation = (accent) => ({ source: "STORED", config: { schema_version: 1, style_id: "CUSTOM", palette: { mode: "CUSTOM", semantic_tokens: {
+const presentation = (accent) => ({ source: "STORED", config: { schema_version: 1, style_id: "CUSTOM", base_style_id: "STYLE_03", palette: { mode: "CUSTOM", semantic_tokens: {
   surface: "#ffffff", surface_alt: "#f0f0f0", text: "#111111", text_muted: "#555555",
   accent, accent_text: "#ffffff", border: "#dddddd", focus: "#333333",
 } } } });
@@ -56,12 +56,17 @@ test("transport or contract failure cannot reuse a previous tenant's PageData or
   assert.equal(presentationStyle(undefined)["--u-accent"], "#B08A42");
   assert.equal(validatePageData({ ...home("SITE-100"), navigation: undefined }, 200), undefined);
   assert.equal(validatePageData({ ...home("SITE-100"), presentation: { source: "STORED", config: { schema_version: 2, style_id: "CUSTOM" } } }, 200), undefined);
+  assert.equal(validatePageData({ ...home("SITE-100"), presentation: { source: "STORED", config: { schema_version: 1, style_id: "CUSTOM" } } }, 200), undefined);
 });
 
 test("fixed information page and Preview require their frozen RC11 shapes", () => {
   const rich = { runs: [{ text: "A paragraph", marks: [] }] };
   const about = { ...home("SITE-15"), context: { page_id: "PUB-STATIC-ABOUT-01", page_kind: "STATIC", render_mode: "PUBLIC" }, content: { static_key: "ABOUT", title: "About", sections: [{ paragraphs: [rich], list_items: [] }] } };
-  assert.ok(validatePageData(about, 200, ["PUB-STATIC-ABOUT-01"]));
+  for (const [key, pageId] of [["ABOUT", "PUB-STATIC-ABOUT-01"], ["CONTACT", "PUB-STATIC-CONTACT-01"], ["PRIVACY", "PUB-STATIC-PRIVACY-01"], ["TERMS", "PUB-STATIC-TERMS-01"], ["DISCLAIMER", "PUB-STATIC-DISCLAIMER-01"]]) {
+    const page = { ...about, context: { ...about.context, page_id: pageId }, content: { ...about.content, static_key: key } };
+    assert.ok(validatePageData(page, 200, [pageId]), key);
+    assert.equal(validatePageData(page, 200, ["PUB-HOME-01"]), undefined);
+  }
   assert.equal(validatePageData({ ...about, content: { ...about.content, sections: [] } }, 200), undefined);
   const preview = { ...home("SITE-15"), seo: { ...seo, robots: { index: false, follow: false } }, context: { page_id: "PUB-SYS-PREVIEW-01", page_kind: "PREVIEW", render_mode: "PREVIEW" }, preview: { lifecycle_status: "DRAFT", source_kind: "COMMITTED", notice_text: "Private" }, article: { article_id: "post-1", title: "Draft", body: { content_schema_version: "1", blocks: [] }, tags: [], categories: [] } };
   assert.ok(validatePageData(preview, 200, ["PUB-SYS-PREVIEW-01"]));

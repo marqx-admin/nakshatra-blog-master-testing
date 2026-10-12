@@ -6,6 +6,7 @@ import {
   READY_STYLES, SAFE_DEFAULT, DENSITIES, RADII, BORDERS, ELEVATIONS, WIDTHS, RECIPE_DENSITIES,
   paletteErrors, presetColors, categorySelectable, typographyAvailable, resolveDesign, contrast,
   readyStyleConfig, parityStartingConfig, recipeStartingConfig, OPTION_METADATA,
+  toPresentationConfig,
 } from "../src/index.ts";
 
 test("blueprint catalogues have exact unique IDs and counts", () => {
@@ -76,6 +77,40 @@ test("14 parity starts preserve locked IDs and downward midpoint width normaliza
   }
 });
 
+test("Blueprint section 40 exact parity values reach every page engine", () => {
+  // Independent authority expectations, not a runtime option registry.
+  const expected = [
+    ["HOME-01", "ART-01", "CARD-01", "COL-01", "SPACIOUS", 1200, "RADIUS-SOFT"],
+    ["HOME-01", "ART-01", "CARD-01", "COL-02", "STANDARD", 1200, "RADIUS-MEDIUM"],
+    ["HOME-03", "ART-14", "CARD-01", "COL-01", "STANDARD", 1200, "RADIUS-SOFT"],
+    ["HOME-02", "ART-04", "CARD-01", "COL-02", "SPACIOUS", 1200, "RADIUS-ROUND"],
+    ["HOME-14", "ART-01", "CARD-01", "COL-02", "STANDARD", 1240, "RADIUS-SOFT"],
+    ["HOME-04", "ART-03", "CARD-29", "COL-04", "STANDARD", 1120, "RADIUS-SOFT"],
+    ["HOME-01", "ART-01", "CARD-01", "COL-01", "STANDARD", 1280, "RADIUS-MEDIUM"],
+    ["HOME-01", "ART-01", "CARD-01", "COL-02", "STANDARD", 1240, "RADIUS-SUBTLE"],
+    ["HOME-01", "ART-01", "CARD-01", "COL-02", "SPACIOUS", 1200, "RADIUS-SOFT"],
+    ["HOME-01", "ART-01", "CARD-01", "COL-01", "SPACIOUS", 1200, "RADIUS-MEDIUM"],
+    ["HOME-01", "ART-01", "CARD-01", "COL-01", "STANDARD", 1160, "RADIUS-SUBTLE"],
+    ["HOME-01", "ART-01", "CARD-01", "COL-01", "SPACIOUS", 1120, "RADIUS-SOFT"],
+    ["HOME-01", "ART-01", "CARD-01", "COL-01", "SPACIOUS", 1160, "RADIUS-MEDIUM"],
+    ["HOME-01", "ART-01", "CARD-01", "COL-01", "STANDARD", 1280, "RADIUS-SQUARE"],
+  ];
+  for (const [index, [home, article, card, collection, density, legacyWidth, radius]] of expected.entries()) {
+    const row = LEGACY_PARITY[index];
+    const config = parityStartingConfig(row.siteKey);
+    const { selection } = resolveDesign(config, index === 10 ? "hi-IN" : "en");
+    assert.equal(selection.palette, `PAL-${String(index + 1).padStart(2, "0")}`);
+    assert.equal(selection.typography, `TYPE-${String(index + 1).padStart(2, "0")}`);
+    assert.deepEqual([selection.homepage, selection.article, selection.articleCard, selection.collection, selection.density, row.legacyWidth, selection.radius], [home, article, card, collection, `DENSITY-${density}`, legacyWidth, radius]);
+    for (const field of ["collection", "tagCollection", "authorCollection", "searchCollection"]) assert.equal(selection[field], collection);
+    for (const field of ["articleCard", "relatedCard", "collectionCard"]) assert.equal(selection[field], card);
+    assert.equal(selection.spacing, density);
+    assert.deepEqual(paletteErrors(presetColors(selection.palette)), []);
+  }
+  assert.equal(parityStartingConfig("SITE-15"), undefined);
+  assert.equal(parityStartingConfig("SITE-100"), undefined);
+});
+
 test("palette validation rejects poor semantic pairs; all approved presets validate", () => {
   for (const id of Object.keys(palettes)) assert.deepEqual(paletteErrors(presetColors(id)), [], id);
   const invalid = { ...presetColors("PAL-28"), text: "#ffffff", accent_text: "#ffffff", accent: "#ffffff" };
@@ -99,11 +134,11 @@ test("category image profiles are known but unavailable and absent options colla
   assert.equal(categorySelectable("CAT-13"), false);
   assert.equal(OPTION_METADATA.authorCards["AUTH-11"].available, true);
   assert.equal(OPTION_METADATA.authorCards["AUTH-11"].summaryAvailable, false);
-  assert.equal(resolveDesign({ schema_version: 1, style_id: "CUSTOM", cards: { author_card_profile_id: "AUTH-11" } }).selection.authorCard, "AUTH-11");
+  assert.equal(resolveDesign({ schema_version: 1, style_id: "CUSTOM", base_style_id: "STYLE_03", cards: { author_card_profile_id: "AUTH-11" } }).selection.authorCard, "AUTH-11");
   assert.equal(OPTION_METADATA.authorCards["AUTH-12"].available, false);
   assert.equal(OPTION_METADATA.authorCards["AUTH-12"].reason, "AUTHOR_TOTAL_COUNT_UNAVAILABLE");
-  assert.equal(resolveDesign({ schema_version: 1, style_id: "CUSTOM", cards: { author_card_profile_id: "AUTH-12" } }).selection.authorCard, "AUTH-05");
-  const selection = resolveDesign({ schema_version: 1, style_id: "CUSTOM", cards: { category_card_profile_id: "CAT-08", article_card_profile_id: "CARD-999" } }).selection;
+  assert.equal(resolveDesign({ schema_version: 1, style_id: "CUSTOM", base_style_id: "STYLE_03", cards: { author_card_profile_id: "AUTH-12" } }).selection.authorCard, "AUTH-05");
+  const selection = resolveDesign({ schema_version: 1, style_id: "CUSTOM", base_style_id: "STYLE_03", cards: { category_card_profile_id: "CAT-08", article_card_profile_id: "CARD-999" } }).selection;
   assert.equal(selection.categoryCard, SAFE_DEFAULT.categoryCard);
   assert.equal(selection.articleCard, SAFE_DEFAULT.articleCard);
 });
@@ -117,8 +152,8 @@ test("all 25 home recipes use only the common content slots and never manufactur
 });
 
 test("resolution is request-local; invalid IDs and custom colors cannot leak from a prior tenant", () => {
-  const first = resolveDesign({ schema_version: 1, style_id: "CUSTOM", palette: { mode: "CUSTOM", semantic_tokens: { ...presetColors("PAL-28"), accent: "#123456", accent_text: "#ffffff" } } });
-  const second = resolveDesign({ schema_version: 1, style_id: "CUSTOM", palette: { mode: "PRESET", preset_id: "PAL-999" }, hero: { profile_id: "HERO-999" } });
+  const first = resolveDesign({ schema_version: 1, style_id: "CUSTOM", base_style_id: "STYLE_03", palette: { mode: "CUSTOM", semantic_tokens: { ...presetColors("PAL-28"), accent: "#123456", accent_text: "#ffffff" } } });
+  const second = resolveDesign({ schema_version: 1, style_id: "CUSTOM", base_style_id: "STYLE_03", palette: { mode: "PRESET", preset_id: "PAL-999" }, hero: { profile_id: "HERO-999" } });
   assert.equal(first.colors.accent, "#123456");
   assert.equal(second.colors.accent, presetColors(SAFE_DEFAULT.palette).accent);
   assert.equal(second.selection.hero, SAFE_DEFAULT.hero);
@@ -131,4 +166,14 @@ test("resolution is request-local; invalid IDs and custom colors cannot leak fro
     assert.equal(result.source, "SAFE_DEFAULT");
     assert.equal(result.selection.articleCard, SAFE_DEFAULT.articleCard);
   }
+});
+
+test("Start Custom and parity transport configs include the RC12 base style", () => {
+  const config = toPresentationConfig(SAFE_DEFAULT);
+  assert.equal(config.style_id, "CUSTOM");
+  assert.equal(config.base_style_id, "STYLE_03");
+  assert.equal(resolveDesign(config).source, "STORED");
+  assert.equal(resolveDesign({ schema_version: 1, style_id: "CUSTOM" }).source, "SAFE_DEFAULT");
+  assert.equal(resolveDesign({ schema_version: 1, style_id: "STYLE_01", base_style_id: "STYLE_03" }).source, "SAFE_DEFAULT");
+  for (const parity of LEGACY_PARITY) assert.equal(parityStartingConfig(parity.siteKey).base_style_id, "STYLE_03");
 });

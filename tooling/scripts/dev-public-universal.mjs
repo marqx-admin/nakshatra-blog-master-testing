@@ -1,7 +1,8 @@
 import { spawn } from 'node:child_process';
 
 // One local Universal process serves any registered Host. The API remains tenant authority.
-const child = spawn('corepack', ['pnpm', '--filter', '@bp/public-universal', 'dev', '--hostname', '127.0.0.1', '--port', '3015'], {
+const port = process.env.VITE_PUBLIC_SITE_PORT || '3015';
+const child = spawn('corepack', ['pnpm', '--filter', '@bp/public-universal', 'dev', '--hostname', '127.0.0.1', '--port', port], {
   stdio: 'inherit',
   env: {
     ...process.env,

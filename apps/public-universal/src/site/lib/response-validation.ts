@@ -74,6 +74,8 @@ function presentation(value: unknown): boolean {
   if (!object(value) || !["STORED", "PRESET_DEFAULT", "SAFE_DEFAULT"].includes(String(value.source)) || !object(value.config)) return false;
   const config = value.config;
   if (config.schema_version !== 1 || !["STYLE_01", "STYLE_02", "STYLE_03", "STYLE_04", "STYLE_05", "CUSTOM"].includes(String(config.style_id))) return false;
+  const base = config.base_style_id;
+  if (config.style_id === "CUSTOM" ? !["STYLE_01", "STYLE_02", "STYLE_03", "STYLE_04", "STYLE_05"].includes(String(base)) : base !== undefined) return false;
   if (config.palette !== undefined) {
     if (!object(config.palette) || !["PRESET", "CUSTOM"].includes(String(config.palette.mode))) return false;
     if (config.palette.semantic_tokens !== undefined) {

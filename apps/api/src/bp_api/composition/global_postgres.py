@@ -8,6 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 
 from bp_domain.errors import Conflict, NotFound, ValidationFault
+from bp_domain.temporary_site_url import TemporarySiteUrlConfig, temporary_site_url
 from bp_application.context import normalize_host
 
 from .presentation import PresentationPolicy, presentation_references
@@ -41,11 +42,15 @@ class PostgresGlobalOperations:
 
     def __init__(self, platform_engine: Engine, site_transactions: Any, contexts: Any, *,
                  temporary_domain_suffix: str | None = None,
+                 allow_local_temporary_hosts: bool = False,
+                 temporary_site_url_config: TemporarySiteUrlConfig = TemporarySiteUrlConfig(),
                  presentation_policy: PresentationPolicy | None = None) -> None:
         self.engine = platform_engine
         self.site_transactions = site_transactions
         self.contexts = contexts
         self.temporary_domain_suffix = temporary_domain_suffix
+        self.allow_local_temporary_hosts = allow_local_temporary_hosts
+        self.temporary_site_url_config = temporary_site_url_config
         self.presentation_policy = presentation_policy
 
     def _temporary_hostname(self, site_key: str) -> str:
@@ -57,7 +62,11 @@ class PostgresGlobalOperations:
             hostname = normalize_host(f"{site_key.lower()}.{normalized_suffix}")
         except NotFound as exc:
             raise ValidationFault("platform temporary-domain suffix is invalid") from exc
-        if normalized_suffix.endswith((".invalid", ".localhost")) or "." not in normalized_suffix:
+        if (
+            normalized_suffix.endswith(".invalid")
+            or (normalized_suffix.endswith(".localhost") and not self.allow_local_temporary_hosts)
+            or "." not in normalized_suffix
+        ):
             raise ValidationFault("platform temporary-domain suffix must be an explicit DNS suffix")
         return hostname
 
@@ -234,7 +243,7 @@ class PostgresGlobalOperations:
                 b=body or {}
                 if self.presentation_policy is None:
                     raise RuntimeError("canonical presentation policy is required for provisioning")
-                self.presentation_policy.require_presentation(b.get("presentation"))
+                self.presentation_policy.require_provisioning_presentation(b.get("presentation"))
                 self.presentation_policy.require_static_pages(b.get("static_pages"))
                 media_refs, navigation_refs = presentation_references(b["presentation"])
                 # The new tenant has no media or navigation items yet. References
@@ -290,10 +299,11 @@ class PostgresGlobalOperations:
                     ),
                     {"site_id": sid, "hostname": hostname},
                 )
-                domain_ready=bool(c.execute(text(
-                    "SELECT EXISTS(SELECT 1 FROM domains WHERE site_id=:site_id "
-                    "AND hostname_normalized=:hostname AND is_active=true)"
-                ), {"site_id":sid,"hostname":hostname}).scalar_one())
+                domain_row=c.execute(text(
+                    "SELECT hostname FROM domains WHERE site_id=:site_id "
+                    "AND hostname_normalized=:hostname AND is_active=true AND is_canonical=true LIMIT 1"
+                ), {"site_id":sid,"hostname":hostname}).fetchone()
+                domain_ready=domain_row is not None
                 self._write_audit(c,event_code="SITE.CREATED",principal=principal,headers=headers,
                                   target_type="SITE",target_id=sid,site_id=sid,
                                   details={"operation_id":operation_id,"temporary_hostname":hostname})
@@ -307,11 +317,13 @@ class PostgresGlobalOperations:
                 readiness.update(overall_ready=not missing,missing_components=missing)
                 if not readiness["overall_ready"]:
                     raise RuntimeError("mandatory website provisioning readiness failed")
+                persisted_hostname = _m(domain_row)["hostname"]
                 return (
                     201,
                     {
                         "site": self._site(c, b["site_key"]),
-                        "temporary_hostname": hostname,
+                        "temporary_hostname": persisted_hostname,
+                        "temporary_site_url": temporary_site_url(persisted_hostname, self.temporary_site_url_config),
                         "readiness": readiness,
                     },
                     {},

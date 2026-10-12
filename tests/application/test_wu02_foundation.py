@@ -5,12 +5,14 @@ from __future__ import annotations
 from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from datetime import UTC, datetime
+import json
 from pathlib import Path
 from typing import Any, cast
 
 import pytest
 import yaml  # type: ignore[import-untyped]
 from bp_adapters.postgres.runtime import (
+    PostgresAdminSiteContextPayload,
     PostgresPublicPageAdapter,
     PostgresSiteRegistry,
     _renderable_static_content,
@@ -23,16 +25,18 @@ from bp_application.global_platform import GlobalPlatformService
 from bp_domain.context import ContextKind, ContextSource, GlobalContext, SiteContext, SiteRecord
 from bp_domain.errors import Denied, NotFound, ValidationFault
 from bp_domain.security import AccountState, AdminPrincipal
+from bp_domain.temporary_site_url import TemporarySiteUrlConfig, temporary_site_url
 from fastapi.testclient import TestClient
 from jsonschema import Draft202012Validator, RefResolver
 from tests.e2e.test_chat03_auth import build
 
 from bp_api.composition.global_postgres import PostgresGlobalOperations
 from bp_api.composition.presentation import PresentationPolicy
+from bp_api.config.settings import Settings
 from bp_api.http.public.routes import _trusted_preview_media_reference
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = yaml.safe_load((ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml").read_text())
+SPEC = yaml.safe_load((ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml").read_text())
 
 
 def _context(*, site_id: str = "site-a", host: str = "site-100.example.test") -> SiteContext:
@@ -57,6 +61,24 @@ def _pages() -> dict[str, dict[str, Any]]:
         "body_sections": [{"heading": "Story", "paragraphs": ["Body"], "list_items": []}],
     }
     return {key: dict(page) for key in ("ABOUT", "CONTACT", "PRIVACY", "TERMS", "DISCLAIMER")}
+
+
+def _presentation(style_id: str = "STYLE_01") -> dict[str, Any]:
+    """Complete transport fixture; style mappings remain in the TS catalogue."""
+    return {
+        "schema_version": 1,
+        "style_id": style_id,
+        **({"base_style_id": "STYLE_03"} if style_id == "CUSTOM" else {}),
+        "palette": {"mode": "PRESET", "preset_id": "PAL-28"},
+        "typography_id": "TYPE-28",
+        "layout": {"width_id": "WIDTH-READING", "density_id": "DENSITY-STANDARD", "spacing_id": "STANDARD", "radius_id": "RADIUS-SUBTLE", "border_id": "BORDER-HAIRLINE", "elevation_id": "ELEVATION-FLAT"},
+        "cards": {"article_card_profile_id": "CARD-15", "category_card_profile_id": "CAT-01", "author_card_profile_id": "AUTH-05"},
+        "hero": {"profile_id": "HERO-14", "image_profile_id": "IMG-01"},
+        "homepage": {"recipe_id": "HOME-04"},
+        "article": {"layout_id": "ART-03", "image_profile_id": "IMG-01", "related_card_profile_id": "CARD-15", "measure": "NARROW", "headline_scale": "STANDARD", "meta_layout": "INLINE", "featured_media_ratio": "LANDSCAPE", "author_display": "COMPACT", "related_content_layout": "LIST"},
+        "collections": {"category_layout_id": "COL-04", "tag_layout_id": "COL-04", "author_articles_layout_id": "COL-04", "search_layout_id": "COL-04", "article_card_profile_id": "CARD-15"},
+        "controls": {"button_profile_id": "BTN-07"},
+    }
 
 
 def test_static_page_requires_renderable_sections_and_validates_public_contract() -> None:
@@ -111,7 +133,7 @@ async def test_fixed_pages_use_only_authoritative_same_site_settings(
         def _media(self, connection: Any, context: Any, media_id: Any) -> Any:
             return None
 
-        def _navigation(self, connection: Any, context: Any) -> Any:
+        def _navigation(self, connection: Any, context: Any, settings: Any) -> Any:
             return {
                 "header": {"menu_key": "HEADER", "items": []},
                 "footer": {"menu_key": "FOOTER", "items": []},
@@ -174,6 +196,25 @@ async def test_fixed_pages_use_only_authoritative_same_site_settings(
     assert page["presentation"]["source"] == "STORED"
 
 
+def test_static_navigation_destination_requires_this_sites_renderable_page() -> None:
+    adapter = PostgresPublicPageAdapter(
+        cast(Any, None), media_cdn_origin="https://media.example.test"
+    )
+    row = {"destination_kind": "STATIC", "static_page_key": "PRIVACY"}
+    context = _context()
+    assert adapter._resolve_destination(None, context, row, {}) is None
+    assert adapter._resolve_destination(
+        None, context, row, {"PRIVACY": {**_pages()["PRIVACY"], "enabled": False}}
+    ) is None
+    assert adapter._resolve_destination(
+        None, context, row, {"PRIVACY": {**_pages()["PRIVACY"], "body_sections": []}}
+    ) is None
+    destination = adapter._resolve_destination(
+        None, context, row, {"PRIVACY": _pages()["PRIVACY"]}
+    )
+    assert destination is not None and destination["url"].endswith("/privacy-policy")
+
+
 class _Row:
     def __init__(self, value: Any) -> None:
         self.value = value
@@ -186,20 +227,27 @@ class _Row:
 
 
 class _ProvisionConnection:
-    def __init__(self, fail_at: str | None = None, *, homepage_ready: bool = True) -> None:
+    def __init__(self, fail_at: str | None = None, *, homepage_ready: bool = True, identity_ready: bool = True, domain_ready: bool = True) -> None:
         self.statements: list[str] = []
+        self.calls: list[tuple[str, Any]] = []
         self.fail_at = fail_at
         self.homepage_ready = homepage_ready
+        self.identity_ready = identity_ready
+        self.domain_ready = domain_ready
+        self.created_site_key = "SITE-100"
 
     def execute(self, statement: Any, params: Any = None) -> Any:
         sql = str(statement)
         self.statements.append(sql)
+        self.calls.append((sql, params))
+        if "INSERT INTO sites" in sql:
+            self.created_site_key = params["key"]
         if self.fail_at and self.fail_at in sql:
             raise RuntimeError("simulated mandatory failure")
         if "RETURNING site_id" in sql:
             return _Row("site-a")
         if "SELECT EXISTS(SELECT 1 FROM sites" in sql:
-            return _Row(True)
+            return _Row(self.identity_ready)
         if "insert_website_site_baseline" in sql:
             return _Row(
                 {
@@ -208,12 +256,12 @@ class _ProvisionConnection:
                     "homepage_ready": self.homepage_ready,
                 }
             )
-        if "SELECT EXISTS(SELECT 1 FROM domains" in sql:
-            return _Row(True)
+        if "SELECT hostname FROM domains" in sql:
+            return _Row({"hostname": params["hostname"]} if self.domain_ready else None)
         if "SELECT s.*, d.hostname canonical_domain" in sql:
             return _Row(
                 {
-                    "site_key": "SITE-100",
+                    "site_key": self.created_site_key,
                     "display_name": "New Site",
                     "status": "DISABLED",
                     "timezone_id": "Asia/Kolkata",
@@ -226,8 +274,8 @@ class _ProvisionConnection:
 
 
 class _ProvisionEngine:
-    def __init__(self, fail_at: str | None = None, *, homepage_ready: bool = True) -> None:
-        self.connection = _ProvisionConnection(fail_at, homepage_ready=homepage_ready)
+    def __init__(self, fail_at: str | None = None, *, homepage_ready: bool = True, identity_ready: bool = True, domain_ready: bool = True) -> None:
+        self.connection = _ProvisionConnection(fail_at, homepage_ready=homepage_ready, identity_ready=identity_ready, domain_ready=domain_ready)
         self.committed = False
         self.rolled_back = False
 
@@ -266,7 +314,7 @@ async def test_application_owns_atomic_provisioning_and_computed_readiness() -> 
             "site_key": "SITE-100",
             "display_name": "New Site",
             "timezone_id": "Asia/Kolkata",
-            "presentation": {"schema_version": 1, "style_id": "STYLE_01"},
+            "presentation": _presentation(),
             "static_pages": _pages(),
         },
         headers={"x-request-id": "request-1"},
@@ -274,17 +322,112 @@ async def test_application_owns_atomic_provisioning_and_computed_readiness() -> 
     assert status == 201 and engine.committed and not engine.rolled_back
     assert result["readiness"]["overall_ready"] is True
     assert result["temporary_hostname"] == "site-100.example.test"
+    assert result["temporary_site_url"] == "https://site-100.example.test/"
     statements = "\n".join(engine.connection.statements)
     assert statements.index("INSERT INTO sites") < statements.index("insert_website_site_baseline")
     assert statements.index("insert_website_site_baseline") < statements.index(
         "INSERT INTO domains"
     )
     assert statements.index("INSERT INTO domains") < statements.index("INSERT INTO audit_events")
+    baseline_params = next(params for sql, params in engine.connection.calls if "insert_website_site_baseline" in sql)
+    domain_params = next(params for sql, params in engine.connection.calls if "INSERT INTO domains" in sql)
+    assert baseline_params["site_id"] == domain_params["site_id"] == "site-a"
+    assert domain_params["hostname"] == "site-100.example.test"
+    assert "true,true" in next(sql for sql, _ in engine.connection.calls if "INSERT INTO domains" in sql)
+    domain_readiness_sql, domain_readiness_params = next((sql, params) for sql, params in engine.connection.calls if "SELECT hostname FROM domains" in sql)
+    assert "is_active=true AND is_canonical=true" in domain_readiness_sql
+    assert domain_readiness_params == {"site_id": "site-a", "hostname": "site-100.example.test"}
 
 
 @pytest.mark.asyncio
-async def test_mandatory_failure_rolls_back_application_transaction() -> None:
-    engine = _ProvisionEngine("INSERT INTO domains")
+@pytest.mark.parametrize("site_key", ["SITE-15", "SITE-100"])
+@pytest.mark.parametrize("style_id", ["STYLE_01", "STYLE_02", "STYLE_03", "STYLE_04", "STYLE_05", "CUSTOM"])
+async def test_provisioning_persists_complete_presentation_for_any_site(site_key: str, style_id: str) -> None:
+    engine = _ProvisionEngine()
+    backend = PostgresGlobalOperations(cast(Any, engine), None, None, temporary_domain_suffix="example.test", presentation_policy=PresentationPolicy(SPEC))
+    config = _presentation(style_id)
+    pages = {key: {"enabled": False, "content_version": 1, "title": key.title(), "intro_text": "", "body_sections": []} for key in ("ABOUT", "CONTACT", "PRIVACY", "TERMS", "DISCLAIMER")}
+    _, result, _ = await backend.execute("API15-G-011", principal=_principal(), context=None, path_params={}, query={}, body={"site_key": site_key, "display_name": "New Site", "timezone_id": "Asia/Kolkata", "presentation": config, "static_pages": pages}, headers={})
+    baseline_params = next(params for sql, params in engine.connection.calls if "insert_website_site_baseline" in sql)
+    assert json.loads(baseline_params["presentation"]) == config
+    assert json.loads(baseline_params["pages"]) == pages
+    assert result["temporary_hostname"] == f"{site_key.lower()}.example.test"
+    assert result["temporary_site_url"] == f"https://{site_key.lower()}.example.test/"
+    assert result["readiness"]["overall_ready"] is True
+    assert engine.committed and not engine.rolled_back
+
+
+def test_local_temporary_domains_are_development_only() -> None:
+    local_backend = PostgresGlobalOperations(
+        cast(Any, None),
+        None,
+        None,
+        temporary_domain_suffix="preview.localhost",
+        allow_local_temporary_hosts=True,
+    )
+    assert local_backend._temporary_hostname("SITE-15") == "site-15.preview.localhost"
+
+    production_backend = PostgresGlobalOperations(
+        cast(Any, None),
+        None,
+        None,
+        temporary_domain_suffix="preview.localhost",
+    )
+    with pytest.raises(ValidationFault, match="explicit DNS suffix"):
+        production_backend._temporary_hostname("SITE-15")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("site_key", ["SITE-15", "SITE-100"])
+async def test_persisted_local_hostname_uses_platform_http_port(site_key: str) -> None:
+    engine = _ProvisionEngine()
+    backend = PostgresGlobalOperations(
+        cast(Any, engine), None, None, temporary_domain_suffix="preview.localhost",
+        allow_local_temporary_hosts=True,
+        temporary_site_url_config=TemporarySiteUrlConfig("http", 3015),
+        presentation_policy=PresentationPolicy(SPEC),
+    )
+    _, result, _ = await backend.execute(
+        "API15-G-011", principal=_principal(), context=None, path_params={}, query={},
+        body={"site_key": site_key, "display_name": "New Site", "timezone_id": "Asia/Kolkata", "presentation": _presentation("CUSTOM"), "static_pages": _pages()}, headers={},
+    )
+    assert result["temporary_hostname"] == f"{site_key.lower()}.preview.localhost"
+    assert result["temporary_site_url"] == f"http://{site_key.lower()}.preview.localhost:3015/"
+
+
+def test_temporary_url_builder_rejects_nonlocal_http_and_malformed_hosts() -> None:
+    with pytest.raises(ValueError, match="localhost"):
+        temporary_site_url("site.preview.example.com", TemporarySiteUrlConfig("http", 3015))
+    with pytest.raises(ValueError, match="hostname"):
+        temporary_site_url("site.preview.localhost/path?x=1", TemporarySiteUrlConfig("http", 3015))
+
+
+def test_temporary_site_url_platform_configuration_is_environment_scoped(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("BP_ENV", "development")
+    monkeypatch.setenv("BP_TEMP_DOMAIN_SUFFIX", "preview.localhost")
+    monkeypatch.setenv("BP_TEMP_SITE_SCHEME", "http")
+    monkeypatch.setenv("BP_TEMP_SITE_PORT", "3015")
+    local = Settings.from_env()
+    assert local.temporary_domain_suffix == "preview.localhost"
+    assert temporary_site_url("site-15.preview.localhost", local.temporary_site_url_config) == "http://site-15.preview.localhost:3015/"
+    monkeypatch.setenv("BP_TEMP_DOMAIN_SUFFIX", "preview.example.com")
+    with pytest.raises(ValueError, match="localhost suffix"):
+        Settings.from_env()
+    monkeypatch.setenv("BP_TEMP_DOMAIN_SUFFIX", "preview.localhost")
+    monkeypatch.setenv("BP_ENV", "production")
+    with pytest.raises(ValueError, match="must use HTTPS"):
+        Settings.from_env()
+    monkeypatch.setenv("BP_TEMP_DOMAIN_SUFFIX", "preview.example.com")
+    monkeypatch.setenv("BP_TEMP_SITE_SCHEME", "https")
+    monkeypatch.delenv("BP_TEMP_SITE_PORT")
+    deployed = Settings.from_env()
+    assert temporary_site_url("site-100.preview.example.com", deployed.temporary_site_url_config) == "https://site-100.preview.example.com/"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("failure", ["INSERT INTO sites", "insert_website_site_baseline", "INSERT INTO domains", "INSERT INTO audit_events"])
+async def test_mandatory_failure_rolls_back_application_transaction(failure: str) -> None:
+    engine = _ProvisionEngine(failure)
     backend = PostgresGlobalOperations(
         cast(Any, engine),
         None,
@@ -303,12 +446,31 @@ async def test_mandatory_failure_rolls_back_application_transaction() -> None:
                 "site_key": "SITE-100",
                 "display_name": "New Site",
                 "timezone_id": "Asia/Kolkata",
-                "presentation": {"schema_version": 1, "style_id": "STYLE_01"},
+                "presentation": _presentation(),
                 "static_pages": _pages(),
             },
             headers={},
         )
     assert engine.rolled_back and not engine.committed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("missing", ["identity", "domain"])
+async def test_missing_target_site_readiness_rolls_back_provisioning(missing: str) -> None:
+    engine = _ProvisionEngine(identity_ready=missing != "identity", domain_ready=missing != "domain")
+    backend = PostgresGlobalOperations(cast(Any, engine), None, None, temporary_domain_suffix="example.test", presentation_policy=PresentationPolicy(SPEC))
+    with pytest.raises(RuntimeError, match="website identity persistence failed|mandatory website provisioning readiness failed"):
+        await backend.execute("API15-G-011", principal=_principal(), context=None, path_params={}, query={}, body={"site_key": "SITE-15", "display_name": "New Site", "timezone_id": "Asia/Kolkata", "presentation": _presentation(), "static_pages": _pages()}, headers={})
+    assert engine.rolled_back and not engine.committed
+
+
+@pytest.mark.asyncio
+async def test_style_only_presentation_is_rejected_before_site_insert() -> None:
+    engine = _ProvisionEngine()
+    backend = PostgresGlobalOperations(cast(Any, engine), None, None, temporary_domain_suffix="example.test", presentation_policy=PresentationPolicy(SPEC))
+    with pytest.raises(ValidationFault):
+        await backend.execute("API15-G-011", principal=_principal(), context=None, path_params={}, query={}, body={"site_key": "SITE-15", "display_name": "New Site", "timezone_id": "Asia/Kolkata", "presentation": {"schema_version": 1, "style_id": "STYLE_01"}, "static_pages": _pages()}, headers={})
+    assert not any("INSERT INTO sites" in sql for sql in engine.connection.statements)
 
 
 @pytest.mark.asyncio
@@ -332,7 +494,7 @@ async def test_missing_homepage_baseline_rolls_back_provisioning() -> None:
                 "site_key": "SITE-100",
                 "display_name": "New Site",
                 "timezone_id": "Asia/Kolkata",
-                "presentation": {"schema_version": 1, "style_id": "STYLE_01"},
+                "presentation": _presentation(),
                 "static_pages": _pages(),
             },
             headers={},
@@ -374,6 +536,18 @@ def test_universal_home_v1_registry_sql_is_exact_and_tenant_scoped() -> None:
     ):
         assert required in migration
     assert "'TOGGLE_ONLY'" not in migration
+
+
+def test_provisioning_sql_has_exact_fixed_pages_menus_and_domain_uniqueness() -> None:
+    migration = (ROOT / "database/migrations/0021_DB-MIG-021__atomic-website-provisioning.sql").read_text()
+    tenancy = (ROOT / "database/migrations/0002_DB-MIG-002__tenancy-registry.sql").read_text()
+    assert "pages ?& ARRAY['ABOUT','CONTACT','PRIVACY','TERMS','DISCLAIMER']" in migration
+    assert "pages - 'ABOUT' - 'CONTACT' - 'PRIVACY' - 'TERMS' - 'DISCLAIMER'" in migration
+    assert "VALUES (target_site_id,'HEADER'),(target_site_id,'FOOTER')" in migration
+    assert "FROM public.site_settings WHERE site_id=target_site_id" in migration
+    assert "FROM public.navigation_menus\n  WHERE site_id=target_site_id" in migration
+    assert "CONSTRAINT uq_domains__hostname_normalized UNIQUE (hostname_normalized)" in tenancy
+    assert "ON domains(site_id) WHERE is_canonical AND is_active" in tenancy
 
 
 def test_presentation_falls_back_without_cross_site_references() -> None:
@@ -520,6 +694,77 @@ async def test_registry_admin_lookup_does_not_require_canonical_domain() -> None
 
     site = await PostgresSiteRegistry(cast(Any, Engine())).get_site_by_key("SITE-100")
     assert site is not None and site.canonical_domain == "" and site.lifecycle == "DISABLED"
+
+
+@pytest.mark.asyncio
+async def test_local_temporary_host_requires_active_registered_domain() -> None:
+    class Connection:
+        registered = False
+
+        def execute(self, statement: Any, params: Any = None) -> Any:
+            sql = str(statement)
+            assert "requested.hostname_normalized" in sql
+            assert params == {"host": "site-15.preview.localhost"}
+            if not self.registered:
+                return _Row(None)
+            return _Row(
+                {
+                    "site_id": "site-a",
+                    "site_key": "SITE-15",
+                    "display_name": "First Site",
+                    "status": "ACTIVE",
+                    "timezone_id": "Asia/Kolkata",
+                    "locale_code": "en",
+                    "updated_at": datetime.now(UTC),
+                    "canonical_domain": "site-15.preview.localhost",
+                }
+            )
+
+    class Engine:
+        connection = Connection()
+
+        @contextmanager
+        def connect(self) -> Iterator[Any]:
+            yield self.connection
+
+    engine = cast(Any, Engine())
+    registry = PostgresSiteRegistry(engine)
+    assert await registry.resolve_host("site-15.preview.localhost") is None
+    engine.connection.registered = True
+    site = await registry.resolve_host("site-15.preview.localhost")
+    assert site is not None and site.site_key == "SITE-15"
+
+
+@pytest.mark.asyncio
+async def test_local_site_context_never_infers_unregistered_preview_alias() -> None:
+    class Connection:
+        def execute(self, statement: Any, params: Any = None) -> Any:
+            assert "SELECT hostname FROM domains" in str(statement)
+            return _Row(None)
+
+    class SiteTransactions:
+        @asynccontextmanager
+        async def transaction(self, context: Any) -> AsyncIterator[Any]:
+            yield Connection()
+
+    class Context:
+        site_id = "site-a"
+        site_key = "SITE-01"
+        display_name = "First Site"
+        site_status = "ACTIVE"
+
+    principal = AdminPrincipal(
+        "admin-a",
+        "a@example.test",
+        AccountState.ACTIVE,
+        site_permissions={"SITE-01": frozenset({"site_settings.view"})},
+    )
+    strict_payload = PostgresAdminSiteContextPayload(
+        cast(Any, SiteTransactions()),
+        "preview.localhost",
+    )
+    strict_result = await strict_payload.build(principal, cast(Any, Context()))
+    assert "temporary_site_url" not in strict_result
 
 
 @pytest.mark.asyncio

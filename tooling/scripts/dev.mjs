@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 
 const adminPort = process.env.VITE_ADMIN_PORT ?? "5173";
 const apiPort = process.env.BP_HTTP_PORT ?? "8000";
+const publicSitePort = process.env.VITE_PUBLIC_SITE_PORT ?? "3015";
 const adminOrigins = [
   `http://localhost:${adminPort}`,
   `http://127.0.0.1:${adminPort}`,
@@ -62,6 +63,9 @@ process.on("SIGTERM", () => shutdown(0));
 const api = launch("uv", ["run", "--frozen", "--package", "bp-api", "python", "-m", "bp_api"], {
   BP_ENV: "development",
   BP_HTTP_PORT: apiPort,
+  BP_TEMP_DOMAIN_SUFFIX: process.env.BP_TEMP_DOMAIN_SUFFIX ?? "preview.localhost",
+  BP_TEMP_SITE_SCHEME: process.env.BP_TEMP_SITE_SCHEME ?? "http",
+  BP_TEMP_SITE_PORT: process.env.BP_TEMP_SITE_PORT ?? publicSitePort,
   BP_ADMIN_ORIGINS: process.env.BP_ADMIN_ORIGINS ?? adminOrigins,
   BP_RESET_BASE_URL:
     process.env.BP_RESET_BASE_URL ?? `http://localhost:${adminPort}/password-reset/complete`,
@@ -72,8 +76,13 @@ const api = launch("uv", ["run", "--frozen", "--package", "bp-api", "python", "-
 try {
   await waitForApi(api);
   console.log(`Development API ready on http://localhost:${apiPort}`);
+  launch("node", ["tooling/scripts/dev-public-universal.mjs"], {
+    BP_API_INTERNAL_ORIGIN: process.env.BP_API_INTERNAL_ORIGIN ?? `http://127.0.0.1:${apiPort}`,
+    VITE_PUBLIC_SITE_PORT: publicSitePort,
+  });
   launch("corepack", ["pnpm", "--filter", "@bp/admin", "dev"], {
     VITE_ADMIN_PORT: adminPort,
+    VITE_PUBLIC_SITE_PORT: publicSitePort,
     VITE_ADMIN_API_PROXY_TARGET:
       process.env.VITE_ADMIN_API_PROXY_TARGET ?? `http://127.0.0.1:${apiPort}`,
     VITE_PUBLIC_SITE_ORIGINS:

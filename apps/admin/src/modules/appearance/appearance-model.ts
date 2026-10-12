@@ -57,9 +57,22 @@ export function pagesErrors(pages: StaticPages): string[] {
   for (const key of PAGE_KEYS) {
     const page = pages[key];
     if (!page || /[<>]/.test(page.title + page.intro_text)) errors.push(`${PAGE_NAMES[key]} contains unsupported markup.`);
+    if (page?.enabled && !informationPageHasContent(page)) errors.push(`${PAGE_NAMES[key]} needs content before it can be enabled.`);
     for (const section of page?.body_sections ?? []) {
       if (/[<>]/.test((section.heading ?? "") + section.paragraphs.join("") + section.list_items.join(""))) errors.push(`${PAGE_NAMES[key]} contains unsupported markup.`);
     }
   }
   return errors;
+}
+
+export function informationPageHasContent(page: InformationPage): boolean {
+  return Boolean(page.title.trim() && !/[<>]/.test(page.title + page.intro_text) && page.body_sections.length && page.body_sections.every(section =>
+    !/[<>]/.test(section.heading ?? "") && section.paragraphs.concat(section.list_items).length > 0 &&
+    section.paragraphs.concat(section.list_items).every(text => text.trim() && !/[<>]/.test(text))
+  ));
+}
+
+export function informationPageState(page: InformationPage): "Not written / incomplete" | "Ready but disabled" | "Enabled" {
+  if (!informationPageHasContent(page)) return "Not written / incomplete";
+  return page.enabled ? "Enabled" : "Ready but disabled";
 }

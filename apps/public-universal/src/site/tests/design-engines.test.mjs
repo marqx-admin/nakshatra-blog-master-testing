@@ -22,7 +22,7 @@ const destination = (url) => ({ kind: "ARTICLE", url, is_external: false });
 const article = (media = undefined) => ({ article_id: "article-1", title: "Tenant article", excerpt: "Excerpt", published_at: "2026-01-01T00:00:00Z", destination: destination("/article/tenant"), ...(media ? { featured_media: media } : {}) });
 const media = { media_id: "media-1", url: "https://media.example.test/image.jpg", width: 800, height: 500, variants: [], alt_text: "Featured" };
 const withDesign = (config, component) => renderToStaticMarkup(React.createElement(DesignContext.Provider,
-  { value: resolveDesign({ schema_version: 1, style_id: "CUSTOM", ...config }).selection }, component));
+  { value: resolveDesign({ schema_version: 1, style_id: "CUSTOM", base_style_id: "STYLE_03", ...config }).selection }, component));
 
 test("overlay article and media-led hero fail safely to text when media is absent", () => {
   const config = { cards: { article_card_profile_id: "CARD-13" }, hero: { profile_id: "HERO-05" } };
@@ -52,7 +52,7 @@ test("full author page uses trusted expertise and approved social profiles; AUTH
   const author = { author_id: "author-1", display_name: "Ada Example", destination: { kind: "AUTHOR", url: "/author/ada", is_external: false },
     expertise: ["Astronomy"], social_profiles: [{ platform: "WEB", label: "Ada's site", url: "https://example.test/ada" }] };
   const render = (id, value = author) => renderToStaticMarkup(React.createElement(AuthorDesignContext.Provider,
-    { value: resolveDesign({ schema_version: 1, style_id: "CUSTOM", cards: { author_card_profile_id: id } }).selection },
+    { value: resolveDesign({ schema_version: 1, style_id: "CUSTOM", base_style_id: "STYLE_03", cards: { author_card_profile_id: id } }).selection },
     React.createElement(AuthorProfile, { author: value })));
   assert.match(render("AUTH-11"), /data-author-profile="AUTH-11"[\s\S]*Astronomy/);
   assert.match(render("AUTH-12"), /data-author-profile="AUTH-05"/);
@@ -83,7 +83,7 @@ test("responsive, keyboard and article media rules stay code-owned", () => {
 });
 
 test("home composition keeps the semantic H1 first even in lead-first visual recipes", () => {
-  const source = readFileSync(resolve(app, "src/site/pages/home/home-page.tsx"), "utf8");
+  const source = readFileSync(resolve(app, "src/site/pages/home/home-composition.tsx"), "utf8");
   assert.match(source, /\["INTRO", "LEAD", "POSTS", "CATEGORIES", "LATEST"\]/);
   assert.match(source, /order: visualOrder\.indexOf\(slot\)/);
 });

@@ -7,7 +7,7 @@ from bp_api.config import Settings
 from bp_api.http.contract import iter_operations, load_openapi, owned_operations
 from bp_test_support.fastapi_routes import iter_effective_fastapi_routes, single_http_method
 
-CANON = Path("contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml")
+CANON = Path("contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml")
 
 
 def test_chat03_route_method_operation_and_success_status_parity():
@@ -80,7 +80,7 @@ def test_chat03_contract_metadata_is_loaded_directly_from_the_canonical_rc8_yaml
     owned = list(owned_operations(spec))
     assert len(list(iter_operations(spec))) == 113
     assert len(spec["paths"]) == 86
-    assert len(spec["components"]["schemas"]) == 248
+    assert len(spec["components"]["schemas"]) == 249
     assert len(owned) == 51
     assert all(operation.site_context in {"PUBLIC", "PREVIEW", "AUTH", "SITE", "GLOBAL"} for operation in owned)
     assert all(operation.rate_class for operation in owned)

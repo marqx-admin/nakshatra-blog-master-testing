@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, expect, test } from "vitest";
@@ -12,7 +13,7 @@ import { CreateWebsitePage } from "../modules/global/CreateWebsitePage";
 import { AppearancePage } from "../modules/site/AppearancePage";
 import { AppearancePreview, StyleChooser, appearanceValidation } from "../modules/appearance/AppearanceControls";
 import { AppearanceControls, InformationPagesEditor } from "../modules/appearance/AppearanceControls";
-import { PAGE_KEYS, STYLE_IDS, startingPages, startingPresentation, withCustomPalette } from "../modules/appearance/appearance-model";
+import { PAGE_KEYS, STYLE_IDS, informationPageState, startingPages, startingPresentation, withCustomPalette } from "../modules/appearance/appearance-model";
 import { AdminShell } from "../ui/AdminShell";
 import { PlatformSettingsPage } from "../modules/global/PlatformSettingsPage";
 import { AdminRouter } from "../app/router/AdminRouter";
@@ -25,15 +26,15 @@ function renderWizard(request: AdminTransport["request"]) {
   render(<AdminApiProvider transport={{ request }}><RouterProvider router={router}/></AdminApiProvider>);
 }
 
-async function reachReview(user: ReturnType<typeof userEvent.setup>) {
+async function reachReview(user: ReturnType<typeof userEvent.setup>, style = "Modern Magazine") {
   await user.type(screen.getByRole("textbox", { name: /Site key/ }), "SITE-100");
   await user.type(screen.getByRole("textbox", { name: /Display name/ }), "Future Site");
   await user.click(screen.getByRole("button", { name: "Continue" }));
   expect(screen.getByRole("group", { name: "Website style" })).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: /Modern Magazine/ }));
+  await user.click(screen.getByRole("button", { name: new RegExp(style) }));
   await user.click(screen.getByRole("button", { name: "Continue" }));
-  expect(screen.getByRole("heading", { name: "Typography" })).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "Continue" }));
+  expect(screen.getByText("Typography", { selector: "summary strong" })).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Keep this look and continue" }));
   expect(screen.getByRole("region", { name: "Representative appearance preview" })).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Continue" }));
   expect(screen.getByRole("heading", { name: "Confirm website" })).toBeInTheDocument();
@@ -43,7 +44,7 @@ test("Create Website previews without provisioning, then sends one typed atomic 
   const calls: Array<{ id: AdminOperationId; input: AdminRequestInput | undefined }> = [];
   const request: AdminTransport["request"] = async <T,>(id: AdminOperationId, input?: AdminRequestInput) => {
     calls.push({ id, input });
-    if (id === "API15-G-011") return ok({ site: { site_key: "SITE-100", display_name: "Future Site", lifecycle_state: "DISABLED", timezone_id: "Asia/Kolkata", created_at: "now", updated_at: "now" }, temporary_hostname: "site-100.preview.example", readiness: { overall_ready: true, settings_ready: true, navigation_ready: true, homepage_ready: true, temporary_domain_ready: true, missing_components: [] } }, 201) as AdminResponse<T>;
+    if (id === "API15-G-011") return ok({ site: { site_key: "SITE-100", display_name: "Future Site", lifecycle_state: "DISABLED", timezone_id: "Asia/Kolkata", created_at: "now", updated_at: "now" }, temporary_hostname: "site-100.preview.localhost", temporary_site_url: "http://site-100.preview.localhost:3015/", readiness: { overall_ready: true, settings_ready: true, navigation_ready: true, homepage_ready: true, temporary_domain_ready: true, missing_components: [] } }, 201) as AdminResponse<T>;
     throw new Error(`Unexpected operation ${id}`);
   };
   renderWizard(request);
@@ -58,9 +59,54 @@ test("Create Website previews without provisioning, then sends one typed atomic 
   expect(body.site_key).toBe("SITE-100");
   expect((body.presentation as Record<string, unknown>).style_id).toBe("STYLE_01");
   expect(Object.keys(body.static_pages as object)).toEqual(PAGE_KEYS);
-  expect(screen.getByText("site-100.preview.example")).toBeInTheDocument();
+  expect(screen.getByText("site-100.preview.localhost")).toBeInTheDocument();
+  expect(screen.getByText("http://site-100.preview.localhost:3015/")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Open Website Workspace" })).toHaveAttribute("href", "/site/SITE-100/dashboard");
-  expect(screen.getByRole("link", { name: "Open Temporary Site" })).toHaveAttribute("href", "https://site-100.preview.example");
+  expect(screen.queryByRole("link", { name: "Open Temporary Website" })).not.toBeInTheDocument();
+});
+
+test.each([
+  [undefined, null],
+  ["http://site-100.preview.localhost:3015/", "http://site-100.preview.localhost:3015/"],
+])("Create Website uses only the server URL for an available temporary action", async (temporaryUrl, expectedHref) => {
+  renderWizard(async <T,>(id: AdminOperationId) => {
+    if (id !== "API15-G-011") throw new Error("unexpected");
+    return ok({ site: { site_key: "SITE-100", display_name: "Future Site", lifecycle_state: "ACTIVE" }, temporary_hostname: "site-100.preview.localhost", ...(temporaryUrl ? { temporary_site_url: temporaryUrl } : {}), readiness: { overall_ready: true, settings_ready: true, navigation_ready: true, homepage_ready: true, temporary_domain_ready: true, missing_components: [] } }, 201) as AdminResponse<T>;
+  });
+  const user = userEvent.setup();
+  await reachReview(user);
+  await user.click(screen.getByRole("button", { name: "Confirm and create website" }));
+  expect(await screen.findByRole("region", { name: "Provisioning result" })).toBeInTheDocument();
+  const link = screen.queryByRole("link", { name: "Open Temporary Website" });
+  if (expectedHref) expect(link).toHaveAttribute("href", expectedHref);
+  else expect(link).not.toBeInTheDocument();
+});
+
+test.each([
+  ["Modern Magazine", "STYLE_01"],
+  ["Classic Editorial", "STYLE_02"],
+  ["Minimal Clean", "STYLE_03"],
+  ["Bold News", "STYLE_04"],
+  ["Warm / Spiritual Editorial", "STYLE_05"],
+  ["Start Custom", "CUSTOM"],
+])("%s provisions one complete %s presentation and five safe information pages", async (label, styleId) => {
+  const calls: AdminRequestInput[] = [];
+  renderWizard(async <T,>(id: AdminOperationId, input?: AdminRequestInput) => {
+    if (id !== "API15-G-011") throw new Error(`Unexpected operation ${id}`);
+    calls.push(input ?? {});
+    return ok({ site: { site_key: "SITE-100", display_name: "Future Site", lifecycle_state: "DISABLED" }, temporary_hostname: "site-100.preview.localhost", temporary_site_url: "http://site-100.preview.localhost:3015/", readiness: { overall_ready: true, settings_ready: true, navigation_ready: true, homepage_ready: true, temporary_domain_ready: true, missing_components: [] } }, 201) as AdminResponse<T>;
+  });
+  const user = userEvent.setup();
+  await reachReview(user, label);
+  await user.click(screen.getByRole("button", { name: "Confirm and create website" }));
+  expect(await screen.findByRole("region", { name: "Provisioning result" })).toBeInTheDocument();
+  expect(calls).toHaveLength(1);
+  const body = calls[0]?.body as { presentation: ReturnType<typeof startingPresentation>; static_pages: ReturnType<typeof startingPages> };
+  expect(body.presentation).toEqual(startingPresentation(styleId as Parameters<typeof startingPresentation>[0]));
+  expect(body.presentation).toMatchObject({ schema_version: 1, style_id: styleId, palette: expect.any(Object), typography_id: expect.any(String), layout: expect.any(Object), cards: expect.any(Object), hero: expect.any(Object), homepage: expect.any(Object), article: expect.any(Object), collections: expect.any(Object), controls: expect.any(Object) });
+  if (styleId === "CUSTOM") expect(body.presentation.base_style_id).toBe("STYLE_03");
+  expect(Object.keys(body.static_pages)).toEqual(PAGE_KEYS);
+  for (const page of Object.values(body.static_pages)) expect(page).toMatchObject({ enabled: false, content_version: 1, intro_text: "", body_sections: [] });
 });
 
 test("provisioning failure never presents a successful site", async () => {
@@ -91,7 +137,7 @@ test("provisioning disables duplicate confirmation while the single request is p
   expect(confirm).toBeDisabled();
   await user.click(confirm);
   expect(calls).toBe(1);
-  complete(ok({ site: { site_key: "SITE-100", display_name: "Future Site", lifecycle_state: "DISABLED" }, temporary_hostname: "site-100.preview.example", readiness: { overall_ready: true, settings_ready: true, navigation_ready: true, homepage_ready: true, temporary_domain_ready: true, missing_components: [] } }, 201));
+  complete(ok({ site: { site_key: "SITE-100", display_name: "Future Site", lifecycle_state: "DISABLED" }, temporary_hostname: "site-100.preview.localhost", temporary_site_url: "http://site-100.preview.localhost:3015/", readiness: { overall_ready: true, settings_ready: true, navigation_ready: true, homepage_ready: true, temporary_domain_ready: true, missing_components: [] } }, 201));
   expect(await screen.findByRole("region", { name: "Provisioning result" })).toBeInTheDocument();
 });
 
@@ -99,6 +145,7 @@ test("shared style and option vocabulary keeps unsupported controls unavailable"
   expect(STYLE_IDS).toHaveLength(5);
   expect(Object.keys(READY_STYLES)).toEqual(STYLE_IDS);
   expect(PAGE_KEYS).toHaveLength(5);
+  expect(startingPresentation("CUSTOM")).toMatchObject({ style_id: "CUSTOM", base_style_id: "STYLE_03" });
   expect(OPTION_METADATA.authorCards["AUTH-12"]).toMatchObject({ available: false, reason: "AUTHOR_TOTAL_COUNT_UNAVAILABLE", fallbackId: "AUTH-05" });
   expect(OPTION_METADATA.categoryCards["CAT-08"]).toMatchObject({ available: false, reason: "CATEGORY_IMAGE_UNAVAILABLE" });
   expect(OPTION_METADATA.categoryCards["CAT-03"]).toMatchObject({ available: false, reason: "CATEGORY_COUNT_UNAVAILABLE" });
@@ -110,23 +157,32 @@ test("shared style and option vocabulary keeps unsupported controls unavailable"
 test("selectors omit unavailable category, author and Hindi-ineligible typography choices", () => {
   const config = startingPresentation("CUSTOM");
   render(<AppearanceControls config={config} locale="hi-IN" onChange={() => undefined}/>);
-  const category = screen.getByRole("combobox", { name: "Category card" }) as HTMLSelectElement;
-  const author = screen.getByRole("combobox", { name: "Author card" }) as HTMLSelectElement;
-  const type = screen.getByRole("combobox", { name: "Typography preset" }) as HTMLSelectElement;
-  expect([...category.options].map(option => option.value)).not.toContain("CAT-08");
-  expect([...category.options].map(option => option.value)).not.toContain("CAT-03");
-  expect([...author.options].map(option => option.value)).not.toContain("AUTH-12");
-  expect([...type.options].map(option => option.value)).toEqual(["TYPE-11", "TYPE-12", "TYPE-21", "TYPE-22"]);
-  expect([...(screen.getByRole("combobox", { name: "Density" }) as HTMLSelectElement).options].map(option => option.value)).toEqual(Object.keys(DENSITIES));
-  expect([...(screen.getByRole("combobox", { name: "Container width" }) as HTMLSelectElement).options].map(option => option.value)).toEqual(Object.keys(WIDTHS));
-  expect(screen.queryByRole("combobox", { name: /Header|Footer|CTA/ })).not.toBeInTheDocument();
+  const optionIds = (label: string) => [...within(screen.getByRole("group", { name: label })).getAllByRole("button", { hidden: true })].map(button => button.getAttribute("data-option-id"));
+  expect(optionIds("Category card")).not.toContain("CAT-08");
+  expect(optionIds("Category card")).not.toContain("CAT-03");
+  expect(optionIds("Author card")).not.toContain("AUTH-12");
+  expect(optionIds("Typography preset")).toEqual(["TYPE-11", "TYPE-12", "TYPE-21", "TYPE-22"]);
+  expect(optionIds("Density")).toEqual(Object.keys(DENSITIES));
+  expect(optionIds("Container width")).toEqual(Object.keys(WIDTHS));
+  expect(screen.queryByRole("group", { name: /Header|Footer|CTA/ })).not.toBeInTheDocument();
 });
 
 test("information editor has exactly the five fixed page tabs", () => {
   render(<InformationPagesEditor pages={startingPages()} onChange={() => undefined}/>);
   const tabs = screen.getByRole("group", { name: "Information page" });
-  expect(within(tabs).getAllByRole("button").map(button => button.textContent)).toEqual(["About", "Contact", "Privacy Policy", "Terms of Use", "Disclaimer"]);
+  expect(within(tabs).getAllByRole("button").map(button => button.firstChild?.textContent)).toEqual(["About", "Contact", "Privacy Policy", "Terms of Use", "Disclaimer"]);
   expect(screen.queryByRole("textbox", { name: /HTML|CSS|JavaScript/ })).not.toBeInTheDocument();
+});
+
+test("information pages stay incomplete until a renderable body section exists", () => {
+  const pages = startingPages();
+  expect(informationPageState(pages.PRIVACY)).toBe("Not written / incomplete");
+  pages.PRIVACY.intro_text = "An introduction alone";
+  expect(informationPageState(pages.PRIVACY)).toBe("Not written / incomplete");
+  pages.PRIVACY.body_sections = [{ heading: "Use of data", paragraphs: ["Owner-approved policy content"], list_items: [] }];
+  expect(informationPageState(pages.PRIVACY)).toBe("Ready but disabled");
+  pages.PRIVACY.enabled = true;
+  expect(informationPageState(pages.PRIVACY)).toBe("Enabled");
 });
 
 test("custom palette with invalid contrast cannot pass Appearance validation", () => {
@@ -141,6 +197,59 @@ test("Appearance preview is representative and has a fixed header and footer", (
   const preview = screen.getByRole("region", { name: "Representative appearance preview" });
   expect(within(preview).getByRole("banner")).toHaveTextContent("Site 15");
   expect(within(preview).getByRole("contentinfo")).toHaveTextContent("Site 15");
+  expect(within(preview).getByText("Finding meaning in the moments that matter")).toBeInTheDocument();
+  expect(within(preview).getByText("Explore by topic")).toBeInTheDocument();
+  const controls = within(preview).getByRole("group", { name: "Preview size" });
+  fireEvent.click(within(controls).getByRole("button", { name: "Tablet" }));
+  expect(preview.querySelector('[data-device="tablet"]')).toBeTruthy();
+  fireEvent.click(within(controls).getByRole("button", { name: "Mobile" }));
+  expect(preview.querySelector('[data-device="mobile"]')).toBeTruthy();
+});
+
+test("all six catalogue-derived style tiles show a miniature website", () => {
+  render(<StyleChooser value={startingPresentation("CUSTOM")} onChange={() => undefined}/>);
+  const styles = within(screen.getByRole("group", { name: "Website style" })).getAllByRole("button");
+  expect(styles).toHaveLength(6);
+  for (const style of styles) {
+    const tile = style.parentElement!;
+    expect(tile.querySelector('[data-preview-engine="universal-representative"]')).toBeTruthy();
+    expect(tile.querySelector(".bp-appearance-preview-header")).toBeTruthy();
+    expect(tile.querySelector(".bp-appearance-preview-lead")).toBeTruthy();
+    expect(tile.querySelector(".bp-appearance-preview-cards")).toBeTruthy();
+    expect(tile.querySelector(".bp-appearance-preview-footer")).toBeTruthy();
+    expect(style.textContent).not.toMatch(/STYLE_\d|PAL-\d|TYPE-\d/);
+  }
+  expect(new Set(styles.map(style => style.parentElement?.querySelector(".bp-appearance-preview")?.getAttribute("style"))).size).toBe(6);
+});
+
+test("choosing a ready-made style updates the complete selected website preview", () => {
+  function Harness() {
+    const [config, setConfig] = useState(startingPresentation("CUSTOM"));
+    return <StyleChooser value={config} onChange={setConfig} name="Example"/>;
+  }
+  render(<Harness/>);
+  const selected = screen.getByRole("region", { name: "Representative appearance preview" });
+  const before = selected.querySelector(".bp-appearance-preview")?.getAttribute("style");
+  fireEvent.click(screen.getByRole("button", { name: /Bold News/ }));
+  expect(screen.getByRole("button", { name: /Bold News/ })).toHaveAttribute("aria-pressed", "true");
+  expect(selected.querySelector(".bp-appearance-preview")?.getAttribute("style")).not.toBe(before);
+  expect(within(selected).getByRole("banner")).toHaveTextContent("Example");
+});
+
+test("visual galleries update the shared live preview without changing the style", () => {
+  function Harness() {
+    const [config, setConfig] = useState(startingPresentation("STYLE_01"));
+    return <AppearanceControls config={config} onChange={setConfig} locale="en" name="Example"/>;
+  }
+  render(<Harness/>);
+  expect(screen.getAllByRole("region", { name: "Representative appearance preview" })).toHaveLength(1);
+  const palette = screen.getByRole("group", { name: "Palette" });
+  const options = within(palette).getAllByRole("button");
+  expect(options[0]?.querySelector(".bp-choice-palette")).toBeTruthy();
+  fireEvent.click(options.find(option => option.getAttribute("aria-pressed") === "false")!);
+  expect(within(palette).getAllByRole("button", { pressed: true })).toHaveLength(1);
+  expect(screen.getByText("Layout & Feel", { selector: "summary strong" })).toBeInTheDocument();
+  expect(screen.queryByRole("group", { name: /Header|Footer|CTA/ })).not.toBeInTheDocument();
 });
 
 function renderSite(request: AdminTransport["request"], permissions = ["site_settings.view", "site_settings.edit", "media.view"]) {
@@ -175,7 +284,7 @@ test("fixed information page edits save only static_pages through typed settings
     throw new Error("unexpected");
   });
   const user = userEvent.setup();
-  await user.click(await screen.findByRole("button", { name: "Contact" }));
+  await user.click(await screen.findByRole("button", { name: /^Contact/ }));
   await user.type(screen.getByRole("textbox", { name: "Introduction" }), "How to reach us");
   await user.click(screen.getByRole("button", { name: "Save Appearance" }));
   await waitFor(() => expect(writes).toHaveLength(1));
@@ -210,8 +319,8 @@ function renderDirectAppearance(siteKey: string, temporaryUrl?: string, lifecycl
 test("direct and reloaded Appearance uses the authoritative temporary destination", async () => {
   const url = "https://site-100.preview.example";
   const first = renderDirectAppearance("SITE-100", url);
-  expect(await screen.findByRole("link", { name: "Open Temporary Website" })).toHaveAttribute("href", url);
-  expect(screen.getByText(/disabled and remains unavailable/)).toBeInTheDocument();
+  expect(await screen.findByText(/disabled and remains unavailable/)).toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Open Temporary Website" })).not.toBeInTheDocument();
   expect(first).toContain("API15-S-001");
   cleanup();
   const second = renderDirectAppearance("SITE-100", url, "ACTIVE");
@@ -220,8 +329,13 @@ test("direct and reloaded Appearance uses the authoritative temporary destinatio
   expect(second).toContain("API15-S-001");
 });
 
+test("Appearance opens localhost temporary sites through the shared public app", async () => {
+  renderDirectAppearance("SITE-100", "http://site-100.preview.localhost:3015/", "ACTIVE");
+  expect(await screen.findByRole("link", { name: "Open Temporary Website" })).toHaveAttribute("href", "http://site-100.preview.localhost:3015/");
+});
+
 test("Appearance never infers a temporary Host from public URL, site key, or another site", async () => {
-  renderDirectAppearance("SITE-100", "https://site-100.preview.example");
+  renderDirectAppearance("SITE-100", "https://site-100.preview.example", "ACTIVE");
   expect(await screen.findByRole("link", { name: "Open Temporary Website" })).toBeInTheDocument();
   cleanup();
   renderDirectAppearance("SITE-101");

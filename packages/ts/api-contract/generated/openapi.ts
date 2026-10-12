@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
-// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml
-// Source SHA-256: f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd
+// Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml
+// Source SHA-256: 5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef
 // Wire keys intentionally preserve the canonical OpenAPI spelling/casing.
 
 export interface components {
@@ -648,11 +648,12 @@ export interface components {
           "seo": components["schemas"]["SeoProjection"];
         };
     "PublicPageResponse": (components["schemas"]["HomePageData"] | components["schemas"]["ArticlePageData"] | components["schemas"]["CategoryPageData"] | components["schemas"]["TagPageData"] | components["schemas"]["AuthorPageData"] | components["schemas"]["SearchPageData"] | components["schemas"]["StaticPageData"]);
+    "TemporarySiteUrl": string;
     "AdminSiteContext": {
           "site_key": string;
           "display_name": string;
           "lifecycle_state": string;
-          "temporary_site_url"?: string;
+          "temporary_site_url"?: components["schemas"]["TemporarySiteUrl"];
           "effective_permissions": Array<"dashboard.view" | "posts.view" | "posts.create" | "posts.edit" | "posts.preview" | "posts.duplicate" | "posts.revisions.view" | "posts.revisions.restore" | "posts.publish" | "posts.schedule" | "posts.archive" | "posts.trash" | "posts.restore" | "posts.delete" | "categories.view" | "categories.create" | "categories.edit" | "categories.delete" | "tags.view" | "tags.create" | "tags.edit" | "tags.delete" | "authors.view" | "authors.create" | "authors.edit" | "authors.retire" | "media.view" | "media.upload" | "media.edit" | "media.replace" | "media.delete" | "navigation.view" | "navigation.manage" | "seo.view" | "seo.edit" | "redirects.view" | "redirects.create" | "redirects.edit" | "redirects.delete" | "search.view" | "search.reindex" | "calendar.view" | "site_settings.view" | "site_settings.edit">;
         };
     "AdminGlobalContext": {
@@ -1273,6 +1274,7 @@ export interface components {
     "CreateWebsiteResponse": {
           "site": components["schemas"]["SiteAdminResource"];
           "temporary_hostname": string;
+          "temporary_site_url"?: components["schemas"]["TemporarySiteUrl"];
           "readiness": components["schemas"]["WebsiteReadiness"];
         };
     "SiteUpdateInput": {

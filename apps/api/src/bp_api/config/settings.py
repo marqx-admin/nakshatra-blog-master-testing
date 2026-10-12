@@ -5,6 +5,8 @@ import ipaddress
 import os
 from urllib.parse import urlparse
 
+from bp_domain.temporary_site_url import TemporarySiteUrlConfig
+
 
 @dataclass(frozen=True, slots=True)
 class Settings:
@@ -16,6 +18,7 @@ class Settings:
     hsts_include_subdomains: bool = False
     invitation_setup_base_url: str = "https://admin.example.invalid/setup"
     temporary_domain_suffix: str | None = None
+    temporary_site_url_config: TemporarySiteUrlConfig = TemporarySiteUrlConfig()
 
     def __post_init__(self) -> None:
         if not self.admin_origins:
@@ -36,6 +39,13 @@ class Settings:
             raise ValueError("BP_INVITE_SETUP_BASE_URL must be an absolute HTTP(S) URL")
         if self.environment not in {"development", "test"} and invite.scheme != "https":
             raise ValueError("non-development invitation setup URLs must use HTTPS")
+        if self.environment not in {"development", "test"} and self.temporary_site_url_config.scheme != "https":
+            raise ValueError("non-development temporary-site URLs must use HTTPS")
+        if self.temporary_site_url_config.scheme == "http" and not (
+            self.temporary_domain_suffix == "localhost"
+            or (self.temporary_domain_suffix or "").lower().rstrip(".").endswith(".localhost")
+        ):
+            raise ValueError("HTTP temporary-site URLs require a localhost suffix")
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -43,7 +53,7 @@ class Settings:
             environment=os.getenv("BP_ENV", "development"),
             canonical_openapi_path=os.getenv(
                 "BP_OPENAPI_PATH",
-                "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml",
+                "contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml",
             ),
             admin_origins=tuple(
                 value.strip().rstrip("/")
@@ -58,6 +68,10 @@ class Settings:
                 "https://admin.example.invalid/setup",
             ),
             temporary_domain_suffix=os.getenv("BP_TEMP_DOMAIN_SUFFIX"),
+            temporary_site_url_config=TemporarySiteUrlConfig(
+                scheme=os.getenv("BP_TEMP_SITE_SCHEME", "https"),
+                port=int(os.environ["BP_TEMP_SITE_PORT"]) if os.getenv("BP_TEMP_SITE_PORT") else None,
+            ),
         )
 
 

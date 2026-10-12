@@ -24,6 +24,7 @@ from bp_domain.editorial import decode_working_copy_preview_snapshot
 from bp_domain.errors import NotFound, ValidationFault
 from bp_domain.search import PublicSearchDocument
 from bp_domain.security import AccountState, AdminPrincipal
+from bp_domain.temporary_site_url import TemporarySiteUrlConfig, temporary_site_url
 from bp_domain.seo import (
     build_breadcrumb_trail,
     build_structured_data,
@@ -247,7 +248,7 @@ class PostgresSiteRegistry:
             return self._record(connection.execute(sql, dict(params)).fetchone())
 
     async def resolve_host(self, normalized_host: str) -> SiteRecord | None:
-        # Only explicit active rows resolve.  No implicit www/canonical fallback exists.
+        # Every public Host, including local previews, requires an active domain row.
         sql = text(
             "SELECT s.site_id,s.site_key,s.display_name,s.status,s.timezone_id,s.locale_code,s.updated_at,"
             "COALESCE(canon.hostname,requested.hostname) AS canonical_domain "
@@ -415,6 +416,7 @@ class PostgresAuditAdapter:
 class PostgresAdminSiteContextPayload:
     site_transactions: SiteTransactionPort
     temporary_domain_suffix: str | None = None
+    temporary_site_url_config: TemporarySiteUrlConfig = TemporarySiteUrlConfig()
 
     async def build(self, principal: AdminPrincipal, context: SiteContext) -> dict[str, Any]:
         if principal.is_super_admin:
@@ -430,9 +432,7 @@ class PostgresAdminSiteContextPayload:
             "lifecycle_state": context.site_status,
             "effective_permissions": effective,
         }
-        # The public URL can become a production canonical domain. Resolve the
-        # provisioning-created temporary domain independently under this site's
-        # trusted context, and expose it only to Appearance readers.
+        # Resolve only a registered temporary domain under this site's trusted context.
         suffix = (self.temporary_domain_suffix or "").lower().rstrip(".")
         if suffix and "site_settings.view" in effective:
             expected_host = f"{context.site_key.lower()}.{suffix}"
@@ -445,7 +445,7 @@ class PostgresAdminSiteContextPayload:
                     {"site_id": context.site_id, "hostname": expected_host},
                 ).fetchone()
             if row is not None:
-                payload["temporary_site_url"] = f"https://{_m(row)['hostname']}"
+                payload["temporary_site_url"] = temporary_site_url(_m(row)["hostname"], self.temporary_site_url_config)
         return payload
 
 
@@ -1016,7 +1016,7 @@ class PostgresPublicPageAdapter:
             raise NotFound("resource not found")
         return _m(site_row), _m(settings_row)
 
-    def _resolve_destination(self, connection: Any, context: SiteContext, row: dict[str, Any]) -> dict[str, Any] | None:
+    def _resolve_destination(self, connection: Any, context: SiteContext, row: dict[str, Any], static_pages: dict[str, Any]) -> dict[str, Any] | None:
         kind = str(row["destination_kind"])
         if kind == "HOME":
             return self._destination(context, "HOME", "/", "PUB-HOME-01")
@@ -1030,6 +1030,8 @@ class PostgresPublicPageAdapter:
         if kind == "STATIC":
             key = str(row.get("static_page_key") or "")
             if key not in STATIC_ROUTES:
+                return None
+            if _renderable_static_content(key, static_pages.get(key)) is None:
                 return None
             page_id, path, _ = STATIC_ROUTES[key]
             return self._destination(context, "STATIC", path, page_id)
@@ -1059,8 +1061,9 @@ class PostgresPublicPageAdapter:
             return None
         return self._destination(context, public_kind, prefix + str(_m(entity)["slug"]), page_id)
 
-    def _navigation(self, connection: Any, context: SiteContext) -> dict[str, Any]:
+    def _navigation(self, connection: Any, context: SiteContext, settings: dict[str, Any]) -> dict[str, Any]:
         result: dict[str, Any] = {}
+        static_pages = _json_object(settings.get("static_pages"))
         for menu_key, public_key in (("HEADER", "header"), ("FOOTER", "footer")):
             menu = connection.execute(
                 text("SELECT menu_id FROM navigation_menus WHERE site_id=:site_id AND menu_key=:key"),
@@ -1077,7 +1080,7 @@ class PostgresPublicPageAdapter:
             parents: dict[str, str | None] = {}
             for raw in rows:
                 item = _m(raw)
-                destination = self._resolve_destination(connection, context, item)
+                destination = self._resolve_destination(connection, context, item, static_pages)
                 if destination is None:
                     continue
                 item_id = str(item["item_id"])
@@ -1381,7 +1384,7 @@ class PostgresPublicPageAdapter:
             default_social = self._media(connection, context, str(settings["default_social_image_media_id"]) if settings.get("default_social_image_media_id") else None)
             site_identity = self._site_identity(context, site, settings, logo, favicon)
             public_settings = self._public_settings(settings, default_social)
-            navigation = self._navigation(connection, context)
+            navigation = self._navigation(connection, context, settings)
             presentation = self._presentation(settings, connection, context)
 
             # Current live route always wins over a redirect row.
@@ -1853,7 +1856,7 @@ class PostgresPublicPageAdapter:
             logo = self._media(connection, context, str(settings["logo_media_id"]) if settings.get("logo_media_id") else None)
             favicon = self._media(connection, context, str(settings["favicon_media_id"]) if settings.get("favicon_media_id") else None)
             default_social = self._media(connection, context, str(settings["default_social_image_media_id"]) if settings.get("default_social_image_media_id") else None)
-            navigation = self._navigation(connection, context)
+            navigation = self._navigation(connection, context, settings)
             article = self._article_detail(connection, context, row, preview=True, overrides=overrides)
             seo = {
                 "baseline_indexability": "NOINDEX",

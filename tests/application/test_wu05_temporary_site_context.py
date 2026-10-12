@@ -12,11 +12,12 @@ import yaml  # type: ignore[import-untyped]
 from bp_adapters.postgres.runtime import PostgresAdminSiteContextPayload
 from bp_domain.context import ContextKind, ContextSource, SiteContext
 from bp_domain.security import AccountState, AdminPrincipal
+from bp_domain.temporary_site_url import TemporarySiteUrlConfig
 from jsonschema import Draft202012Validator, RefResolver
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = yaml.safe_load((ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml").read_text())
+SPEC = yaml.safe_load((ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml").read_text())
 
 
 def context(site_id: str = "site-a", *, status: str = "DISABLED") -> SiteContext:
@@ -85,7 +86,7 @@ async def test_temporary_url_is_same_site_read_only_and_survives_production_cano
     payload = await PostgresAdminSiteContextPayload(
         transactions, "preview.example"
     ).build(principal(), context())
-    assert payload["temporary_site_url"] == "https://site-100.preview.example"
+    assert payload["temporary_site_url"] == "https://site-100.preview.example/"
     assert payload["lifecycle_state"] == "DISABLED"
     assert transactions.lookups == [
         ("site-a", {"site_id": "site-a", "hostname": "site-100.preview.example"})
@@ -110,6 +111,15 @@ async def test_temporary_url_requires_site_settings_view_and_never_borrows_anoth
 
 
 @pytest.mark.asyncio
+async def test_same_persisted_local_hostname_uses_server_http_port() -> None:
+    transactions = Transactions({"site-a": "site-100.preview.localhost"})
+    payload = await PostgresAdminSiteContextPayload(
+        transactions, "preview.localhost", TemporarySiteUrlConfig("http", 3015)
+    ).build(principal(), context())
+    assert payload["temporary_site_url"] == "http://site-100.preview.localhost:3015/"
+
+
+@pytest.mark.asyncio
 async def test_temporary_url_omitted_without_active_persisted_domain_or_suffix() -> None:
     transactions = Transactions({})
     assert "temporary_site_url" not in await PostgresAdminSiteContextPayload(
@@ -126,4 +136,4 @@ async def test_super_admin_uses_effective_site_permissions_for_temporary_read() 
     payload = await PostgresAdminSiteContextPayload(
         transactions, "preview.example"
     ).build(principal(can_view=False, super_admin=True), context())
-    assert payload["temporary_site_url"] == "https://site-100.preview.example"
+    assert payload["temporary_site_url"] == "https://site-100.preview.example/"

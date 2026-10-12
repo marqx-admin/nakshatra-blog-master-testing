@@ -13,8 +13,13 @@ function stack(value: string, serif: boolean): string {
 }
 
 // All values are projected from code-owned tokens for this response. No tenant state is retained.
+export function resolvePresentation(presentation?: TrustedPresentation, locale = "en") {
+  // SAFE_DEFAULT is an authoritative projection result, not a selected style.
+  return resolveDesign(presentation?.source === "SAFE_DEFAULT" ? undefined : presentation?.config, locale);
+}
+
 export function presentationStyle(presentation?: TrustedPresentation, locale = "en"): ThemeStyle {
-  const { selection, colors } = resolveDesign(presentation?.config, locale);
+  const { selection, colors } = resolvePresentation(presentation, locale);
   const type = typography[selection.typography];
   const density = DENSITIES[selection.density];
   const typeTokens = typographyTokens(selection.typography);

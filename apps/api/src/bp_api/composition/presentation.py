@@ -30,6 +30,35 @@ class PresentationPolicy:
         if not self.presentation_valid(value):
             raise ValidationFault("presentation does not satisfy canonical RC12")
 
+    def require_provisioning_presentation(self, value: Any) -> None:
+        """A new site receives every visual axis, not a style ID alone.
+
+        The shared catalogue supplies the values. RC12 validates the supplied
+        IDs; this check only requires the complete starting configuration.
+        """
+        self.require_presentation(value)
+        required = {
+            "palette": ("mode",),
+            "layout": ("width_id", "density_id", "spacing_id", "radius_id", "border_id", "elevation_id"),
+            "cards": ("article_card_profile_id", "category_card_profile_id", "author_card_profile_id"),
+            "hero": ("profile_id", "image_profile_id"),
+            "homepage": ("recipe_id",),
+            "article": ("layout_id", "image_profile_id", "related_card_profile_id", "measure", "headline_scale", "meta_layout", "featured_media_ratio", "author_display", "related_content_layout"),
+            "collections": ("category_layout_id", "tag_layout_id", "author_articles_layout_id", "search_layout_id", "article_card_profile_id"),
+            "controls": ("button_profile_id",),
+        }
+        if not isinstance(value.get("typography_id"), str) or not value["typography_id"]:
+            raise ValidationFault("new website presentation must be complete")
+        for group, fields in required.items():
+            values = value.get(group)
+            if not isinstance(values, dict) or any(not isinstance(values.get(field), str) or not values[field] for field in fields):
+                raise ValidationFault("new website presentation must be complete")
+        palette = value["palette"]
+        if palette["mode"] == "PRESET" and not palette.get("preset_id"):
+            raise ValidationFault("new website presentation must be complete")
+        if palette["mode"] == "CUSTOM" and not palette.get("semantic_tokens"):
+            raise ValidationFault("new website presentation must be complete")
+
     def require_static_pages(self, value: Any) -> None:
         if not self.static_pages.is_valid(value):
             raise ValidationFault("fixed information pages do not satisfy canonical RC12")

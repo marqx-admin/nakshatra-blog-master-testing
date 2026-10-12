@@ -91,7 +91,7 @@ def build_app():
     )
     settings = Settings(
         "development",
-        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC12.yaml",
+        "contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml",
         ("http://localhost:5001",),
         "https://admin.test/reset",
         False,

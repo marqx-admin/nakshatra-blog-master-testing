@@ -58,7 +58,7 @@ SECURITY_ABUSE_POLICIES = {
 def _transport_policies(spec: dict) -> dict[str, LimitPolicy]:
     classes = spec.get("components", {}).get("x-rate-limit-classes", {})
     if not classes:
-        raise RuntimeError("canonical RC12 transport rate-limit registry is missing")
+        raise RuntimeError("canonical RC13 transport rate-limit registry is missing")
     return {
         class_id: LimitPolicy(int(raw["limit"]), int(raw["window_seconds"]))
         for class_id, raw in classes.items()
@@ -163,7 +163,7 @@ def create_app(*, settings: Settings | None = None, services: Services | None = 
 
     app = Chat03CompatibleFastAPI(
         title="Multi-Site Blogging Platform API",
-        version="1.0-RC12",
+        version="1.0-RC13",
         docs_url=None,
         redoc_url=None,
         openapi_url=None,

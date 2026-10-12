@@ -42,6 +42,7 @@ export const SAFE_DEFAULT: Readonly<DesignSelection> = Object.freeze({
   width: "WIDTH-READING", radius: "RADIUS-SUBTLE", border: "BORDER-HAIRLINE",
   elevation: "ELEVATION-FLAT", spacing: "STANDARD",
 });
+const CUSTOM_BASE_STYLE_ID = "STYLE_03" as const;
 
 type Style = { name: string; overlay: Partial<DesignSelection> };
 // Exact owner-locked principal mappings. Every omitted field inherits SAFE_DEFAULT.
@@ -99,6 +100,7 @@ export const LEGACY_PARITY: readonly Parity[] = Object.freeze([
 export function toPresentationConfig(selection: Readonly<DesignSelection>, styleId: "STYLE_01" | "STYLE_02" | "STYLE_03" | "STYLE_04" | "STYLE_05" | "CUSTOM" = "CUSTOM"): components["schemas"]["PresentationConfig"] {
   return {
     schema_version: 1 as const, style_id: styleId,
+    ...(styleId === "CUSTOM" ? { base_style_id: CUSTOM_BASE_STYLE_ID } : {}),
     palette: { mode: "PRESET" as const, preset_id: selection.palette },
     typography_id: selection.typography,
     layout: { width_id: selection.width, density_id: selection.density, spacing_id: selection.spacing, radius_id: selection.radius, border_id: selection.border, elevation_id: selection.elevation },
@@ -124,7 +126,15 @@ export function recipeStartingConfig(id: string) {
 }
 export function parityStartingConfig(siteKey: string) {
   const parity = LEGACY_PARITY.find((item) => item.siteKey === siteKey);
-  return parity ? toPresentationConfig({ ...SAFE_DEFAULT, ...parity.overlay }) : undefined;
+  if (!parity) return undefined;
+  const selection = { ...SAFE_DEFAULT, ...parity.overlay };
+  // The locked defaults apply to every archive and supporting article card.
+  return toPresentationConfig({ ...selection,
+    tagCollection: selection.collection, authorCollection: selection.collection,
+    searchCollection: selection.collection, collectionCard: selection.articleCard,
+    relatedCard: selection.articleCard,
+    spacing: selection.density === "DENSITY-SPACIOUS" ? "SPACIOUS" : "STANDARD",
+  });
 }
 
 export const CATEGORY_IMAGE_UNAVAILABLE = ["CAT-08", "CAT-09", "CAT-10"] as const;
@@ -223,7 +233,9 @@ function pick<T extends object>(catalogue: T, value: unknown, fallback: keyof T)
 }
 export function resolveDesign(value: unknown, locale = "en"): { selection: DesignSelection; colors: PaletteColors; source: "STORED" | "STYLE_DEFAULT" | "SAFE_DEFAULT" } {
   const config = record(value);
-  if (config.schema_version !== 1 || (config.style_id !== "CUSTOM" && !(typeof config.style_id === "string" && Object.hasOwn(READY_STYLES, config.style_id)))) {
+  const customBaseValid = config.style_id === "CUSTOM" && typeof config.base_style_id === "string" && Object.hasOwn(READY_STYLES, config.base_style_id);
+  const readyStyleValid = config.style_id !== "CUSTOM" && typeof config.style_id === "string" && Object.hasOwn(READY_STYLES, config.style_id) && config.base_style_id === undefined;
+  if (config.schema_version !== 1 || !customBaseValid && !readyStyleValid) {
     return { selection: { ...SAFE_DEFAULT, typography: typographyAvailable(SAFE_DEFAULT.typography, locale) ? SAFE_DEFAULT.typography : "TYPE-12" }, colors: presetColors(SAFE_DEFAULT.palette), source: "SAFE_DEFAULT" };
   }
   const styleId = config.style_id === "CUSTOM" ? config.base_style_id : config.style_id;
