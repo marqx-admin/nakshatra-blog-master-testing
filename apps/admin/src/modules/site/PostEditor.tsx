@@ -356,7 +356,17 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
     commitModel(current=>{const next=[...current.blocks];const sourceIndex=next.findIndex(block=>block.block_id===sourceId);const targetIndex=next.findIndex(block=>block.block_id===targetId);if(sourceIndex<0||targetIndex<0)return current;const [source]=next.splice(sourceIndex,1);if(!source)return current;const insertAt=sourceIndex<targetIndex?targetIndex-1:targetIndex;next.splice(insertAt,0,source);return {...current,blocks:next}});
     setActiveBlockId(sourceId);
   }
-  function focusWriter(blockId:string,atEnd=false){requestAnimationFrame(()=>{const el=document.getElementById(`bp-writer-${blockId}`);if(!(el instanceof HTMLElement))return;el.focus();const range=document.createRange();range.selectNodeContents(el);range.collapse(!atEnd);const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range)})}
+  function focusWriter(blockId:string,atEnd=false){
+    const requestedRevision=editRevisionRef.current;
+    requestAnimationFrame(()=>{
+      // Input after this request owns the caret; a stale focus must not move it.
+      if(editRevisionRef.current!==requestedRevision)return;
+      const el=document.getElementById(`bp-writer-${blockId}`);
+      if(!(el instanceof HTMLElement))return;
+      el.focus();const range=document.createRange();range.selectNodeContents(el);range.collapse(!atEnd);
+      const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);
+    });
+  }
   function moveBlock(blockId:string,delta:number){
     commitModel(current=>{const next=[...current.blocks];const index=next.findIndex(block=>block.block_id===blockId);const target=index+delta;if(index<0||target<0||target>=next.length)return current;[next[index],next[target]]=[next[target]!,next[index]!];return {...current,blocks:next}});
   }

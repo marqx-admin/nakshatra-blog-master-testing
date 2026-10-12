@@ -381,6 +381,30 @@ test("contextual transforms, slash blocks, inserter blocks and natural list exit
   await user.click(within(listStyle).getByRole("button",{name:"Numbers"}));
 });
 
+test("a delayed transform focus cannot move the caret after typing has begun",async()=>{
+  renderEditor();const toolbar=await screen.findByRole("toolbar",{name:"Editor toolbar"});
+  const transform=within(toolbar).getByRole("combobox",{name:"Block type"});
+  const frames:FrameRequestCallback[]=[];
+  vi.spyOn(window,"requestAnimationFrame").mockImplementation(callback=>{frames.push(callback);return frames.length});
+  const user=userEvent.setup();
+  screen.getByRole("textbox",{name:"Paragraph"}).focus();
+  await user.selectOptions(transform,"H2");
+  const heading=await screen.findByRole("textbox",{name:"Heading H2"});
+  heading.focus();setSelection(heading,0);
+  await user.type(heading,"H",{skipClick:true});
+  expect(heading).toHaveTextContent("HFirst paragraph");
+  // Deliver the pending animation frame between input events, without sleeps.
+  await act(async()=>{for(const frame of frames.splice(0))frame(0)});
+  expect(window.getSelection()?.anchorOffset).toBe(1);
+  await user.type(heading,"eading converted",{skipClick:true});
+  expect(heading.textContent).toBe("Heading convertedFirst paragraph");
+  await user.selectOptions(transform,"PARAGRAPH");
+  await act(async()=>{for(const frame of frames.splice(0))frame(0)});
+  const paragraph=screen.getByRole("textbox",{name:"Paragraph"});
+  expect(paragraph.textContent).toBe("Heading convertedFirst paragraph");
+  expect(paragraph).toHaveFocus();
+});
+
 test("settings rail toggles cleanly and selected block controls stay contextual",async()=>{
   renderEditor();await screen.findByRole("toolbar",{name:"Editor toolbar"});const user=userEvent.setup();
   expect(screen.getByRole("complementary",{name:"Post settings"})).toBeInTheDocument();
