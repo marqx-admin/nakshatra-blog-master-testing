@@ -420,7 +420,11 @@ export function RichTextRunsEditor({
     localSignature.current = nextSignature;
     if (root) {
       root.innerHTML = richHtml(next);
-      if (selection) requestAnimationFrame(() => restoreSelection(root, selection.start, selection.end));
+      if (selection) requestAnimationFrame(() => {
+        // A removed editor must not replace the active editor's DOM selection.
+        if (editorRef.current !== root || !root.isConnected) return;
+        restoreSelection(root, selection.start, selection.end);
+      });
     }
     onChange(next);
   }

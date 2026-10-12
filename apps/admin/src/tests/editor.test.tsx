@@ -448,6 +448,35 @@ test("Bold and Italic toggle ON/OFF without losing selected text",async()=>{
   expect(editor.textContent).toBe("second paragraph");
 });
 
+test("a removed rich editor cannot steal the next editor's selection with a delayed frame",()=>{
+  const frames: FrameRequestCallback[]=[];
+  vi.spyOn(window,"requestAnimationFrame").mockImplementation(callback=>{frames.push(callback);return frames.length});
+  function Harness(){
+    const [value,setValue]=useState(rich("link me"));
+    return <RichTextRunsEditor label="Paragraph" value={value} onChange={next=>setValue(next as typeof value)}/>;
+  }
+  const first=render(<AdminApiProvider transport={fixtureTransport()}><Harness/></AdminApiProvider>);
+  const oldEditor=screen.getByRole("textbox",{name:"Paragraph"});
+  oldEditor.focus();setSelection(oldEditor,0,4);
+  fireEvent.click(screen.getByRole("button",{name:"Bold"}));
+  expect(oldEditor.querySelector("strong")).toHaveTextContent("link");
+  expect(frames).toHaveLength(1);
+  act(()=>frames.shift()!(0));
+  expect(window.getSelection()?.toString()).toBe("link");
+  fireEvent.click(screen.getByRole("button",{name:"Italic"}));
+  expect(frames).toHaveLength(1);
+  const staleFrame=frames.shift()!;
+  first.unmount();
+  render(<AdminApiProvider transport={fixtureTransport()}><Harness/></AdminApiProvider>);
+  const nextEditor=screen.getByRole("textbox",{name:"Paragraph"});
+  nextEditor.focus();setSelection(nextEditor,5,7);
+  act(()=>staleFrame(0));
+  expect(window.getSelection()?.toString()).toBe("me");
+  expect(window.getSelection()?.anchorNode?.isConnected).toBe(true);
+  fireEvent.click(screen.getByRole("button",{name:"Link"}));
+  expect(screen.getByRole("dialog",{name:"Add or edit link"})).toBeInTheDocument();
+});
+
 test("external links and API15-S-091 internal article links preserve structured destinations",async()=>{
   const transport=withOverrides((id,input)=>{
     if(id==="API15-S-091")return ok({items:[{post_id:"article-2",title:"Human Article",status:"PUBLISHED",version:2}],page:{page:1,page_size:12,has_more:false}});
