@@ -359,11 +359,19 @@ test("invalid custom palette is visibly rejected before any write", async () => 
     throw new Error("unexpected");
   });
   const user = userEvent.setup();
-  await user.click(await screen.findByRole("checkbox", { name: "Use custom semantic colors" }));
-  const surface = screen.getByLabelText("surface") as HTMLInputElement;
-  const text = screen.getByLabelText("text") as HTMLInputElement;
+  // Label queries avoid computing names for the entire visual option gallery.
+  const customColors = await screen.findByLabelText("Use custom semantic colors");
+  expect(customColors).toBeVisible();
+  await user.click(customColors);
+  expect(customColors).toBeChecked();
+  const colors = within(screen.getByText("Brand & Colors", { selector: "summary strong" }).closest("details")!);
+  const surface = colors.getByLabelText("surface") as HTMLInputElement;
+  const text = colors.getByLabelText("text") as HTMLInputElement;
   fireEvent.change(text, { target: { value: surface.value } });
-  await user.click(screen.getByRole("button", { name: "Save Appearance" }));
+  const saveButton = screen.getByText("Save Appearance").closest("button")!;
+  expect(saveButton).toHaveAccessibleName("Save Appearance");
+  expect(saveButton).toBeVisible();
+  await user.click(saveButton);
   expect(screen.getByText("text/surface")).toBeInTheDocument();
   expect(writes).toBe(0);
 });
