@@ -106,8 +106,9 @@ class TrustedContextService:
     async def preview(self, effective_host: str, *, request_id: str) -> SiteContext:
         host = normalize_host(effective_host)
         site = await self.sites.resolve_host(host)
-        if site is None or not site.public_eligible:
+        if site is None or not site.ordinary_admin_eligible:
             raise NotFound("resource not found")
+        # ACTIVE and DISABLED may preview; public() still requires ACTIVE.
         # Preview context remains host-bound and resource authority is validated
         # separately by the PreviewAuthorityPort before PageData is loaded.
         return _site_context(

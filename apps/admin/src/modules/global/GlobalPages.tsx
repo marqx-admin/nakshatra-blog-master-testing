@@ -51,7 +51,7 @@ export function WebsiteDashboardOverview({siteCount,activeSites,disabledSites,to
         </div>
         <div className="bp-dashboard-site-actions">
           <Link className="bp-button bp-button--primary" to={`/site/${encodeURIComponent(website.site_key)}/dashboard`}>Open Dashboard <span aria-hidden="true">→</span></Link>
-          {website.public_url===undefined?<Button variant="secondary" disabled>Resolving website...</Button>:website.public_url===null?<Button variant="secondary" disabled>Website unavailable</Button>:<a className="bp-button bp-button--secondary" href={website.public_url} target="_blank" rel="noreferrer">Open Website <span aria-hidden="true">↗</span></a>}
+          {website.lifecycle_state!=="ACTIVE"?<Button variant="secondary" disabled>Website disabled</Button>:website.public_url===undefined?<Button variant="secondary" disabled>Resolving website...</Button>:website.public_url===null?<Button variant="secondary" disabled>Website unavailable</Button>:<a className="bp-button bp-button--secondary" href={website.public_url} target="_blank" rel="noreferrer">Open Website <span aria-hidden="true">↗</span></a>}
         </div>
       </article>)}</div>:<EmptyState title="No websites assigned" description="Ask the Super Admin to assign website access."/>}
     </section>

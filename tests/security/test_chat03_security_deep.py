@@ -375,3 +375,25 @@ async def test_preview_handoff_is_single_use_host_site_target_bound_and_revalida
     with pytest.raises(Unauthenticated):
         await preview.validate(session, site_id="site-uuid-01", post_id="post-1", request_host=staging_host)
     assert "SEC.PREVIEW.DENIED" in [event for event, _ in audit.events]
+
+
+@pytest.mark.asyncio
+async def test_disabled_site_preview_requires_same_site_single_use_grant_and_remains_private():
+    sites = FakeSites()
+    host = "site-01.preview.localhost"
+    sites.by_host[host] = replace(sites.by_host["whatsyourrashi.in"], lifecycle="DISABLED")
+    state = InMemorySecurityStateStore()
+    preview = PreviewAuthorityService(state, sites, _Eligibility(), FakeAudit())
+    context = await TrustedContextService(sites).preview(host, request_id="disabled-preview")
+    handoff, _ = await preview.issue_handoff(context, post_id="post-1", initiating_admin_id="admin-1", source_snapshot="v7")
+    with pytest.raises(Unauthenticated):
+        await preview.exchange_handoff(handoff, site_id="site-uuid-02", post_id="post-1", request_host=host)
+    session, _ = await preview.exchange_handoff(handoff, site_id="site-uuid-01", post_id="post-1", request_host=host)
+    assert await preview.validate(session, site_id="site-uuid-01", post_id="post-1", request_host=host) == "v7"
+    with pytest.raises(Unauthenticated):
+        await preview.exchange_handoff(handoff, site_id="site-uuid-01", post_id="post-1", request_host=host)
+    with pytest.raises(Unauthenticated):
+        await preview.validate(session, site_id="site-uuid-01", post_id="other-post", request_host=host)
+    sites.by_host[host] = replace(sites.by_host[host], lifecycle="ARCHIVED")
+    with pytest.raises(Unauthenticated):
+        await preview.validate(session, site_id="site-uuid-01", post_id="post-1", request_host=host)

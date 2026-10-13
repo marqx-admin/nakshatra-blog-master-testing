@@ -88,3 +88,18 @@ def test_website_management_requires_that_sites_manager_access_level():
     AuthorizationService.require_site_manager(manager, "SITE-01")
     with pytest.raises(Denied):
         AuthorizationService.require_site_manager(manager, "SITE-02")
+
+
+@pytest.mark.asyncio
+async def test_disabled_preview_context_is_host_bound_but_public_stays_closed():
+    from dataclasses import replace
+    sites = FakeSites()
+    sites.by_host["disabled.example"] = replace(sites.by_host["whatsyourrashi.in"], lifecycle="DISABLED")
+    svc = TrustedContextService(sites)
+    context = await svc.preview("disabled.example", request_id="preview-disabled")
+    assert context.kind is ContextKind.PREVIEW_SITE
+    assert context.site_status == "DISABLED"
+    with pytest.raises(NotFound):
+        await svc.public("disabled.example", request_id="public-disabled")
+    with pytest.raises(NotFound):
+        await svc.preview("unknown.example", request_id="preview-unknown")

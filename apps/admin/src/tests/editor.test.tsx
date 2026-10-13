@@ -699,17 +699,17 @@ test("Preview uses the dynamic current-site origin without publishing",async()=>
   expect(calls).toEqual(["API15-S-016"]);
 });
 
-test("Preview uses the explicitly configured local site renderer origin",async()=>{
+test("Preview ignores obsolete local port maps and uses the server Universal origin",async()=>{
   vi.stubEnv("VITE_PUBLIC_SITE_ORIGINS",JSON.stringify({"SITE-01":"http://127.0.0.1:3001"}));
   const open=vi.spyOn(window,"open").mockImplementation(()=>null);const calls:AdminOperationId[]=[];
   const transport=editorTransport(makePost(),(id)=>{
     if(id==="API15-S-016"){calls.push(id);return ok({preview_url:"https://canonical.invalid/_preview/private-token?x=1"})}
-    if(id==="API15-S-001"){calls.push(id);return ok({site_key:"SITE-01"},{"X-BP-Public-Url":"https://canonical.example"})}
+    if(id==="API15-S-001"){calls.push(id);return ok({site_key:"SITE-01"},{"X-BP-Public-Url":"http://site-01.preview.localhost:3015/"})}
     return undefined;
   });
   renderEditor({transport});await screen.findByRole("toolbar",{name:"Editor toolbar"});fireEvent.click(screen.getByRole("button",{name:"Preview"}));
-  await waitFor(()=>expect(open).toHaveBeenCalledWith("http://127.0.0.1:3001/_preview/private-token?x=1","_blank","noopener,noreferrer"));
-  expect(calls).toEqual(["API15-S-016"]);
+  await waitFor(()=>expect(open).toHaveBeenCalledWith("http://site-01.preview.localhost:3015/_preview/private-token?x=1","_blank","noopener,noreferrer"));
+  expect(calls).toEqual(["API15-S-016","API15-S-001"]);
 });
 
 test("published posts update through the versioned save and View Live Post uses the dynamic site URL",async()=>{

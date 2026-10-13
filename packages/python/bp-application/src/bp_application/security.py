@@ -1050,7 +1050,7 @@ class PreviewAuthorityService:
             await self.audit.append("SEC.PREVIEW.DENIED", actor_admin_id=None, site_id=site_id, details={})
             raise Unauthenticated("preview authority required")
         site = await self.sites.resolve_host(observed_host)
-        if site is None or site.site_id != site_id or not site.public_eligible:
+        if site is None or site.site_id != site_id or not site.ordinary_admin_eligible:
             await self.audit.append("SEC.PREVIEW.DENIED", actor_admin_id=None, site_id=site_id, details={})
             raise Unauthenticated("preview authority required")
         context = SiteContext(
@@ -1123,7 +1123,7 @@ class PreviewAuthorityService:
             await self.audit.append("SEC.PREVIEW.DENIED", actor_admin_id=None, site_id=site_id, details={})
             raise Unauthenticated("preview authority required")
         site = await self.sites.resolve_host(observed_host)
-        if site is None or site.site_id != site_id or not site.public_eligible:
+        if site is None or site.site_id != site_id or not site.ordinary_admin_eligible:
             await self.audit.append("SEC.PREVIEW.DENIED", actor_admin_id=None, site_id=site_id, details={})
             raise Unauthenticated("preview authority required")
         from bp_domain.context import ContextKind, ContextSource
@@ -1205,7 +1205,7 @@ class PreviewAuthorityService:
         if (
             record is None
             or site is None
-            or not site.public_eligible
+            or not site.ordinary_admin_eligible
             or record.site_id != site.site_id
             or record.metadata.get("media_id") != media_id
             or not record.post_id

@@ -518,18 +518,6 @@ export function PostEditorPage({mode}:{mode:"create"|"edit"}){
     try{await run}finally{if(autosaveInFlightRef.current===run)autosaveInFlightRef.current=null}
   }
   async function resolvedPublicOrigin():Promise<string>{
-    if(import.meta.env.DEV){
-      const configuredRaw=(import.meta.env as unknown as Record<string,unknown>).VITE_PUBLIC_SITE_ORIGINS;
-      if(typeof configuredRaw==="string"&&configuredRaw.trim()){
-        try{
-          const configured=JSON.parse(configuredRaw) as Record<string,unknown>;const candidate=configured[site.site_key];
-          if(typeof candidate==="string"){
-            const parsed=new URL(candidate);
-            if((parsed.protocol==="http:"||parsed.protocol==="https:")&&parsed.pathname==="/"&&!parsed.search&&!parsed.hash)return parsed.origin;
-          }
-        }catch{/* fall through to the server-authoritative site URL */}
-      }
-    }
     const response=await transport.request<UnknownRecord>("API15-S-001",{path:{site_key:site.site_key}});
     const value=response.headers.get("X-BP-Public-Url");if(!value)throw new Error("Public website URL is unavailable");
     return value.replace(/\/$/,"");

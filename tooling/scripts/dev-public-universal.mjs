@@ -6,7 +6,7 @@ const child = spawn('corepack', ['pnpm', '--filter', '@bp/public-universal', 'de
   stdio: 'inherit',
   env: {
     ...process.env,
-    BP_API_INTERNAL_ORIGIN: process.env.BP_API_INTERNAL_ORIGIN || 'http://127.0.0.1:8080',
+    BP_API_INTERNAL_ORIGIN: process.env.BP_API_INTERNAL_ORIGIN || `http://127.0.0.1:${process.env.BP_HTTP_PORT || '8080'}`,
   },
 });
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => child.kill(signal));

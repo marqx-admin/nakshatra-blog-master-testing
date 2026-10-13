@@ -137,3 +137,20 @@ async def test_super_admin_uses_effective_site_permissions_for_temporary_read() 
         transactions, "preview.example"
     ).build(principal(can_view=False, super_admin=True), context())
     assert payload["temporary_site_url"] == "https://site-100.preview.example/"
+
+
+@pytest.mark.asyncio
+async def test_editor_local_navigation_resolves_persisted_target_domain_without_settings_permission():
+    from types import SimpleNamespace
+    from bp_adapters.postgres.runtime import PostgresSiteRegistry
+    class Connection:
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def execute(self, sql, params):
+            assert params == {"site_id": "site-a", "suffix": "preview.localhost"}
+            assert "s.site_id=:site_id" in str(sql) and "d.is_active=true" in str(sql)
+            return self
+        def fetchone(self): return SimpleNamespace(_mapping={"hostname": "site-100.preview.localhost"})
+    registry = PostgresSiteRegistry(SimpleNamespace(connect=Connection))
+    assert await registry.local_temporary_url_for_site("site-a", "preview.localhost", TemporarySiteUrlConfig("http", 3015)) == "http://site-100.preview.localhost:3015/"
+    assert await registry.local_temporary_url_for_site("site-a", "production.example", TemporarySiteUrlConfig()) is None

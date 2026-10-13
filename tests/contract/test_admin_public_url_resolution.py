@@ -37,3 +37,14 @@ def test_canonical_domain_change_requires_no_user_level_url_change():
     after = [("NewApkiRashi.com", True), ("ApkiRashi.com", False)]
     assert _preferred_public_url("admin.nakshatrauniverse.com", before) == "https://ApkiRashi.com"
     assert _preferred_public_url("admin.nakshatrauniverse.com", after) == "https://NewApkiRashi.com"
+
+
+def test_local_admin_header_uses_only_server_registered_local_temporary_destination():
+    from bp_api.http.admin_site.routes import _local_temporary_destination
+    url = "http://site-100.preview.localhost:3015/"
+    assert _local_temporary_destination("development", "localhost:5173", url) == url
+    assert _local_temporary_destination("test", "127.0.0.1:8001", url) == url
+    assert _local_temporary_destination("production", "localhost", url) is None
+    assert _local_temporary_destination("development", "admin.example", url) is None
+    assert _local_temporary_destination("development", "localhost", None) is None
+    assert _local_temporary_destination("development", "localhost", "https://production.example/") is None

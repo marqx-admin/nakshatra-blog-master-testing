@@ -275,6 +275,20 @@ class PostgresSiteRegistry:
         with self.engine.connect() as connection:
             return [record for row in connection.execute(sql).fetchall() if (record := self._record(row)) is not None]
 
+    async def local_temporary_url_for_site(
+        self, site_id: str, suffix: str | None, config: TemporarySiteUrlConfig
+    ) -> str | None:
+        suffix = (suffix or "").lower().rstrip(".")
+        if suffix != "localhost" and not suffix.endswith(".localhost"):
+            return None
+        with self.engine.connect() as connection:
+            row = connection.execute(text(
+                "SELECT d.hostname_normalized AS hostname FROM domains d JOIN sites s USING(site_id) "
+                "WHERE s.site_id=:site_id AND d.is_active=true "
+                "AND d.hostname_normalized=lower(s.site_key)||'.'||:suffix LIMIT 1"
+            ), {"site_id": site_id, "suffix": suffix}).fetchone()
+        return temporary_site_url(_m(row)["hostname"], config) if row is not None else None
+
     async def public_url_for_site(self, site_id: str, request_host: str) -> str | None:
         sql = text(
             "SELECT hostname,is_canonical FROM domains "

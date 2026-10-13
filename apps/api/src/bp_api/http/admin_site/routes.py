@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from urllib.parse import urlsplit
+
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
@@ -19,6 +21,28 @@ def _contract(request: Request, operation_id: str):
         index = operation_index(request.app.state.canonical_openapi)
         request.app.state.operation_index = index
     return index[operation_id]
+
+
+def _local_admin_navigation(environment: str, admin_host: str) -> bool:
+    if environment not in {"development", "test"}:
+        return False
+    try:
+        host = urlsplit("//" + admin_host).hostname or ""
+    except ValueError:
+        return False
+    return host in {"localhost", "127.0.0.1"} or host.endswith(".localhost")
+
+
+def _local_temporary_destination(environment: str, admin_host: str, temporary_url: str | None) -> str | None:
+    if not _local_admin_navigation(environment, admin_host) or not temporary_url:
+        return None
+    try:
+        parsed = urlsplit(temporary_url)
+    except ValueError:
+        return None
+    if parsed.scheme in {"http", "https"} and (parsed.hostname or "").endswith(".localhost"):
+        return temporary_url
+    return None
 
 
 @router.get("/api/v1/admin/sites/{site_key}/context", operation_id="API15-S-001", status_code=200)
@@ -51,6 +75,15 @@ async def admin_site_context(request: Request, site_key: str):
     public_url = None
     if resolver is not None:
         public_url = await resolver(context.site_id, request.headers.get("host", ""))
+    # Local navigation uses the registered RC13 destination, never a browser map.
+    settings = request.app.state.settings
+    admin_host = request.headers.get("host", "")
+    temporary_url = payload.get("temporary_site_url")
+    # Content editors need preview navigation without gaining Settings or domain permissions.
+    local_resolver = getattr(request.app.state.services.contexts.sites, "local_temporary_url_for_site", None)
+    if not temporary_url and local_resolver and _local_admin_navigation(settings.environment, admin_host):
+        temporary_url = await local_resolver(context.site_id, settings.temporary_domain_suffix, settings.temporary_site_url_config)
+    public_url = _local_temporary_destination(settings.environment, admin_host, temporary_url) or public_url
     if not public_url:
         public_url = f"https://{context.canonical_domain}"
     return JSONResponse(

@@ -14,6 +14,7 @@ import { AppearancePage } from "../modules/site/AppearancePage";
 import { AppearancePreview, StyleChooser, appearanceValidation } from "../modules/appearance/AppearanceControls";
 import { AppearanceControls, InformationPagesEditor } from "../modules/appearance/AppearanceControls";
 import { PAGE_KEYS, STYLE_IDS, informationPageState, startingPages, startingPresentation, withCustomPalette } from "../modules/appearance/appearance-model";
+import { WebsiteDashboardOverview } from "../modules/global/GlobalPages";
 import { AdminShell } from "../ui/AdminShell";
 import { PlatformSettingsPage } from "../modules/global/PlatformSettingsPage";
 import { AdminRouter } from "../app/router/AdminRouter";
@@ -436,4 +437,13 @@ test("Platform Settings edits only server-provided structured controls", async (
     { key: "maintenance_message", value: "Updated" },
     { key: "server_object", value: { a: 2, categories: ["Ideas"] } },
   ]);
+});
+
+
+test("disabled dashboard websites keep their workspace but expose no public-open action",()=>{
+  const router = createMemoryRouter([{path:"/",element:<WebsiteDashboardOverview siteCount={1} totalBlogs={0} websites={[{site_key:"SITE-100",display_name:"Local test",lifecycle_state:"DISABLED",blog_count:0,public_url:"http://site-100.preview.localhost:3015/"}]}/> }],{initialEntries:["/"]});
+  render(<RouterProvider router={router}/>);
+  expect(screen.getByRole("button",{name:"Website disabled"})).toBeDisabled();
+  expect(screen.queryByRole("link",{name:/Open Website/})).not.toBeInTheDocument();
+  expect(screen.getByRole("link",{name:/Open Dashboard/})).toHaveAttribute("href","/site/SITE-100/dashboard");
 });
