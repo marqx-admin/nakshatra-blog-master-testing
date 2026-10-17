@@ -52,8 +52,8 @@
       "chat01_check": "HOOK_ONLY"
     },
     "public_page_ids": {
-      "expected": 14,
-      "source": "DOC-05",
+      "expected": 15,
+      "source": "DOC-05 plus owner-authorized UF-06 PUB-BLOG-01",
       "chat01_check": "HOOK_ONLY"
     },
     "public_component_contracts": {
@@ -87,13 +87,13 @@
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "openapi_schemas_helpers": {
-      "expected": 249,
-      "source": "DOC-15 RC13 canonical YAML",
+      "expected": 251,
+      "source": "Active RC13 contract plus owner-authorized UF-06 archive amendment",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "openapi_internal_refs": {
-      "expected": 1362,
-      "source": "DOC-15 RC13 canonical YAML",
+      "expected": 1378,
+      "source": "Active RC13 contract plus owner-authorized UF-06 archive amendment",
       "chat01_check": "SUPERSEDED_BY_C00_WAVE2_RC8_RECONCILIATION"
     },
     "auth_operations": {

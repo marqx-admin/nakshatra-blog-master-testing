@@ -13,9 +13,9 @@ Project-owner-authorized minimum Wave-2 reconciliation revisions:
 
 Canonical Universal executable HTTP source: `contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml`
 
-SHA-256: `5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef`
+SHA-256: `40e642fab61bae9f5fd60afac2ad76912cb6f1a5c1fe4e251dc7f0485f278461`
 
-Final HTTP registry: 113 operations / 86 paths / 248 schemas-helpers / 1,360 resolved internal references, with 12 AUTH / 2 PUBLIC-PREVIEW / 63 SITE / 36 GLOBAL operations. FastAPI-generated OpenAPI is not canonical.
+Final HTTP registry: 116 operations / 89 paths / 252 schemas-helpers / 1,400 resolved internal references, with 12 AUTH / 3 PUBLIC-PREVIEW / 65 SITE / 36 GLOBAL operations. FastAPI-generated OpenAPI is not canonical.
 
 ## Architecture and frozen-count guards
 

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DestinationLink } from "../../components/destination-link";
 import { isCurrentDestination } from "../../lib/destination";
 import type { NavigationItem } from "./navigation-types";
@@ -9,9 +9,25 @@ function hasCurrentDescendant(items: NavigationItem[], requestPath: string): boo
 
 function Entry({ item, requestPath, id }: { item: NavigationItem; requestPath: string; id: string }) {
   const descendantCurrent = hasCurrentDescendant(item.children, requestPath);
-  const [open, setOpen] = useState(descendantCurrent);
+  const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
-  return <li className="nav-entry" data-current-branch={descendantCurrent || undefined} onBlur={(event) => {
+  const entry = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    if (entry.current?.querySelector(".nav-children")?.contains(document.activeElement)) button.current?.focus();
+    setOpen(false);
+  }, [requestPath]);
+  useEffect(() => {
+    if (!open) return;
+    const dismiss = (event: PointerEvent) => {
+      if (!entry.current?.contains(event.target as Node)) {
+        if (entry.current?.contains(document.activeElement)) button.current?.focus();
+        setOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [open]);
+  return <li ref={entry} className="nav-entry" data-current-branch={descendantCurrent || undefined} onBlur={(event) => {
     if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
   }} onKeyDown={(event) => {
     if (event.key === "Escape" && open) { event.preventDefault(); event.stopPropagation(); setOpen(false); button.current?.focus(); }

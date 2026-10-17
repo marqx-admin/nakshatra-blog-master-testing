@@ -13,7 +13,7 @@ The seven CHAT00 reconciliation blockers `CB-W2-01` through `CB-W2-07` are resol
 - canonical Universal executable OpenAPI `contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml`
 - forward-only `DB-MIG-017`
 
-The active RC13 OpenAPI SHA-256 is `5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef`; RC12 and earlier executable files remain historical and unchanged. See the current contract provenance record for lineage.
+The active RC13 OpenAPI SHA-256 is `40e642fab61bae9f5fd60afac2ad76912cb6f1a5c1fe4e251dc7f0485f278461`; RC12 and earlier executable files remain historical and unchanged. See the current contract provenance record for lineage.
 
 ## Execution-environment evidence limitations
 
@@ -24,3 +24,9 @@ These are **not contract blockers** and do not alter the source-complete Wave-2 
 - full dependency-materialized Admin build/browser/Vitest evidence remains `NOT_EXECUTED` where the controlled Node 24/pnpm dependency environment is unavailable.
 
 Static contract, generated-drift, database, application, security/isolation, Admin structure and Wave-2 reconciliation tests are recorded under `evidence/chat00-wave2-final/`.
+
+W4 coding amendment: automatic website keys, private whole-site preview and setup
+readiness are implemented. Owner-authorized focused automated checks passed;
+exact results are in apps/public-universal/W4_IMPLEMENTATION.md. Runtime testing
+remains deferred. DB-MIG-022 and DB-MIG-023 remain unapplied. Domain/TLS, security, platform
+health and launch approval are NOT_VERIFIED; setup readiness never activates a site.

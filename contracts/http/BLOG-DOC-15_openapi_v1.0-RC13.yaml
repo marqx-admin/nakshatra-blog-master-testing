@@ -2,9 +2,10 @@ openapi: 3.1.0
 info:
   title: Multi-Site Blogging Platform API
   version: 1.0-RC13
-  description: 'RC13 narrow additive temporary-site URL correction. The operation registry, permissions, Site Settings transport,
-    PresentationConfig, and public PageData remain unchanged. CreateWebsiteResponse and AdminSiteContext may include the
-    server-authored URL of the same-site active provisioning-created temporary domain.'
+  description: 'RC13 with owner-authorized UF-06 archive and W2 site-owned website content and W3 versioned appearance plus W4 creation/private-preview/readiness amendments.
+    PUB-BLOG-01 and BlogPageData extend the existing public-page operation for /blog. Operation paths, permissions,
+    W2 adds optional Home text, page-level static updates and typed BLOG navigation. W3 adds opt-in recipe_version=2, STANDARD, Custom bases and a persisted global image profile. CreateWebsiteResponse and
+    AdminSiteContext retain their optional server-authored temporary-site URL.'
 servers:
 - url: '{origin}'
   description: Deployment-selected platform/public origin. Public SiteContext is resolved from the effective trusted Host;
@@ -29706,6 +29707,327 @@ paths:
       - BLOG-DOC-10
       - BLOG-DOC-15
       x-success-status: 200
+  /api/v1/admin/sites/{site_key}/website-preview:
+    post:
+      parameters:
+      - name: site_key
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^SITE-[0-9]{2,}$
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          type: string
+          maxLength: 128
+        description: Optional caller correlation identifier; server returns the accepted/generated
+          identifier.
+      x-site-context: SITE
+      x-auth-context: ADMIN_SESSION
+      x-permissions: site_settings.view + posts.view + navigation.view + media.view
+      x-rate-limit-class: ADMIN_WRITE
+      x-idempotency: 'NO'
+      x-concurrency: NONE
+      x-upstream-authorities:
+      - NAKSHATRA V4 F1/F2 W4
+      x-success-status: 201
+      operationId: API15-S-098
+      summary: Website Preview
+      responses:
+        '201':
+          description: PreviewHandoffResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreviewHandoffResponse'
+        '401':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '429':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+  /api/v1/admin/sites/{site_key}/website-readiness:
+    get:
+      parameters:
+      - name: site_key
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^SITE-[0-9]{2,}$
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          type: string
+          maxLength: 128
+        description: Optional caller correlation identifier; server returns the accepted/generated
+          identifier.
+      x-site-context: SITE
+      x-auth-context: ADMIN_SESSION
+      x-permissions: site_settings.view + posts.view + navigation.view + media.view
+      x-rate-limit-class: ADMIN_READ
+      x-idempotency: 'NO'
+      x-concurrency: NONE
+      x-upstream-authorities:
+      - NAKSHATRA V4 F1/F2 W4
+      x-success-status: 200
+      operationId: API15-S-099
+      summary: Website Readiness
+      responses:
+        '200':
+          description: WebsiteSetupReadiness
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebsiteSetupReadiness'
+        '401':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '429':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+  /api/v1/public/preview/website:
+    get:
+      x-site-context: PREVIEW
+      x-auth-context: PREVIEW_AUTHORITY
+      x-permissions: PREVIEW_AUTHORITY
+      x-rate-limit-class: PREVIEW_READ
+      x-idempotency: 'NO'
+      x-concurrency: NONE
+      x-upstream-authorities:
+      - NAKSHATRA V4 F1/F2 W4
+      x-success-status: 200
+      operationId: API15-PUB-003
+      summary: Authenticated saved website preview
+      parameters:
+      - name: path
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^/
+          maxLength: 2048
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 500
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          type: string
+          maxLength: 128
+        description: Optional caller correlation identifier; server returns the accepted/generated
+          identifier.
+      - name: handoff
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 512
+      responses:
+        '200':
+          description: PublicPageResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicPageResponse'
+        '404':
+          description: NotFoundPageData
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundPageData'
+        '410':
+          description: GonePageData
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GonePageData'
+        '401':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '429':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: ApiError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '301':
+          description: Routing/canonical/manual redirect determined by BLOG-DOC-09.
+          headers:
+            Location:
+              required: true
+              schema:
+                type: string
+                format: uri-reference
+            X-Request-ID:
+              description: Server request/correlation identifier.
+              schema:
+                type: string
+            RateLimit-Limit:
+              description: Request ceiling for the active quota window.
+              schema:
+                type: integer
+            RateLimit-Remaining:
+              description: Remaining requests in the active quota window.
+              schema:
+                type: integer
+            RateLimit-Reset:
+              description: Seconds until active quota window resets.
+              schema:
+                type: integer
+        '302':
+          description: Routing/canonical/manual redirect determined by BLOG-DOC-09.
+          headers:
+            Location:
+              required: true
+              schema:
+                type: string
+                format: uri-reference
+            X-Request-ID:
+              description: Server request/correlation identifier.
+              schema:
+                type: string
+            RateLimit-Limit:
+              description: Request ceiling for the active quota window.
+              schema:
+                type: integer
+            RateLimit-Remaining:
+              description: Remaining requests in the active quota window.
+              schema:
+                type: integer
+            RateLimit-Reset:
+              description: Seconds until active quota window resets.
+              schema:
+                type: integer
+        '308':
+          description: Routing/canonical/manual redirect determined by BLOG-DOC-09.
+          headers:
+            Location:
+              required: true
+              schema:
+                type: string
+                format: uri-reference
+            X-Request-ID:
+              description: Server request/correlation identifier.
+              schema:
+                type: string
+            RateLimit-Limit:
+              description: Request ceiling for the active quota window.
+              schema:
+                type: integer
+            RateLimit-Remaining:
+              description: Remaining requests in the active quota window.
+              schema:
+                type: integer
+            RateLimit-Reset:
+              description: Seconds until active quota window resets.
+              schema:
+                type: integer
+
 components:
   schemas:
     EmptyResponse:
@@ -29818,6 +30140,7 @@ components:
           type: string
           enum: &id013
           - PUB-HOME-01
+          - PUB-BLOG-01
           - PUB-ARTICLE-01
           - PUB-CATEGORY-01
           - PUB-TAG-01
@@ -30090,6 +30413,7 @@ components:
       type: object
       additionalProperties: false
       properties:
+        image_profile_id: {type: string, pattern: '^IMG-(0[1-9]|1[0-2])$'}
         article_card_profile_id: {type: string, pattern: '^CARD-(0[1-9]|[12][0-9]|30)$'}
         category_card_profile_id: {type: string, pattern: '^CAT-(0[1-7]|1[1-9]|2[0-5])$'}
         author_card_profile_id: {type: string, pattern: '^AUTH-(0[1-9]|1[0-9]|2[0-5])$'}
@@ -30172,12 +30496,13 @@ components:
       additionalProperties: false
       properties:
         schema_version: {type: integer, const: 1}
+        recipe_version: {type: integer, enum: [1, 2], description: 'Omitted/1 preserves legacy preset inheritance. 2 explicitly selects the V4 coordinated recipe without migrating tenant data.'}
         style_id:
           type: string
-          enum: [STYLE_01, STYLE_02, STYLE_03, STYLE_04, STYLE_05, CUSTOM]
+          enum: [STANDARD, STYLE_01, STYLE_02, STYLE_03, STYLE_04, STYLE_05, CUSTOM]
         base_style_id:
           type: string
-          enum: [STYLE_01, STYLE_02, STYLE_03, STYLE_04, STYLE_05]
+          enum: [STANDARD, STYLE_01, STYLE_02, STYLE_03, STYLE_04, STYLE_05]
         typography_id: {type: string, pattern: '^TYPE-(0[1-9]|1[0-9]|2[0-8])$'}
         branding: {$ref: '#/components/schemas/PresentationBranding'}
         palette: {$ref: '#/components/schemas/PresentationPalette'}
@@ -30195,6 +30520,16 @@ components:
         button: {$ref: '#/components/schemas/PresentationButton'}
         controls: {$ref: '#/components/schemas/PresentationControls'}
       required: [schema_version, style_id]
+      allOf:
+      - if:
+          anyOf:
+          - properties: {style_id: {const: STANDARD}}
+            required: [style_id]
+          - properties: {base_style_id: {const: STANDARD}}
+            required: [base_style_id]
+        then:
+          properties: {recipe_version: {const: 2}}
+          required: [recipe_version]
       if:
         properties:
           style_id: {const: CUSTOM}
@@ -30251,6 +30586,17 @@ components:
         DISCLAIMER: {$ref: '#/components/schemas/InformationPage'}
       required: [ABOUT, CONTACT, PRIVACY, TERMS, DISCLAIMER]
       description: Exactly five controlled information pages; plain text sections, no general Pages CMS.
+    StaticPagesPatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      description: Complete individual pages to merge into this site's existing StaticPages. Omitted sibling pages remain unchanged. Disabled drafts may contain placeholders; enabling requires resolved owner-reviewed content.
+      properties:
+        ABOUT: {$ref: '#/components/schemas/InformationPage'}
+        CONTACT: {$ref: '#/components/schemas/InformationPage'}
+        PRIVACY: {$ref: '#/components/schemas/InformationPage'}
+        TERMS: {$ref: '#/components/schemas/InformationPage'}
+        DISCLAIMER: {$ref: '#/components/schemas/InformationPage'}
     SiteIdentity:
       type: object
       additionalProperties: false
@@ -31220,14 +31566,6 @@ components:
       required:
       - paragraphs
       - list_items
-      allOf:
-      - anyOf:
-        - properties:
-            paragraphs:
-              minItems: 1
-        - properties:
-            list_items:
-              minItems: 1
     StaticContent:
       type: object
       additionalProperties: false
@@ -31249,7 +31587,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StaticSection'
-          minItems: 1
       required:
       - static_key
       - title
@@ -31344,6 +31681,41 @@ components:
       - intro
       - sections
       - latest_articles
+      - seo
+    BlogPageData:
+      type: object
+      additionalProperties: false
+      description: Published articles for the trusted resolved site at /blog, in stable published_at DESC and post_id ASC order. Uses the existing public-page endpoint and site-bound transaction.
+      properties:
+        context:
+          $ref: '#/components/schemas/PageContext'
+        site:
+          $ref: '#/components/schemas/SiteIdentity'
+        settings:
+          $ref: '#/components/schemas/PublicSettings'
+        navigation:
+          $ref: '#/components/schemas/NavigationBundle'
+        presentation:
+          $ref: '#/components/schemas/TrustedPresentation'
+        intro:
+          $ref: '#/components/schemas/PageIntro'
+        breadcrumbs:
+          $ref: '#/components/schemas/BreadcrumbTrail'
+        articles:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArticleSummary'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        seo:
+          $ref: '#/components/schemas/SeoProjection'
+      required:
+      - context
+      - site
+      - settings
+      - navigation
+      - intro
+      - articles
       - seo
     ArticlePageData:
       type: object
@@ -31632,6 +32004,7 @@ components:
     PublicPageResponse:
       oneOf:
       - $ref: '#/components/schemas/HomePageData'
+      - $ref: '#/components/schemas/BlogPageData'
       - $ref: '#/components/schemas/ArticlePageData'
       - $ref: '#/components/schemas/CategoryPageData'
       - $ref: '#/components/schemas/TagPageData'
@@ -33399,6 +33772,7 @@ components:
           type: string
           enum:
           - HOME
+          - BLOG
           - ARTICLE
           - CATEGORY
           - TAG
@@ -33425,7 +33799,7 @@ components:
       required:
       - kind
       description: Typed Admin navigation destination. ARTICLE/CATEGORY/TAG/AUTHOR require target_id; STATIC requires static_page_key;
-        EXTERNAL requires url; HOME/SEARCH require no target field. No arbitrary URL substitutes for an internal STATIC page.
+        EXTERNAL requires url; HOME/BLOG/SEARCH require no target field. BLOG resolves the deployed /blog archive. No arbitrary URL substitutes for an internal STATIC page.
     AdminNavItem:
       type: object
       additionalProperties: false
@@ -33499,8 +33873,18 @@ components:
       type: object
       additionalProperties: false
       properties:
-        lead_post_id:
+        h1:
           type: string
+          maxLength: 200
+          pattern: '^[^<>]*$'
+          description: Optional site-owned Home heading. Omitted preserves existing content; empty restores display-name fallback. Unresolved draft placeholders are rejected.
+        intro_text:
+          type: string
+          maxLength: 12000
+          pattern: '^[^<>]*$'
+          description: Optional plain site-owned introduction. Omitted preserves existing content; empty clears. No draft placeholders.
+        lead_post_id:
+          type: [string, 'null']
           format: uuid
         sections:
           type: array
@@ -33840,7 +34224,7 @@ components:
         additionalProperties: false
         properties:
           key: {type: string, const: static_pages}
-          value: {$ref: '#/components/schemas/StaticPages'}
+          value: {$ref: '#/components/schemas/StaticPagesPatch'}
         required: [key, value]
       - type: object
         additionalProperties: false
@@ -33899,6 +34283,7 @@ components:
       type: object
       additionalProperties: false
       properties:
+        site_id: {type: string, format: uuid, readOnly: true}
         site_key:
           type: string
           pattern: ^SITE-[0-9]{2,}$
@@ -33964,8 +34349,14 @@ components:
         timezone_id: {type: string, minLength: 1}
         presentation: {$ref: '#/components/schemas/PresentationConfig'}
         static_pages: {$ref: '#/components/schemas/StaticPages'}
-      required: [site_key, display_name, timezone_id, presentation, static_pages]
-      description: Server assigns site_id and provisions site settings, navigation, homepage baseline, temporary domain, audit event, and computed readiness atomically in WU-02. Caller cannot supply tenant identity or production domain.
+        homepage:
+          type: object
+          additionalProperties: false
+          properties:
+            h1: {type: string, maxLength: 200}
+            intro_text: {type: string, maxLength: 12000}
+      required: [display_name, timezone_id, presentation, static_pages]
+      description: Omitted site_key is allocated under a database transaction lock; explicit legacy keys remain accepted. Server assigns site_id and provisions site settings, navigation, homepage baseline, temporary domain, audit event, and computed readiness atomically in WU-02. Caller cannot supply tenant identity or production domain.
     WebsiteReadiness:
       type: object
       additionalProperties: false
@@ -33984,6 +34375,52 @@ components:
             enum: [SETTINGS, NAVIGATION, HOMEPAGE, TEMPORARY_DOMAIN]
       required: [overall_ready, settings_ready, navigation_ready, homepage_ready, temporary_domain_ready, missing_components]
       description: Computed response projection; never a durable site lifecycle state.
+    WebsiteSetupReadiness:
+      type: object
+      additionalProperties: false
+      readOnly: true
+      properties:
+        provisioned:
+          type: boolean
+        content_ready:
+          type: boolean
+        launch_ready:
+          type: boolean
+        stage:
+          type: string
+          enum:
+          - SETUP_REQUIRED
+          - PROVISIONED
+          - CONTENT_READY
+          - LAUNCH_READY
+        checks:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              key:
+                type: string
+              status:
+                type: string
+                enum:
+                - READY
+                - NEEDS_ATTENTION
+                - NOT_VERIFIED
+              detail:
+                type: string
+            required:
+            - key
+            - status
+            - detail
+      required:
+      - provisioned
+      - content_ready
+      - launch_ready
+      - stage
+      - checks
+      description: Computed assessment, not a lifecycle state. External launch gates remain
+        NOT_VERIFIED until separate operational evidence exists.
     CreateWebsiteResponse:
       type: object
       additionalProperties: false
@@ -35473,10 +35910,10 @@ x-doc15-authority:
   document: BLOG-DOC-15 Complete API Contract Specification
   version: 1.0-RC13
   base_path: /api/v1
-  operation_count: 113
-  unique_route_paths: 86
-  schema_helper_count: 249
-  resolved_internal_schema_references: 1362
+  operation_count: 116
+  unique_route_paths: 89
+  schema_helper_count: 252
+  resolved_internal_schema_references: 1400
   idempotency_replay_window_hours: 24
   public_pagination:
     page_default: 1
@@ -35491,18 +35928,19 @@ x-doc15-authority:
   rate_limit_boundary: These are endpoint transport quota ceilings. BLOG-DOC-19 may impose stricter credential-abuse/security-risk
     throttles but may not silently raise DOC-15 ceilings.
   canonical_operation_subtotals:
-    public_and_preview: 2
+    public_and_preview: 3
     auth: 12
-    site_admin: 63
+    site_admin: 65
     global_admin: 36
-    total: 113
+    total: 116
   success_status_distribution:
-    '200': 86
-    '201': 15
+    '200': 88
+    '201': 16
     '202': 3
     '204': 9
   schema_audit_rule: All DOC-15-owned request/response fields are explicitly typed/constrained; public PageData fields mirror
     BLOG-DOC-13. Unknown top-level properties are rejected by default except explicitly validated structured-data subobjects.
+  w4_amendment: Automatic website keys, scoped website preview and computed setup readiness; additive DB-MIG-023 provisioning overload requires DB-MIG-022.
   controlled_revision: RC13 reuses one TemporarySiteUrl schema for AdminSiteContext and adds optional
     CreateWebsiteResponse.temporary_site_url. RC12 remains immutable. No operation, permission, public field,
     Page ID, ArticleBody block, Post state, service, or database table is added.

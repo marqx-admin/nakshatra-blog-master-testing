@@ -5,6 +5,8 @@ from ipaddress import ip_address
 import re
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import UUID
+from copy import deepcopy
+from bp_application.website_preview import WEBSITE_PREVIEW_COOKIE
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
@@ -405,4 +407,63 @@ async def preview_page(request: Request, post_id: UUID):
     )
     if exchanged:
         set_preview_cookie(response, preview_session=raw)
+    return response
+
+
+@router.get("/api/v1/public/preview/website", operation_id="API15-PUB-003", status_code=200)
+async def website_preview_page(request: Request, path: str = "/", q: str | None = None, page: int = 1, page_size: int = 20):
+    # Authenticated whole-site preview never calls contexts.public(), and never
+    # relaxes public lifecycle checks on the ordinary public endpoint.
+    if not path.startswith("/") or path.startswith("//") or len(path)>2048 or page<1 or not 1<=page_size<=50 or q is not None and len(q)>500:
+        raise ValidationFault("request validation failed")
+    context = await request.app.state.services.contexts.preview(_effective_public_host(request),request_id=request.state.request_id)
+    request.state.request_context = RequestContext(request.state.request_id,"API15-PUB-003",site=context)
+    authority = request.app.state.services.website_preview
+    if authority is None: raise Unauthenticated("website preview unavailable")
+    handoff = request.query_params.get("handoff")
+    raw = handoff or request.cookies.get(WEBSITE_PREVIEW_COOKIE)
+    if not raw or len(raw)>512: raise Unauthenticated("website preview denied")
+    await enforce_transport_quota(request,class_id="PREVIEW_READ",actor_key=f"{safe_subject_hash(raw)}:{context.site_id}")
+    if handoff:
+        raw, parent = await authority.exchange(context,handoff)
+    else:
+        parent = await authority.validate(context,raw)
+    resolve = getattr(request.app.state.services.public_pages,"resolve_website_preview",None)
+    if resolve is None: raise Unauthenticated("website preview unavailable")
+    status, body, headers = await resolve(context,path=path,q=q,page=page,page_size=page_size)
+    if status in {301,302,308}:
+        location = headers.get("Location","")
+        parsed = urlsplit(location)
+        if not location or any(ord(char)<32 for char in location) or "\\" in location or parsed.username or parsed.password or parsed.netloc and parsed.hostname not in {context.canonical_domain,context.request_host}:
+            raise ValidationFault("external redirects are unavailable in private website preview")
+        target=urlunsplit(("","",parsed.path,parsed.query,parsed.fragment))
+        if not target.startswith("/") or target.startswith("//"):
+            raise ValidationFault("invalid private preview destination")
+        response=RedirectResponse(target,status_code=status,headers={"Cache-Control":"no-store, private","X-Robots-Tag":"noindex, nofollow","Referrer-Policy":"no-referrer"})
+        if handoff: response.set_cookie(WEBSITE_PREVIEW_COOKIE,raw,secure=True,httponly=True,samesite="strict",path="/",max_age=900)
+        return response
+    if status not in {200,404,410}:
+        raise ValidationFault("invalid private preview projection status")
+    body = deepcopy(body)
+    seo = body["seo"]
+    seo.update(baseline_indexability="NOINDEX",robots={"index":False,"follow":False},structured_data=[])
+    seo.pop("canonical_url",None)
+    media_origin = os.getenv("BP_MEDIA_CDN_ORIGIN", "").rstrip("/")
+    references = _preview_media_references(body,media_origin=media_origin)
+    grants = {reference:await request.app.state.services.sessions.issue_media_grant(parent,site_id=context.site_id,site_key=context.site_key,media_id=reference[1]) for reference in references if reference[0] == context.site_key}
+    # Existing Admin media grants revalidate parent-session permissions on delivery.
+    def attach(value):
+        if isinstance(value,dict): return {key:attach(child) for key,child in value.items()}
+        if isinstance(value,list): return [attach(child) for child in value]
+        if isinstance(value,str):
+            ref = _trusted_preview_media_reference(value,media_origin=media_origin)
+            if ref in grants:
+                parsed=urlsplit(value)
+                query=[(key,val) for key,val in parse_qsl(parsed.query) if key not in {"admin_grant","preview_grant"}]
+                return urlunsplit((parsed.scheme,parsed.netloc,parsed.path,urlencode(query+[("admin_grant",grants[ref])]),parsed.fragment))
+        return value
+    body=attach(body)
+    validate_response(request.app.state.canonical_openapi,_contract(request,"API15-PUB-003"),status,body)
+    response=JSONResponse(body,status_code=status,headers={"Cache-Control":"no-store, private","Referrer-Policy":"no-referrer","X-Robots-Tag":"noindex, nofollow"})
+    if handoff: response.set_cookie(WEBSITE_PREVIEW_COOKIE,raw,secure=True,httponly=True,samesite="strict",path="/",max_age=900)
     return response

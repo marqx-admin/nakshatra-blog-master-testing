@@ -309,6 +309,8 @@ BEGIN
       ('site_settings', 'presentation_schema_version', 'integer', false),
       ('site_settings', 'presentation_config', 'jsonb', true),
       ('site_settings', 'static_pages', 'jsonb', true),
+      ('site_settings', 'homepage_h1', 'text', true),
+      ('site_settings', 'homepage_intro_text', 'text', true),
       ('redirects', 'redirect_id', 'uuid', false),
       ('redirects', 'site_id', 'uuid', false),
       ('redirects', 'source_path', 'text', false),
@@ -365,8 +367,8 @@ BEGIN
     END IF;
   END LOOP;
   SELECT count(*) INTO n FROM information_schema.columns WHERE table_schema='public';
-  IF n <> 329 THEN
-    RAISE EXCEPTION 'verify-schema: expected 329 canonical columns, found %', n;
+  IF n <> 331 THEN
+    RAISE EXCEPTION 'verify-schema: expected 331 canonical columns, found %', n;
   END IF;
 
   -- Constraint-family counts for the frozen candidate DDL.
@@ -377,7 +379,7 @@ BEGIN
   SELECT count(*) INTO n FROM pg_constraint co JOIN pg_class c ON c.oid=co.conrelid JOIN pg_namespace ns ON ns.oid=c.relnamespace WHERE ns.nspname='public' AND co.contype='f';
   IF n<>73 THEN RAISE EXCEPTION 'verify-schema: expected 73 foreign keys, found %',n; END IF;
   SELECT count(*) INTO n FROM pg_constraint co JOIN pg_class c ON c.oid=co.conrelid JOIN pg_namespace ns ON ns.oid=c.relnamespace WHERE ns.nspname='public' AND co.contype='c';
-  IF n<>81 THEN RAISE EXCEPTION 'verify-schema: expected 81 CHECK constraints, found %',n; END IF;
+  IF n<>83 THEN RAISE EXCEPTION 'verify-schema: expected 83 CHECK constraints, found %',n; END IF;
 
   FOR r IN SELECT * FROM (VALUES
       ('pk_sites'),
@@ -579,6 +581,8 @@ BEGIN
       ('ck_site_settings__presentation_schema_version'),
       ('ck_site_settings__presentation_config'),
       ('ck_site_settings__static_pages'),
+      ('ck_site_settings__homepage_h1'),
+      ('ck_site_settings__homepage_intro_text'),
       ('pk_platform_settings'),
       ('fk_platform_settings__updated_by'),
       ('ck_platform_settings__value_type'),

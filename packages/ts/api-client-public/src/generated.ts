@@ -1,13 +1,14 @@
 // GENERATED FILE — DO NOT EDIT.
 // Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml
-// Source SHA-256: 5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef
+// Source SHA-256: 40e642fab61bae9f5fd60afac2ad76912cb6f1a5c1fe4e251dc7f0485f278461
 
 import { operationRegistry } from "@bp/api-contract";
 import type { OperationRequestMap, OperationResponseMap } from "@bp/api-contract";
 
 export const publicOperationIds = [
   "API15-PUB-001",
-  "API15-PUB-002"
+  "API15-PUB-002",
+  "API15-PUB-003"
 ] as const;
 export type PublicOperationId = (typeof publicOperationIds)[number];
 

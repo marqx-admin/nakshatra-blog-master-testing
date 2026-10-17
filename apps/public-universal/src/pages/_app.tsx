@@ -1,4 +1,5 @@
 import type { AppProps } from "next/app";
+import Head from "next/head";
 import { RouteLoadingIndicator } from "../site/components/runtime-states";
 // Approved, locally packaged font faces. The browser fetches only faces used by the selected preset.
 import "@fontsource/fraunces/latin-400.css";
@@ -67,5 +68,5 @@ import "../site/styles/globals.css";
 import "../site/styles/profiles.css";
 
 export default function PublicSiteApp({ Component, pageProps }: AppProps) {
-  return <><RouteLoadingIndicator /><Component {...pageProps} /></>;
+  return <><Head><meta name="viewport" content="width=device-width, initial-scale=1" /></Head><RouteLoadingIndicator /><Component {...pageProps} /></>;
 }

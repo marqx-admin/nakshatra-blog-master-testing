@@ -84,6 +84,6 @@ test("responsive, keyboard and article media rules stay code-owned", () => {
 
 test("home composition keeps the semantic H1 first even in lead-first visual recipes", () => {
   const source = readFileSync(resolve(app, "src/site/pages/home/home-composition.tsx"), "utf8");
-  assert.match(source, /\["INTRO", "LEAD", "POSTS", "CATEGORIES", "LATEST"\]/);
-  assert.match(source, /order: visualOrder\.indexOf\(slot\)/);
+  assert.match(source, /\["INTRO", "LEAD", "SELECTIONS", "LATEST"\]/);
+  assert.match(source, /order: slot === "SELECTIONS" \? selectionOrder : visualOrder\.indexOf\(slot\)/);
 });

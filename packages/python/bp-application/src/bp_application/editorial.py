@@ -930,6 +930,10 @@ class EditorialApplication:
             self._require(principal, context, "navigation.view")
             return 200, {"homepage": await self.repository.get_homepage(context)}, {}
         self._require(principal, context, "navigation.view", "navigation.manage")
+        from bp_domain.website_content import public_text
+        for field, maximum in (("h1", 200), ("intro_text", 12000)):
+            if field in body and (not public_text(body[field]) or len(body[field]) > maximum):
+                raise validation_error(field, "Use plain, resolved website content without draft placeholders.")
         lead_post_id = body.get("lead_post_id")
         if lead_post_id is not None:
             self._require(principal, context, "posts.view")
@@ -1013,10 +1017,17 @@ class EditorialApplication:
                 ):
                     raise NotFound("resource not found")
         if "static_pages" in values:
-            if self.static_pages_validator is None or not self.static_pages_validator(
-                values["static_pages"]
-            ):
+            from bp_domain.website_content import PAGE_KEYS, information_page_ready
+            pages = values["static_pages"]
+            # Validate each complete page using the existing authoritative schema;
+            # a partial map updates only those pages, never replaces siblings.
+            if not pages or set(pages) - PAGE_KEYS or self.static_pages_validator is None:
                 raise validation_error("settings.static_pages", "StaticPages is invalid.")
+            for key, page in pages.items():
+                if not self.static_pages_validator({name: page for name in PAGE_KEYS}):
+                    raise validation_error("settings.static_pages", "InformationPage is invalid.")
+                if page.get("enabled") and not information_page_ready(page):
+                    raise validation_error(f"settings.static_pages.{key}", "Resolve draft placeholders and complete owner-reviewed content before enabling.")
         for key in {"logo_media_id", "favicon_media_id", "default_social_image_media_id"}:
             if values.get(key):
                 self._require(principal, context, "media.view")

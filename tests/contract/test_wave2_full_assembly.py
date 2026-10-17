@@ -46,7 +46,7 @@ def test_wave2_full_assembly_static_guards():
 
     # Canonical RC13 source includes the local WU-01 contract extension.
     canon = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml"
-    assert _sha256(canon) == "5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef"
+    assert _sha256(canon) == "40e642fab61bae9f5fd60afac2ad76912cb6f1a5c1fe4e251dc7f0485f278461"
 
     # CHAT04 frozen content guards.
     from bp_domain.editorial import ARTICLE_BLOCK_TYPES, PERSISTED_POST_STATES
@@ -143,7 +143,7 @@ def test_wave2_api_registration_is_canonical_without_duplicate_routes():
         registered[oid] = (method, route.path, int(route.status_code))
 
     assert len(method_paths) == len(set(method_paths))
-    assert len(registered) == 113
+    assert len(registered) == 116
     assert len(CHAT04_OPERATION_IDS) == 42
     assert len(CHAT05_OPERATION_IDS) == 19
     assert set(CHAT04_OPERATION_IDS).issubset(registered)

@@ -19,7 +19,7 @@ from urllib.parse import urlsplit
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
 
-from bp_domain.context import SiteContext, SiteRecord
+from bp_domain.context import ContextKind, SiteContext, SiteRecord
 from bp_domain.editorial import decode_working_copy_preview_snapshot
 from bp_domain.errors import NotFound, ValidationFault
 from bp_domain.search import PublicSearchDocument
@@ -48,15 +48,22 @@ STATIC_BY_PATH = {route: (key, page_id, title) for key, (page_id, route, title) 
 SAFE_PRESENTATION = {"schema_version": 1, "style_id": "STYLE_01"}
 
 
-def _renderable_static_content(key: str, raw: Any) -> dict[str, Any] | None:
-    """Project stored configuration only when it has public renderable content."""
-    if not isinstance(raw, dict) or raw.get("enabled") is not True:
+def _renderable_static_content(
+    key: str, raw: Any, *, allow_draft: bool = False
+) -> dict[str, Any] | None:
+    from bp_domain.website_content import information_page_ready
+    if not isinstance(raw, dict):
+        return None
+    if allow_draft:
+        if not isinstance(raw.get("enabled"), bool):
+            return None
+    elif raw.get("enabled") is not True or not information_page_ready(raw):
         return None
     title = raw.get("title")
     sections = raw.get("body_sections")
     if not isinstance(title, str) or not title.strip() or "<" in title or ">" in title:
         return None
-    if not isinstance(sections, list) or not sections:
+    if not isinstance(sections, list) or (not allow_draft and not sections):
         return None
     rendered: list[dict[str, Any]] = []
     for source in sections:
@@ -66,32 +73,46 @@ def _renderable_static_content(key: str, raw: Any) -> dict[str, Any] | None:
         list_items = source.get("list_items")
         if not isinstance(paragraphs, list) or not isinstance(list_items, list):
             return None
-        if not paragraphs and not list_items:
+        if not allow_draft and not paragraphs and not list_items:
             return None
         if any(
-            not isinstance(value, str) or not value.strip() or "<" in value or ">" in value
+            not isinstance(value, str)
+            or (not allow_draft and not value.strip())
+            or "<" in value
+            or ">" in value
             for value in paragraphs + list_items
         ):
             return None
         item: dict[str, Any] = {
-            "paragraphs": [{"runs": [{"text": value, "marks": []}]} for value in paragraphs],
-            "list_items": [{"runs": [{"text": value, "marks": []}]} for value in list_items],
+            "paragraphs": [
+                {"runs": [{"text": value, "marks": []}]}
+                for value in paragraphs
+                if value.strip()
+            ],
+            "list_items": [
+                {"runs": [{"text": value, "marks": []}]}
+                for value in list_items
+                if value.strip()
+            ],
         }
         heading = source.get("heading")
         if heading is not None:
             if not isinstance(heading, str) or "<" in heading or ">" in heading:
                 return None
-            item["heading"] = heading
+            if heading.strip():
+                item["heading"] = heading
         rendered.append(item)
     content: dict[str, Any] = {"static_key": key, "title": title, "sections": rendered}
     intro = raw.get("intro_text")
     if intro is not None:
         if not isinstance(intro, str) or "<" in intro or ">" in intro:
             return None
-        content["intro_text"] = intro
+        if intro.strip():
+            content["intro_text"] = intro
     return content
 PAGE_KIND = {
     "PUB-HOME-01": "HOME",
+    "PUB-BLOG-01": "BLOG",
     "PUB-ARTICLE-01": "ARTICLE",
     "PUB-CATEGORY-01": "CATEGORY",
     "PUB-TAG-01": "TAG",
@@ -204,7 +225,7 @@ def _preferred_public_url(request_host: str, domains: list[tuple[str, bool]]) ->
 
 def _page_context(page_id: str, *, render_mode: str = "PUBLIC", locale: str | None = None) -> dict[str, Any]:
     semantic = PAGE_KIND[page_id]
-    kind = "CONTENT" if semantic in {"HOME", "ARTICLE", "CATEGORY", "TAG", "AUTHOR", "SEARCH"} else semantic
+    kind = "CONTENT" if semantic in {"HOME", "BLOG", "ARTICLE", "CATEGORY", "TAG", "AUTHOR", "SEARCH"} else semantic
     result: dict[str, Any] = {
         "page_id": page_id,
         "page_kind": kind,
@@ -582,7 +603,10 @@ class PostgresPublicPageAdapter:
         style = stored.get("style_id")
         if style == "CUSTOM":
             style = stored.get("base_style_id")
-        if version_ok and style in {"STYLE_01", "STYLE_02", "STYLE_03", "STYLE_04", "STYLE_05"}:
+        modern = stored.get("recipe_version") == 2
+        if version_ok and (style in {"STYLE_01", "STYLE_02", "STYLE_03", "STYLE_04", "STYLE_05"} or modern and style == "STANDARD"):
+            if modern:
+                return {"config": {"schema_version": 1, "recipe_version": 2, "style_id": style}, "source": "PRESET_DEFAULT"}
             return {"config": {"schema_version": 1, "style_id": style}, "source": "PRESET_DEFAULT"}
         return {"config": dict(SAFE_PRESENTATION), "source": "SAFE_DEFAULT"}
 
@@ -1036,6 +1060,8 @@ class PostgresPublicPageAdapter:
             return self._destination(context, "HOME", "/", "PUB-HOME-01")
         if kind == "SEARCH":
             return self._destination(context, "SEARCH", "/search", "PUB-SEARCH-01")
+        if kind == "BLOG":
+            return self._destination(context, "STATIC", "/blog", "PUB-BLOG-01")
         if kind == "EXTERNAL":
             url = str(row.get("external_url") or "")
             if not url.startswith("https://"):
@@ -1045,7 +1071,11 @@ class PostgresPublicPageAdapter:
             key = str(row.get("static_page_key") or "")
             if key not in STATIC_ROUTES:
                 return None
-            if _renderable_static_content(key, static_pages.get(key)) is None:
+            if _renderable_static_content(
+                key,
+                static_pages.get(key),
+                allow_draft=context.kind is ContextKind.PREVIEW_SITE,
+            ) is None:
                 return None
             page_id, path, _ = STATIC_ROUTES[key]
             return self._destination(context, "STATIC", path, page_id)
@@ -1259,7 +1289,7 @@ class PostgresPublicPageAdapter:
             if self._on_temporary_host(context) or page_class in {"SEARCH", "PREVIEW", "404", "410"}
             else (
                 "CONDITIONAL-INDEX"
-                if page_class in {"CATEGORY", "TAG", "AUTHOR"}
+                if page_class in {"BLOG", "CATEGORY", "TAG", "AUTHOR"}
                 else "INDEX-ELIGIBLE"
             )
         )
@@ -1318,7 +1348,7 @@ class PostgresPublicPageAdapter:
         return payload
 
     def _live_path(self, connection: Any, context: SiteContext, path: str) -> bool:
-        if path in {"/", "/search", *STATIC_BY_PATH.keys()}:
+        if path in {"/", "/blog", "/search", *STATIC_BY_PATH.keys()}:
             return True
         matchers = [
             (r"^/article/([^/]+)$", "SELECT 1 FROM posts WHERE site_id=:site_id AND slug=:slug AND status='PUBLISHED'"),
@@ -1372,6 +1402,8 @@ class PostgresPublicPageAdapter:
         def destination(target_page: int) -> dict[str, Any]:
             sep = "&" if "?" in path else "?"
             url = f"https://{context.canonical_domain}{path}{sep}page={target_page}&page_size={page_size}"
+            if path == "/blog":
+                return {"kind": "STATIC", "url": url, "page_id": "PUB-BLOG-01", "is_external": False}
             return {"kind": "SEARCH" if path.startswith("/search") else ("CATEGORY" if path.startswith("/category/") else "TAG" if path.startswith("/tag/") else "AUTHOR"), "url": url, "is_external": False}
         links: list[dict[str, Any]] = []
         for target_page in range(max(1, page - 1), page + (2 if has_more else 1)):
@@ -1428,6 +1460,38 @@ class PostgresPublicPageAdapter:
             }
             home_destination = self._destination(context, "HOME", "/", "PUB-HOME-01")
 
+            if path == "/blog":
+                # Reuse the existing site-bound transaction (including FORCE-RLS).
+                # One lookahead row provides real pagination without guessed totals.
+                rows = connection.execute(
+                    text(
+                        "SELECT * FROM posts WHERE site_id=:site_id AND status='PUBLISHED' "
+                        "ORDER BY published_at DESC,post_id ASC LIMIT :limit OFFSET :offset"
+                    ),
+                    {"site_id": context.site_id, "limit": page_size + 1, "offset": (page - 1) * page_size},
+                ).fetchall()
+                articles = [self._article_summary(connection, context, row) for row in rows[:page_size]]
+                breadcrumbs = build_breadcrumb_trail(
+                    page_class="BLOG", canonical_domain=context.canonical_domain,
+                    current_label="Articles", home_destination=home_destination,
+                )
+                seo = self._seo(
+                    context, page_id="PUB-BLOG-01", page_class="BLOG", page_title="Articles",
+                    summary=f"Published articles on {site['display_name']}.", path="/blog",
+                    site=site, settings=settings, page=page, breadcrumbs=breadcrumbs,
+                    default_social_image=default_social,
+                )
+                payload = {
+                    "context": _page_context("PUB-BLOG-01", locale=site.get("locale_code")),
+                    **common, "intro": {"h1": "Articles"}, "articles": articles, "seo": seo,
+                }
+                if breadcrumbs:
+                    payload["breadcrumbs"] = breadcrumbs
+                pagination = self._pagination(context, "/blog", page, page_size, len(rows) > page_size)
+                if pagination:
+                    payload["pagination"] = pagination
+                return 200, payload, {}
+
             if path == "/":
                 latest_rows = connection.execute(
                     text(
@@ -1482,6 +1546,11 @@ class PostgresPublicPageAdapter:
                         ]
                     sections.append(item)
                 intro = {"h1": site["display_name"]}
+                from bp_domain.website_content import public_text
+                if public_text(settings.get("homepage_h1"), required=True):
+                    intro["h1"] = settings["homepage_h1"]
+                if public_text(settings.get("homepage_intro_text"), required=True):
+                    intro["intro_text"] = settings["homepage_intro_text"]
                 seo = self._seo(
                     context,
                     page_id="PUB-HOME-01",
@@ -1757,7 +1826,11 @@ class PostgresPublicPageAdapter:
             if path in STATIC_BY_PATH:
                 static_key, page_id, _ = STATIC_BY_PATH[path]
                 source = _json_object(settings.get("static_pages")).get(static_key)
-                content = _renderable_static_content(static_key, source)
+                content = _renderable_static_content(
+                    static_key,
+                    source,
+                    allow_draft=context.kind is ContextKind.PREVIEW_SITE,
+                )
                 if content is None:
                     return (
                         404,
@@ -2026,6 +2099,7 @@ class PostgresDerivedSource:
             rows = connection.execute(text("SELECT slug,updated_at FROM posts WHERE site_id=:site_id AND status='PUBLISHED' AND slug IS NOT NULL ORDER BY slug"), {"site_id": context.site_id}).fetchall()
             entries = [{"url": f"https://{context.canonical_domain}/article/{_m(row)['slug']}", "resource_type": "articles", "lastmod": _iso(_m(row).get("updated_at"))} for row in rows]
             entries.append({"url": f"https://{context.canonical_domain}/", "resource_type": "pages", "lastmod": None})
+            entries.append({"url": f"https://{context.canonical_domain}/blog", "resource_type": "pages", "lastmod": None})
             return entries
 
     async def reconcile_due_schedules(self, context: SiteContext, *, now: datetime) -> list[dict[str, Any]]:

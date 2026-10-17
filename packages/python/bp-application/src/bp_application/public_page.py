@@ -52,3 +52,10 @@ class PublicPageService:
         return await self.backend.resolve_preview(
             context, post_id=post_id, source_snapshot=source_snapshot
         )
+
+    async def resolve_website_preview(self, context: SiteContext, **query: Any):
+        # Called only after a session-bound website grant has been validated.
+        # Reuse public eligibility: no draft posts or disabled information pages.
+        if context.kind is not ContextKind.PREVIEW_SITE:
+            raise ValidationFault("preview site context required")
+        return await self.backend.resolve_page(context, **query)

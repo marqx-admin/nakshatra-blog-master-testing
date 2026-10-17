@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
 // Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml
-// Source SHA-256: 5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef
+// Source SHA-256: 40e642fab61bae9f5fd60afac2ad76912cb6f1a5c1fe4e251dc7f0485f278461
 // Wire keys intentionally preserve the canonical OpenAPI spelling/casing.
 
 export interface components {
@@ -36,7 +36,7 @@ export interface components {
           "reason"?: string;
         };
     "PageContext": {
-          "page_id": "PUB-HOME-01" | "PUB-ARTICLE-01" | "PUB-CATEGORY-01" | "PUB-TAG-01" | "PUB-AUTHOR-01" | "PUB-SEARCH-01" | "PUB-STATIC-ABOUT-01" | "PUB-STATIC-CONTACT-01" | "PUB-STATIC-PRIVACY-01" | "PUB-STATIC-TERMS-01" | "PUB-STATIC-DISCLAIMER-01" | "PUB-SYS-PREVIEW-01" | "PUB-SYS-404-01" | "PUB-SYS-410-01";
+          "page_id": "PUB-HOME-01" | "PUB-BLOG-01" | "PUB-ARTICLE-01" | "PUB-CATEGORY-01" | "PUB-TAG-01" | "PUB-AUTHOR-01" | "PUB-SEARCH-01" | "PUB-STATIC-ABOUT-01" | "PUB-STATIC-CONTACT-01" | "PUB-STATIC-PRIVACY-01" | "PUB-STATIC-TERMS-01" | "PUB-STATIC-DISCLAIMER-01" | "PUB-SYS-PREVIEW-01" | "PUB-SYS-404-01" | "PUB-SYS-410-01";
           "page_kind": "CONTENT" | "STATIC" | "PREVIEW" | "SYSTEM";
           "render_mode": "PUBLIC" | "PREVIEW" | "SYSTEM";
           "locale_code"?: string;
@@ -48,7 +48,7 @@ export interface components {
     "PublicDestination": {
           "kind": "HOME" | "ARTICLE" | "CATEGORY" | "TAG" | "AUTHOR" | "SEARCH" | "STATIC" | "EXTERNAL" | "MAILTO" | "TEL";
           "url": string;
-          "page_id"?: "PUB-HOME-01" | "PUB-ARTICLE-01" | "PUB-CATEGORY-01" | "PUB-TAG-01" | "PUB-AUTHOR-01" | "PUB-SEARCH-01" | "PUB-STATIC-ABOUT-01" | "PUB-STATIC-CONTACT-01" | "PUB-STATIC-PRIVACY-01" | "PUB-STATIC-TERMS-01" | "PUB-STATIC-DISCLAIMER-01" | "PUB-SYS-PREVIEW-01" | "PUB-SYS-404-01" | "PUB-SYS-410-01";
+          "page_id"?: "PUB-HOME-01" | "PUB-BLOG-01" | "PUB-ARTICLE-01" | "PUB-CATEGORY-01" | "PUB-TAG-01" | "PUB-AUTHOR-01" | "PUB-SEARCH-01" | "PUB-STATIC-ABOUT-01" | "PUB-STATIC-CONTACT-01" | "PUB-STATIC-PRIVACY-01" | "PUB-STATIC-TERMS-01" | "PUB-STATIC-DISCLAIMER-01" | "PUB-SYS-PREVIEW-01" | "PUB-SYS-404-01" | "PUB-SYS-410-01";
           "is_external": boolean;
         };
     "SocialProfile": {
@@ -138,6 +138,7 @@ export interface components {
           "show_bio"?: boolean;
         };
     "PresentationCards": {
+          "image_profile_id"?: string;
           "article_card_profile_id"?: string;
           "category_card_profile_id"?: string;
           "author_card_profile_id"?: string;
@@ -190,10 +191,11 @@ export interface components {
     "PresentationControls": {
           "button_profile_id"?: string;
         };
-    "PresentationConfig": {
+    "PresentationConfig": (unknown) & ({
           "schema_version": 1;
-          "style_id": "STYLE_01" | "STYLE_02" | "STYLE_03" | "STYLE_04" | "STYLE_05" | "CUSTOM";
-          "base_style_id"?: "STYLE_01" | "STYLE_02" | "STYLE_03" | "STYLE_04" | "STYLE_05";
+          "recipe_version"?: 1 | 2;
+          "style_id": "STANDARD" | "STYLE_01" | "STYLE_02" | "STYLE_03" | "STYLE_04" | "STYLE_05" | "CUSTOM";
+          "base_style_id"?: "STANDARD" | "STYLE_01" | "STYLE_02" | "STYLE_03" | "STYLE_04" | "STYLE_05";
           "typography_id"?: string;
           "branding"?: components["schemas"]["PresentationBranding"];
           "palette"?: components["schemas"]["PresentationPalette"];
@@ -210,7 +212,7 @@ export interface components {
           "collections"?: components["schemas"]["PresentationCollections"];
           "button"?: components["schemas"]["PresentationButton"];
           "controls"?: components["schemas"]["PresentationControls"];
-        };
+        });
     "TrustedPresentation": {
           "config": components["schemas"]["PresentationConfig"];
           "source": "STORED" | "PRESET_DEFAULT" | "SAFE_DEFAULT";
@@ -233,6 +235,13 @@ export interface components {
           "PRIVACY": components["schemas"]["InformationPage"];
           "TERMS": components["schemas"]["InformationPage"];
           "DISCLAIMER": components["schemas"]["InformationPage"];
+        };
+    "StaticPagesPatch": {
+          "ABOUT"?: components["schemas"]["InformationPage"];
+          "CONTACT"?: components["schemas"]["InformationPage"];
+          "PRIVACY"?: components["schemas"]["InformationPage"];
+          "TERMS"?: components["schemas"]["InformationPage"];
+          "DISCLAIMER"?: components["schemas"]["InformationPage"];
         };
     "SiteIdentity": {
           "site_key": string;
@@ -502,15 +511,11 @@ export interface components {
           "posts"?: Array<components["schemas"]["ArticleSummary"]>;
           "categories"?: Array<components["schemas"]["TaxonomySummary"]>;
         });
-    "StaticSection": (({
-          "paragraphs"?: unknown;
-        } | {
-          "list_items"?: unknown;
-        })) & ({
+    "StaticSection": {
           "heading"?: string;
           "paragraphs": Array<components["schemas"]["RichText"]>;
           "list_items": Array<components["schemas"]["RichText"]>;
-        });
+        };
     "StaticContent": {
           "static_key": "ABOUT" | "CONTACT" | "PRIVACY" | "TERMS" | "DISCLAIMER";
           "title": string;
@@ -542,6 +547,18 @@ export interface components {
           "lead_article"?: components["schemas"]["ArticleSummary"];
           "sections": Array<components["schemas"]["HomeSection"]>;
           "latest_articles": Array<components["schemas"]["ArticleSummary"]>;
+          "seo": components["schemas"]["SeoProjection"];
+        };
+    "BlogPageData": {
+          "context": components["schemas"]["PageContext"];
+          "site": components["schemas"]["SiteIdentity"];
+          "settings": components["schemas"]["PublicSettings"];
+          "navigation": components["schemas"]["NavigationBundle"];
+          "presentation"?: components["schemas"]["TrustedPresentation"];
+          "intro": components["schemas"]["PageIntro"];
+          "breadcrumbs"?: components["schemas"]["BreadcrumbTrail"];
+          "articles": Array<components["schemas"]["ArticleSummary"]>;
+          "pagination"?: components["schemas"]["Pagination"];
           "seo": components["schemas"]["SeoProjection"];
         };
     "ArticlePageData": {
@@ -647,7 +664,7 @@ export interface components {
           "recovery": components["schemas"]["RecoveryActions"];
           "seo": components["schemas"]["SeoProjection"];
         };
-    "PublicPageResponse": (components["schemas"]["HomePageData"] | components["schemas"]["ArticlePageData"] | components["schemas"]["CategoryPageData"] | components["schemas"]["TagPageData"] | components["schemas"]["AuthorPageData"] | components["schemas"]["SearchPageData"] | components["schemas"]["StaticPageData"]);
+    "PublicPageResponse": (components["schemas"]["HomePageData"] | components["schemas"]["BlogPageData"] | components["schemas"]["ArticlePageData"] | components["schemas"]["CategoryPageData"] | components["schemas"]["TagPageData"] | components["schemas"]["AuthorPageData"] | components["schemas"]["SearchPageData"] | components["schemas"]["StaticPageData"]);
     "TemporarySiteUrl": string;
     "AdminSiteContext": {
           "site_key": string;
@@ -1097,7 +1114,7 @@ export interface components {
           "items": Array<components["schemas"]["MediaUsageItem"]>;
         };
     "AdminNavDestination": {
-          "kind": "HOME" | "ARTICLE" | "CATEGORY" | "TAG" | "AUTHOR" | "SEARCH" | "STATIC" | "EXTERNAL";
+          "kind": "HOME" | "BLOG" | "ARTICLE" | "CATEGORY" | "TAG" | "AUTHOR" | "SEARCH" | "STATIC" | "EXTERNAL";
           "target_id"?: string;
           "url"?: string;
           "static_page_key"?: "ABOUT" | "CONTACT" | "PRIVACY" | "TERMS" | "DISCLAIMER";
@@ -1123,7 +1140,9 @@ export interface components {
           "category_ids"?: Array<string>;
         };
     "HomepageInput": {
-          "lead_post_id"?: string;
+          "h1"?: string;
+          "intro_text"?: string;
+          "lead_post_id"?: string | null;
           "sections": Array<components["schemas"]["HomepageSectionAdmin"]>;
         };
     "HomepageAdminResponse": {
@@ -1219,7 +1238,7 @@ export interface components {
           "value": components["schemas"]["PresentationConfig"];
         } | {
           "key": "static_pages";
-          "value": components["schemas"]["StaticPages"];
+          "value": components["schemas"]["StaticPagesPatch"];
         } | {
           "key": "display_name" | "locale_code" | "default_language_code" | "timezone_id" | "logo_media_id" | "favicon_media_id" | "default_social_image_media_id" | "copyright_text" | "contact_info" | "social_profiles" | "seo_defaults" | "analytics_verification";
           "value": components["schemas"]["SettingJsonValue"];
@@ -1237,6 +1256,7 @@ export interface components {
           "settings": Array<components["schemas"]["SettingEntry"]>;
         };
     "SiteAdminResource": {
+          "site_id"?: string;
           "site_key": string;
           "display_name": string;
           "lifecycle_state": "ACTIVE" | "DISABLED" | "ARCHIVED" | "DELETION_REQUESTED";
@@ -1255,13 +1275,17 @@ export interface components {
           "timezone_id": string;
         };
     "CreateWebsiteInput": {
-          "site_key": string;
+          "site_key"?: string;
           "display_name": string;
           "default_language"?: string;
           "locale_code"?: string;
           "timezone_id": string;
           "presentation": components["schemas"]["PresentationConfig"];
           "static_pages": components["schemas"]["StaticPages"];
+          "homepage"?: {
+            "h1"?: string;
+            "intro_text"?: string;
+          };
         };
     "WebsiteReadiness": {
           "overall_ready": boolean;
@@ -1270,6 +1294,17 @@ export interface components {
           "homepage_ready": boolean;
           "temporary_domain_ready": boolean;
           "missing_components": Array<"SETTINGS" | "NAVIGATION" | "HOMEPAGE" | "TEMPORARY_DOMAIN">;
+        };
+    "WebsiteSetupReadiness": {
+          "provisioned": boolean;
+          "content_ready": boolean;
+          "launch_ready": boolean;
+          "stage": "SETUP_REQUIRED" | "PROVISIONED" | "CONTENT_READY" | "LAUNCH_READY";
+          "checks": Array<{
+            "key": string;
+            "status": "READY" | "NEEDS_ATTENTION" | "NOT_VERIFIED";
+            "detail": string;
+          }>;
         };
     "CreateWebsiteResponse": {
           "site": components["schemas"]["SiteAdminResource"];
@@ -7037,6 +7072,101 @@ export interface operations {
             content: {
               "application/json": components["schemas"]["ApiError"];
             };
+          };
+        };
+    };
+  "API15-PUB-003": {
+      parameters: {
+          query: {
+            "path": string;
+            "q"?: string;
+            "page"?: number;
+            "page_size"?: number;
+            "handoff"?: string;
+          };
+          header: {
+            "X-Request-ID"?: string;
+          };
+        };
+      requestBody: never;
+      responses: {
+          200: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["PublicPageResponse"];
+            };
+          };
+          404: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["NotFoundPageData"];
+            };
+          };
+          410: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["GonePageData"];
+            };
+          };
+          401: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          403: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          422: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          429: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          503: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          301: {
+            headers: {
+              "Location": string;
+              "X-Request-ID"?: string;
+              "RateLimit-Limit"?: number;
+              "RateLimit-Remaining"?: number;
+              "RateLimit-Reset"?: number;
+            };
+            content: Record<string, never>;
+          };
+          302: {
+            headers: {
+              "Location": string;
+              "X-Request-ID"?: string;
+              "RateLimit-Limit"?: number;
+              "RateLimit-Remaining"?: number;
+              "RateLimit-Reset"?: number;
+            };
+            content: Record<string, never>;
+          };
+          308: {
+            headers: {
+              "Location": string;
+              "X-Request-ID"?: string;
+              "RateLimit-Limit"?: number;
+              "RateLimit-Remaining"?: number;
+              "RateLimit-Reset"?: number;
+            };
+            content: Record<string, never>;
           };
         };
     };
@@ -14459,6 +14589,116 @@ export interface operations {
           };
         };
     };
+  "API15-S-098": {
+      parameters: {
+          path: {
+            "site_key": string;
+          };
+          header: {
+            "X-Request-ID"?: string;
+          };
+        };
+      requestBody: never;
+      responses: {
+          201: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["PreviewHandoffResponse"];
+            };
+          };
+          401: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          403: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          404: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          422: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          429: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          503: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+        };
+    };
+  "API15-S-099": {
+      parameters: {
+          path: {
+            "site_key": string;
+          };
+          header: {
+            "X-Request-ID"?: string;
+          };
+        };
+      requestBody: never;
+      responses: {
+          200: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["WebsiteSetupReadiness"];
+            };
+          };
+          401: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          403: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          404: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          422: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          429: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+          503: {
+            headers: Record<string, never>;
+            content: {
+              "application/json": components["schemas"]["ApiError"];
+            };
+          };
+        };
+    };
 }
 
 export interface paths {
@@ -14746,6 +14986,15 @@ export interface paths {
   };
   "/api/v1/auth/selectable-sites": {
     get: operations["API15-AUTH-012"];
+  };
+  "/api/v1/admin/sites/{site_key}/website-preview": {
+    post: operations["API15-S-098"];
+  };
+  "/api/v1/admin/sites/{site_key}/website-readiness": {
+    get: operations["API15-S-099"];
+  };
+  "/api/v1/public/preview/website": {
+    get: operations["API15-PUB-003"];
   };
 }
 
@@ -15142,6 +15391,18 @@ export interface OperationRequestMap {
   "API15-PUB-002": {
       path: {
         "post_id": string;
+      };
+      header?: {
+        "X-Request-ID"?: string;
+      };
+    };
+  "API15-PUB-003": {
+      query: {
+        "path": string;
+        "q"?: string;
+        "page"?: number;
+        "page_size"?: number;
+        "handoff"?: string;
       };
       header?: {
         "X-Request-ID"?: string;
@@ -15802,6 +16063,22 @@ export interface OperationRequestMap {
       };
       body: components["schemas"]["SiteSettingsInput"];
     };
+  "API15-S-098": {
+      path: {
+        "site_key": string;
+      };
+      header?: {
+        "X-Request-ID"?: string;
+      };
+    };
+  "API15-S-099": {
+      path: {
+        "site_key": string;
+      };
+      header?: {
+        "X-Request-ID"?: string;
+      };
+    };
 }
 
 export interface OperationResponseMap {
@@ -15855,6 +16132,7 @@ export interface OperationResponseMap {
   "API15-G-061": { status: 200; data: components["schemas"]["PlatformSettingsResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
   "API15-PUB-001": { status: 200; data: components["schemas"]["PublicPageResponse"]; headers: Headers } | { status: 301; data: undefined; headers: Headers } | { status: 302; data: undefined; headers: Headers } | { status: 308; data: undefined; headers: Headers } | { status: 404; data: components["schemas"]["NotFoundPageData"]; headers: Headers } | { status: 410; data: components["schemas"]["GonePageData"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
   "API15-PUB-002": { status: 200; data: components["schemas"]["PreviewPageData"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
+  "API15-PUB-003": { status: 200; data: components["schemas"]["PublicPageResponse"]; headers: Headers } | { status: 404; data: components["schemas"]["NotFoundPageData"]; headers: Headers } | { status: 410; data: components["schemas"]["GonePageData"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 301; data: undefined; headers: Headers } | { status: 302; data: undefined; headers: Headers } | { status: 308; data: undefined; headers: Headers };
   "API15-S-001": { status: 200; data: components["schemas"]["AdminSiteContext"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
   "API15-S-002": { status: 200; data: components["schemas"]["DashboardResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
   "API15-S-010": { status: 200; data: components["schemas"]["PostListResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
@@ -15918,6 +16196,8 @@ export interface OperationResponseMap {
   "API15-S-095": { status: 200; data: components["schemas"]["CalendarResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
   "API15-S-096": { status: 200; data: components["schemas"]["SiteSettingsResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
   "API15-S-097": { status: 200; data: components["schemas"]["SiteSettingsResponse"]; headers: Headers } | { status: 400; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 409; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
+  "API15-S-098": { status: 201; data: components["schemas"]["PreviewHandoffResponse"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
+  "API15-S-099": { status: 200; data: components["schemas"]["WebsiteSetupReadiness"]; headers: Headers } | { status: 401; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 403; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 404; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 422; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 429; data: components["schemas"]["ApiError"]; headers: Headers } | { status: 503; data: components["schemas"]["ApiError"]; headers: Headers };
 }
 
 export type OperationId = keyof OperationRequestMap;

@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, expect, test } from "vitest";
 import type { AdminOperationId } from "@bp/api-client-admin";
-import { READY_STYLES, OPTION_METADATA, DENSITIES, WIDTHS, presetColors } from "@bp/presentation-catalogue";
+import { appearanceConfig, customAppearanceConfig, READY_STYLES, OPTION_METADATA, DENSITIES, WIDTHS, presetColors } from "@bp/presentation-catalogue";
 import { AdminApiProvider } from "../app/query-client/AdminApiProvider";
 import type { AdminRequestInput, AdminResponse, AdminTransport } from "../app/query-client/adminTransport";
 import { GlobalContextValue, SiteContextValue } from "../app/site-context/AdminContext";
@@ -13,7 +13,7 @@ import { CreateWebsitePage } from "../modules/global/CreateWebsitePage";
 import { AppearancePage } from "../modules/site/AppearancePage";
 import { AppearancePreview, StyleChooser, appearanceValidation } from "../modules/appearance/AppearanceControls";
 import { AppearanceControls, InformationPagesEditor } from "../modules/appearance/AppearanceControls";
-import { PAGE_KEYS, STYLE_IDS, informationPageState, startingPages, startingPresentation, withCustomPalette } from "../modules/appearance/appearance-model";
+import { PAGE_KEYS, STYLE_IDS, informationPageState, startingPages, startingPresentation, withCustomPalette, type StyleId } from "../modules/appearance/appearance-model";
 import { WebsiteDashboardOverview } from "../modules/global/GlobalPages";
 import { AdminShell } from "../ui/AdminShell";
 import { PlatformSettingsPage } from "../modules/global/PlatformSettingsPage";
@@ -28,7 +28,7 @@ function renderWizard(request: AdminTransport["request"]) {
 }
 
 async function reachReview(user: ReturnType<typeof userEvent.setup>, style = "Modern Magazine") {
-  await user.type(screen.getByRole("textbox", { name: /Site key/ }), "SITE-100");
+  expect(screen.queryByRole("textbox", { name: /Site key/ })).not.toBeInTheDocument();
   await user.type(screen.getByRole("textbox", { name: /Display name/ }), "Future Site");
   await user.click(screen.getByRole("button", { name: "Continue" }));
   expect(screen.getByRole("group", { name: "Website style" })).toBeInTheDocument();
@@ -39,6 +39,7 @@ async function reachReview(user: ReturnType<typeof userEvent.setup>, style = "Mo
   expect(screen.getByRole("region", { name: "Representative appearance preview" })).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Continue" }));
   expect(screen.getByRole("heading", { name: "Confirm website" })).toBeInTheDocument();
+  await user.click(screen.getByRole("checkbox", { name: /I confirm this website identity/ }));
 }
 
 test("Create Website previews without provisioning, then sends one typed atomic request", async () => {
@@ -57,7 +58,7 @@ test("Create Website previews without provisioning, then sends one typed atomic 
   expect(calls).toHaveLength(1);
   expect(calls[0]?.id).toBe("API15-G-011");
   const body = calls[0]?.input?.body as Record<string, unknown>;
-  expect(body.site_key).toBe("SITE-100");
+  expect(body).not.toHaveProperty("site_key");
   expect((body.presentation as Record<string, unknown>).style_id).toBe("STYLE_01");
   expect(Object.keys(body.static_pages as object)).toEqual(PAGE_KEYS);
   expect(screen.getByText("site-100.preview.localhost")).toBeInTheDocument();
@@ -85,6 +86,7 @@ test.each([
 
 test.each([
   ["Modern Magazine", "STYLE_01"],
+  ["Standard — Sage Editorial", "STANDARD"],
   ["Classic Editorial", "STYLE_02"],
   ["Minimal Clean", "STYLE_03"],
   ["Bold News", "STYLE_04"],
@@ -103,11 +105,16 @@ test.each([
   expect(await screen.findByRole("region", { name: "Provisioning result" })).toBeInTheDocument();
   expect(calls).toHaveLength(1);
   const body = calls[0]?.body as { presentation: ReturnType<typeof startingPresentation>; static_pages: ReturnType<typeof startingPages> };
-  expect(body.presentation).toEqual(startingPresentation(styleId as Parameters<typeof startingPresentation>[0]));
+  expect(body.presentation).toEqual(styleId === "CUSTOM" ? customAppearanceConfig("STANDARD", "en") : appearanceConfig(styleId as Exclude<StyleId, "CUSTOM">, "en"));
   expect(body.presentation).toMatchObject({ schema_version: 1, style_id: styleId, palette: expect.any(Object), typography_id: expect.any(String), layout: expect.any(Object), cards: expect.any(Object), hero: expect.any(Object), homepage: expect.any(Object), article: expect.any(Object), collections: expect.any(Object), controls: expect.any(Object) });
-  if (styleId === "CUSTOM") expect(body.presentation.base_style_id).toBe("STYLE_03");
+  if (styleId === "CUSTOM") expect(body.presentation.base_style_id).toBe("STANDARD");
   expect(Object.keys(body.static_pages)).toEqual(PAGE_KEYS);
-  for (const page of Object.values(body.static_pages)) expect(page).toMatchObject({ enabled: false, content_version: 1, intro_text: "", body_sections: [] });
+  for (const page of Object.values(body.static_pages)) {
+    expect(page).toMatchObject({ enabled: false, content_version: 1 });
+    expect(informationPageState(page)).toBe("Not written / incomplete");
+  }
+  expect(body.static_pages.ABOUT.body_sections.map(section => section.heading)).toEqual(["Topics", "Navigation", "Publisher"]);
+  for (const key of ["PRIVACY", "TERMS", "DISCLAIMER"] as const) expect(body.static_pages[key].body_sections.every(section => !section.paragraphs.length && !section.list_items.length)).toBe(true);
 });
 
 test("provisioning failure never presents a successful site", async () => {
@@ -119,6 +126,24 @@ test("provisioning failure never presents a successful site", async () => {
   expect(await screen.findByText(/The server did not confirm a website/)).toBeInTheDocument();
   expect(screen.queryByRole("region", { name: "Provisioning result" })).not.toBeInTheDocument();
   expect(calls).toBe(1);
+});
+
+test("W4 retry retains the original creation key after an ambiguous transport failure", async () => {
+  const writes:AdminRequestInput[]=[];
+  renderWizard(async<T,>(id:AdminOperationId,input?:AdminRequestInput)=>{
+    if(id!=="API15-G-011")throw Error("unexpected operation");
+    writes.push(input!);
+    if(writes.length===1)throw Error("transport interrupted");
+    return ok({site:{site_key:"SITE-100",display_name:"Future Site",lifecycle_state:"DISABLED"},temporary_hostname:"site-100.preview.localhost",readiness:{overall_ready:true,settings_ready:true,navigation_ready:true,homepage_ready:true,temporary_domain_ready:true,missing_components:[]}},201) as AdminResponse<T>;
+  });
+  const user=userEvent.setup();await reachReview(user,"Standard — Sage Editorial");
+  await user.click(screen.getByRole("button",{name:"Confirm and create website"}));
+  await screen.findByText(/The server did not confirm a website/);
+  await user.click(screen.getByRole("button",{name:"Confirm and create website"}));
+  await screen.findByRole("region",{name:"Provisioning result"});
+  expect(writes).toHaveLength(2);
+  expect(writes[0]?.header?.["Idempotency-Key"]).toBe(writes[1]?.header?.["Idempotency-Key"]);
+  expect(writes[0]?.body).toEqual(writes[1]?.body);
 });
 
 test("provisioning disables duplicate confirmation while the single request is pending", async () => {
@@ -286,6 +311,7 @@ test("fixed information page edits save only static_pages through typed settings
   });
   const user = userEvent.setup();
   await user.click(await screen.findByRole("button", { name: /^Contact/ }));
+  await user.clear(screen.getByRole("textbox", { name: "Introduction" }));
   await user.type(screen.getByRole("textbox", { name: "Introduction" }), "How to reach us");
   await user.click(screen.getByRole("button", { name: "Save Appearance" }));
   await waitFor(() => expect(writes).toHaveLength(1));
@@ -294,6 +320,31 @@ test("fixed information page edits save only static_pages through typed settings
   expect(entries[0]?.key).toBe("static_pages");
   expect((entries[0]?.value as ReturnType<typeof startingPages>).CONTACT.intro_text).toBe("How to reach us");
 });
+
+test("W2 page-level save sends one key and preserves an unsaved sibling through refetch", async () => {
+  let stored = startingPages();
+  const writes: AdminRequestInput[] = [];
+  renderSite(async <T,>(id: AdminOperationId, input?: AdminRequestInput) => {
+    if (id === "API15-S-097") {
+      writes.push(input ?? {});
+      const patch = (input?.body as { settings: Array<{value: Partial<typeof stored>}> }).settings[0]!.value;
+      stored = { ...stored, ...patch };
+    } else if (id !== "API15-S-096") throw new Error("unexpected operation");
+    return ok({settings:[{key:"presentation_config",value:startingPresentation("CUSTOM")},{key:"static_pages",value:structuredClone(stored)}]}) as AdminResponse<T>;
+  });
+  fireEvent.change(await screen.findByRole("textbox",{name:"Page title"}),{target:{value:"Unsaved About"}});
+  fireEvent.click(screen.getByRole("button",{name:/^Contact/}));
+  fireEvent.change(screen.getByRole("textbox",{name:"Page title"}),{target:{value:"Saved Contact"}});
+  fireEvent.click(screen.getByRole("button",{name:"Save this page"}));
+  await waitFor(()=>expect(writes).toHaveLength(1));
+  expect(Object.keys((writes[0]!.body as {settings:Array<{value:object}>}).settings[0]!.value)).toEqual(["CONTACT"]);
+  await waitFor(()=>expect(screen.getByRole("button",{name:"Save this page"})).toBeEnabled());
+  fireEvent.click(screen.getByRole("button",{name:/^About/}));
+  expect(screen.getByRole("textbox",{name:"Page title"})).toHaveValue("Unsaved About");
+  expect(stored.ABOUT.title).toBe(startingPages().ABOUT.title);
+  fireEvent.click(screen.getByRole("button",{name:"Restore saved page"}));
+  expect(screen.getByRole("textbox",{name:"Page title"})).toHaveValue(stored.ABOUT.title);
+},15000);
 
 test("site_settings.view without edit offers no Appearance save action", async () => {
   renderSite(async <T,>(id: AdminOperationId) => id === "API15-S-096" ? ok({ settings: [] }) as AdminResponse<T> : Promise.reject(new Error("unexpected write")), ["site_settings.view"]);

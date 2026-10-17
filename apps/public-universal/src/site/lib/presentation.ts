@@ -6,8 +6,8 @@ type TrustedPresentation = components["schemas"]["TrustedPresentation"];
 type ThemeStyle = CSSProperties & Record<`--u-${string}`, string>;
 
 const quote = (value: string): string => value === "system-ui" ? "system-ui" : `"${value.replaceAll('"', '')}"`;
-const devanagariSans = '"Noto Sans Devanagari", "Kohinoor Devanagari", "Nirmala UI", sans-serif';
-const devanagariSerif = '"Noto Serif Devanagari", "Kohinoor Devanagari", "Nirmala UI", serif';
+const devanagariSans = '"Mukta", "Hind", "Noto Sans Devanagari", "Kohinoor Devanagari", "Nirmala UI", sans-serif';
+const devanagariSerif = '"Tiro Devanagari Hindi", "Karma", "Noto Serif Devanagari", "Kohinoor Devanagari", "Nirmala UI", serif';
 function stack(value: string, serif: boolean): string {
   return `${quote(value)}, ${serif ? devanagariSerif : devanagariSans}`;
 }
@@ -19,18 +19,24 @@ export function resolvePresentation(presentation?: TrustedPresentation, locale =
 }
 
 export function presentationStyle(presentation?: TrustedPresentation, locale = "en"): ThemeStyle {
-  const { selection, colors } = resolvePresentation(presentation, locale);
+  return resolvedPresentationStyle(resolvePresentation(presentation, locale));
+}
+
+export function resolvedPresentationStyle({ selection, colors }: Pick<ReturnType<typeof resolveDesign>, "selection" | "colors">): ThemeStyle {
   const type = typography[selection.typography];
   const density = DENSITIES[selection.density];
   const typeTokens = typographyTokens(selection.typography);
   return {
     "--u-surface": colors.surface,
+    "--u-background": colors.background ?? colors.surface,
     "--u-surface-alt": colors.surface_alt,
     "--u-text": colors.text,
+    "--u-heading": colors.heading ?? colors.primary ?? colors.text,
     "--u-muted": colors.text_muted,
     "--u-accent": colors.accent,
     "--u-accent-text": colors.accent_text,
     "--u-primary": colors.primary ?? colors.accent,
+    "--u-secondary": colors.secondary ?? colors.accent,
     "--u-primary-text": inverseText(colors.primary ?? colors.accent),
     "--u-border": colors.border,
     "--u-focus": colors.focus,

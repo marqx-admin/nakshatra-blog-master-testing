@@ -6,6 +6,7 @@ import {
   heroLayout, heroes, homepages, imageTreatment, images, paletteErrors, palettes,
   presetColors, typography, typographyAvailable, type DesignSelection,
   resolveDesign,
+  appearancePaletteErrors,
 } from "@bp/presentation-catalogue";
 import { Checkbox, TextField } from "../../ui/components";
 import { selectionFrom, withCustomPalette, withSelection, type PresentationConfig } from "./appearance-model";
@@ -61,10 +62,12 @@ function Group({ title, description, children, open = false }: { title: string; 
 
 export function AppearanceControls({ config, onChange, locale, name = "Your publication", disabled = false }: { config: PresentationConfig; onChange(value: PresentationConfig): void; locale: string; name?: string; disabled?: boolean }) {
   const selection = selectionFrom(config, locale);
-  const update = (key: keyof DesignSelection, value: string) => onChange(withSelection(config, { ...selection, [key]: value } as DesignSelection));
+  const update = (key: keyof DesignSelection, value: string) => onChange(withSelection(config, { ...selection, [key]: value,
+    ...(key === "articleCard" ? { collectionCard: value, relatedCard: value } : {}),
+  } as DesignSelection));
   const custom = config.palette?.mode === "CUSTOM";
   const colors = custom && config.palette?.semantic_tokens ? config.palette.semantic_tokens : presetColors(selection.palette);
-  const colorErrors = custom ? paletteErrors(colors) : [];
+  const colorErrors = custom ? config.recipe_version === 2 ? appearancePaletteErrors(colors) : paletteErrors(colors) : [];
   const colorFields = ["surface", "surface_alt", "text", "text_muted", "accent", "accent_text", "border", "focus", "primary", "secondary", "background", "heading"] as const;
   const gallery = (label: string, key: keyof DesignSelection, options: Option[], kind: SampleKind) => <Gallery label={label} value={selection[key]} options={options} kind={kind} disabled={disabled} onChange={value => update(key, value)}/>;
   return <div className="bp-appearance-workbench"><div className="bp-appearance-controls">

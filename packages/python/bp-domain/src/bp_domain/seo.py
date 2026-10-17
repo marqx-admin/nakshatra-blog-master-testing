@@ -25,7 +25,7 @@ class RobotsDecision:
 
 
 HARD_NOINDEX_PAGE_IDS = frozenset({"PUB-SEARCH-01", "PUB-SYS-PREVIEW-01", "PUB-SYS-404-01", "PUB-SYS-410-01"})
-CONDITIONAL_ARCHIVE_PAGE_IDS = frozenset({"PUB-CATEGORY-01", "PUB-TAG-01", "PUB-AUTHOR-01"})
+CONDITIONAL_ARCHIVE_PAGE_IDS = frozenset({"PUB-BLOG-01", "PUB-CATEGORY-01", "PUB-TAG-01", "PUB-AUTHOR-01"})
 
 
 def normalize_seo_text(value: str | None) -> str | None:
@@ -369,7 +369,7 @@ def build_structured_data(
                 author["url"] = source["author_url"]
             obj["author"] = author
         out.append({k: v for k, v in obj.items() if v is not None})
-    elif cls in {"CATEGORY", "TAG"}:
+    elif cls in {"BLOG", "CATEGORY", "TAG"}:
         out.append({k: v for k, v in {
             "@context": "https://schema.org", "@type": "CollectionPage",
             "name": source.get("title"), "description": source.get("description"), "url": canonical_url,

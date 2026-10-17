@@ -1361,6 +1361,14 @@
         "static_pages": {
           "type": "jsonb",
           "nullable": true
+        },
+        "homepage_h1": {
+          "type": "text",
+          "nullable": true
+        },
+        "homepage_intro_text": {
+          "type": "text",
+          "nullable": true
         }
       }
     },
@@ -2492,5 +2500,7 @@
       "permission_key": "tags.edit",
       "required_permission_key": "tags.view"
     }
-  ]
+  ],
+  "extensions_w2": "V4 W2 additive DB-MIG-022: two nullable Home content fields, no baseline data backfill.",
+  "extensions_w4": "V4 W4 DB-MIG-023 adds only the five-argument insert-only provisioning overload; no new tables, columns, constraints, RLS policies or data backfill. Not executed."
 }

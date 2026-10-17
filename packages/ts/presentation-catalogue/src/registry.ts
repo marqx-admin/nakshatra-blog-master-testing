@@ -4,6 +4,7 @@ import {
 } from "./catalogue-data.ts";
 import { cardNeedsMedia } from "./engines.ts";
 import type { components } from "@bp/api-contract";
+import { appearanceId, appearanceSelection, type AppearanceId } from "./appearance-recipes.ts";
 
 export const WIDTHS = { "WIDTH-READING": 760, "WIDTH-NARROW": 960, "WIDTH-STANDARD": 1120, "WIDTH-WIDE": 1200, "WIDTH-EXTRA-WIDE": 1280, "WIDTH-FLUID-CAPPED": 1360 } as const;
 export const DENSITIES = { "DENSITY-COMPACT": { gap: "1.25rem", section: "2rem", padding: ".875rem" }, "DENSITY-STANDARD": { gap: "1.5rem", section: "3rem", padding: "1rem" }, "DENSITY-SPACIOUS": { gap: "2rem", section: "4.5rem", padding: "1.25rem" }, "DENSITY-AIRY": { gap: "2.5rem", section: "6rem", padding: "1.5rem" } } as const;
@@ -97,14 +98,15 @@ export const LEGACY_PARITY: readonly Parity[] = Object.freeze([
   } as Partial<DesignSelection>,
 })));
 
-export function toPresentationConfig(selection: Readonly<DesignSelection>, styleId: "STYLE_01" | "STYLE_02" | "STYLE_03" | "STYLE_04" | "STYLE_05" | "CUSTOM" = "CUSTOM"): components["schemas"]["PresentationConfig"] {
+export function toPresentationConfig(selection: Readonly<DesignSelection>, styleId: AppearanceId | "CUSTOM" = "CUSTOM", options: { recipeVersion?: 2; baseStyleId?: AppearanceId } = {}): components["schemas"]["PresentationConfig"] {
   return {
     schema_version: 1 as const, style_id: styleId,
-    ...(styleId === "CUSTOM" ? { base_style_id: CUSTOM_BASE_STYLE_ID } : {}),
+    ...(options.recipeVersion === 2 || styleId === "STANDARD" ? { recipe_version: 2 as const } : {}),
+    ...(styleId === "CUSTOM" ? { base_style_id: options.baseStyleId ?? CUSTOM_BASE_STYLE_ID } : {}),
     palette: { mode: "PRESET" as const, preset_id: selection.palette },
     typography_id: selection.typography,
     layout: { width_id: selection.width, density_id: selection.density, spacing_id: selection.spacing, radius_id: selection.radius, border_id: selection.border, elevation_id: selection.elevation },
-    cards: { article_card_profile_id: selection.articleCard, category_card_profile_id: selection.categoryCard, author_card_profile_id: selection.authorCard },
+    cards: { article_card_profile_id: selection.articleCard, category_card_profile_id: selection.categoryCard, author_card_profile_id: selection.authorCard, image_profile_id: selection.image },
     hero: { profile_id: selection.hero, image_profile_id: selection.heroImage },
     homepage: { recipe_id: selection.homepage },
     article: { layout_id: selection.article, image_profile_id: selection.articleImage, related_card_profile_id: selection.relatedCard,
@@ -226,6 +228,17 @@ export function presetColors(id: keyof typeof palettes): PaletteColors {
     heading: row.text, accent: row.accent, accent_text: inverseText(row.accent), border: row.border, focus: row.focus };
 }
 
+export function appearancePaletteErrors(colors: PaletteColors): string[] {
+  const errors = paletteErrors(colors);
+  for (const [label, bg] of [["surface", colors.surface], ["background", colors.background ?? colors.surface], ["surface_alt", colors.surface_alt]] as const) {
+    for (const [role, fg, minimum] of [["text", colors.text, 4.5], ["muted", colors.text_muted, 4.5],
+      ["heading", colors.heading ?? colors.text, 4.5], ["primary", colors.primary ?? colors.accent, 4.5], ["focus", colors.focus, 3]] as const) {
+      if (contrast(fg, bg) < minimum && !errors.includes(`${role}/${label}`)) errors.push(`${role}/${label}`);
+    }
+  }
+  return errors;
+}
+
 type RawConfig = Record<string, unknown>;
 function record(value: unknown): RawConfig { return typeof value === "object" && value !== null && !Array.isArray(value) ? value as RawConfig : {}; }
 function pick<T extends object>(catalogue: T, value: unknown, fallback: keyof T): keyof T {
@@ -233,14 +246,15 @@ function pick<T extends object>(catalogue: T, value: unknown, fallback: keyof T)
 }
 export function resolveDesign(value: unknown, locale = "en"): { selection: DesignSelection; colors: PaletteColors; source: "STORED" | "STYLE_DEFAULT" | "SAFE_DEFAULT" } {
   const config = record(value);
-  const customBaseValid = config.style_id === "CUSTOM" && typeof config.base_style_id === "string" && Object.hasOwn(READY_STYLES, config.base_style_id);
-  const readyStyleValid = config.style_id !== "CUSTOM" && typeof config.style_id === "string" && Object.hasOwn(READY_STYLES, config.style_id) && config.base_style_id === undefined;
-  if (config.schema_version !== 1 || !customBaseValid && !readyStyleValid) {
+  const modern = config.recipe_version === 2;
+  const customBaseValid = config.style_id === "CUSTOM" && typeof config.base_style_id === "string" && (Object.hasOwn(READY_STYLES, config.base_style_id) || modern && config.base_style_id === "STANDARD");
+  const readyStyleValid = config.style_id !== "CUSTOM" && typeof config.style_id === "string" && (Object.hasOwn(READY_STYLES, config.style_id) || modern && config.style_id === "STANDARD") && config.base_style_id === undefined;
+  if (config.schema_version !== 1 || config.recipe_version !== undefined && config.recipe_version !== 1 && config.recipe_version !== 2 || !customBaseValid && !readyStyleValid) {
     return { selection: { ...SAFE_DEFAULT, typography: typographyAvailable(SAFE_DEFAULT.typography, locale) ? SAFE_DEFAULT.typography : "TYPE-12" }, colors: presetColors(SAFE_DEFAULT.palette), source: "SAFE_DEFAULT" };
   }
   const styleId = config.style_id === "CUSTOM" ? config.base_style_id : config.style_id;
   const style = config.schema_version === 1 && typeof styleId === "string" ? READY_STYLES[styleId] : undefined;
-  const base = { ...SAFE_DEFAULT, ...(style?.overlay ?? {}) } as DesignSelection;
+  const base = modern && appearanceId(styleId) ? appearanceSelection(styleId, locale) : { ...SAFE_DEFAULT, ...(style?.overlay ?? {}) } as DesignSelection;
   const palette = record(config.palette), layout = record(config.layout), cards = record(config.cards);
   const hero = record(config.hero), homepage = record(config.homepage), article = record(config.article);
   const collection = record(config.collections), controls = record(config.controls);
@@ -259,9 +273,9 @@ export function resolveDesign(value: unknown, locale = "en"): { selection: Desig
     searchCollection: pick(collections, collection.search_layout_id, base.searchCollection) as DesignSelection["searchCollection"],
     collectionCard: pick(articleCards, collection.article_card_profile_id, base.collectionCard) as DesignSelection["collectionCard"],
     relatedCard: pick(articleCards, article.related_card_profile_id, base.relatedCard) as DesignSelection["relatedCard"],
-    image: base.image,
-    heroImage: pick(images, hero.image_profile_id, base.image) as DesignSelection["heroImage"],
-    articleImage: pick(images, article.image_profile_id, base.image) as DesignSelection["articleImage"],
+    image: pick(images, cards.image_profile_id, base.image) as DesignSelection["image"],
+    heroImage: pick(images, hero.image_profile_id, modern ? base.heroImage : base.image) as DesignSelection["heroImage"],
+    articleImage: pick(images, article.image_profile_id, modern ? base.articleImage : base.image) as DesignSelection["articleImage"],
     button: pick(buttons, controls.button_profile_id, base.button) as DesignSelection["button"],
     density: pick(DENSITIES, layout.density_id, base.density) as DesignSelection["density"],
     articleMeasure: ["NARROW", "STANDARD", "WIDE"].includes(String(article.measure)) ? article.measure as DesignSelection["articleMeasure"] : base.articleMeasure,
@@ -279,8 +293,8 @@ export function resolveDesign(value: unknown, locale = "en"): { selection: Desig
   if (!typographyAvailable(selected.typography, locale)) selected.typography = typographyAvailable(base.typography, locale) ? base.typography : /^(?:hi|mr|ne|sa)(?:-|$)/i.test(locale) ? "TYPE-12" : "TYPE-28";
   const custom = palette.mode === "CUSTOM" ? record(palette.semantic_tokens) : undefined;
   const customColors = custom && Object.fromEntries(Object.entries(custom).filter(([key]) => ["surface", "surface_alt", "text", "text_muted", "accent", "accent_text", "border", "focus", "primary", "secondary", "background", "heading"].includes(key))) as PaletteColors;
-  let colors = customColors && paletteErrors(customColors).length === 0 ? customColors : presetColors(selected.palette);
+  let colors = customColors && (modern ? appearancePaletteErrors(customColors) : paletteErrors(customColors)).length === 0 ? customColors : presetColors(selected.palette);
   if (paletteErrors(colors).length) { selected.palette = SAFE_DEFAULT.palette; colors = presetColors(SAFE_DEFAULT.palette); }
-  const source = config.schema_version !== 1 || (!style && config.style_id !== "CUSTOM") ? "SAFE_DEFAULT" : Object.keys(config).length > 2 ? "STORED" : "STYLE_DEFAULT";
+  const source = Object.keys(config).length > 2 ? "STORED" : "STYLE_DEFAULT";
   return { selection: selected, colors, source };
 }

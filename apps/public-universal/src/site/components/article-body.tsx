@@ -29,9 +29,20 @@ function HeadingBlock({ level, value }: { level: 2 | 3 | 4; value: RichTextData 
 function ListBlock({ ordered, items }: { ordered: boolean; items: RichTextData[] }) { const Tag = ordered ? "ol" : "ul"; return <Tag>{items.map((item, index) => <li key={index}><RichText value={item} /></li>)}</Tag>; }
 function QuoteBlock({ quote, attribution, source }: { quote: RichTextData; attribution?: string | undefined; source?: string | undefined }) { return <blockquote><p><RichText value={quote} /></p>{attribution || source ? <footer>{attribution ? <cite>{attribution}</cite> : null}{source ? <span>{source}</span> : null}</footer> : null}</blockquote>; }
 function SeparatorBlock() { return <hr />; }
-function MediaBlock({ payload }: { payload: Extract<ArticleBlockType,{type:"MEDIA"}>["payload"] }) { if (payload.resolution_state === "MISSING" || !payload.media) return <MissingMediaFallback label="Article media unavailable" />; return <figure><ResponsiveMedia media={payload.media} altOverride={payload.alt_override} />{payload.caption ? <figcaption>{payload.caption}</figcaption> : null}</figure>; }
-function TableBlock({ headerRow, rows }: { headerRow: boolean; rows: RichTextData[][] }) { return <div className="table-region" role="region" aria-label="Article data table" tabIndex={0}><table><tbody>{rows.map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => headerRow && rowIndex === 0 ? <th key={cellIndex} scope="col"><RichText value={cell} /></th> : <td key={cellIndex}><RichText value={cell} /></td>)}</tr>)}</tbody></table></div>; }
-function safeEmbedUrl(value: string): string | undefined { try { const url = new URL(value); return url.protocol === "https:" ? url.toString() : undefined; } catch { return undefined; } }
+function MediaBlock({ payload }: { payload: Extract<ArticleBlockType,{type:"MEDIA"}>["payload"] }) {
+  const media = payload.resolution_state === "MISSING" ? undefined : payload.media;
+  const caption = payload.caption ?? media?.caption;
+  return <figure className="article-body-media">{media ? <ResponsiveMedia media={media} altOverride={payload.alt_override} /> : <MissingMediaFallback label="Article media unavailable" />}
+    {caption || media?.credit_text ? <figcaption>{caption ? <span>{caption}</span> : null}{media?.credit_text ? <small className="media-credit">{media.credit_text}</small> : null}</figcaption> : null}
+  </figure>;
+}
+function TableBlock({ headerRow, rows }: { headerRow: boolean; rows: RichTextData[][] }) {
+  return <div className="table-region" role="region" aria-label="Article data table" tabIndex={0}><table>
+    {headerRow && rows.length ? <thead>{rows.slice(0, 1).map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <th key={cellIndex} scope="col"><RichText value={cell} /></th>)}</tr>)}</thead> : null}
+    <tbody>{rows.slice(headerRow ? 1 : 0).map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex}><RichText value={cell} /></td>)}</tr>)}</tbody>
+  </table></div>;
+}
+function safeEmbedUrl(value: string): string | undefined { try { const url = new URL(value); return url.protocol === "https:" && !url.username && !url.password ? url.toString() : undefined; } catch { return undefined; } }
 function EmbedBlock({ provider, source, caption }: { provider: string; source: string; caption?: string | undefined }) { const href = safeEmbedUrl(source); return <aside className="embed-fallback"><strong>{provider}</strong><p>{caption ?? "Embedded media is unavailable in this rendering context."}</p>{href ? <a href={href} target="_blank" rel="noopener noreferrer">Open approved source</a> : null}</aside>; }
 function CalloutBlock({ label, body }: { label?: string | undefined; body: RichTextData }) { return <aside className="callout">{label ? <strong>{label}</strong> : null}<p><RichText value={body} /></p></aside>; }
 function CtaBlock({ label, supportingText, destination }: { label: string; supportingText?: string | undefined; destination: Extract<ArticleBlockType,{type:"CTA"}>["payload"]["destination"] }) { return <aside className="article-cta">{supportingText ? <p>{supportingText}</p> : null}<DestinationLink destination={destination} className="button-primary">{label}</DestinationLink></aside>; }

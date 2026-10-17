@@ -242,15 +242,15 @@ def assert_rc11_contract(spec: dict[str, Any]) -> None:
     schemas = spec.get("components", {}).get("schemas", {})
     if spec.get("openapi") != "3.1.0" or spec.get("info", {}).get("version") != "1.0-RC13":
         raise RuntimeError("canonical HTTP contract must be BLOG-DOC-15 OpenAPI 1.0-RC13")
-    if len(operations) != 113 or len(spec.get("paths", {})) != 86 or len(schemas) != 249:
+    if len(operations) != 116 or len(spec.get("paths", {})) != 89 or len(schemas) != 252:
         raise RuntimeError("canonical RC13 estate count mismatch")
     operation_ids = [op.operation_id for op in operations]
     pairs = [(op.method, op.path) for op in operations]
-    if len(set(operation_ids)) != 113 or len(set(pairs)) != 113:
+    if len(set(operation_ids)) != 116 or len(set(pairs)) != 116:
         raise RuntimeError("canonical RC13 operation identity is not unique")
     owned = list(owned_operations(spec))
-    if len(owned) != 51:
-        raise RuntimeError("CHAT03/C00 RC13 core ownership set must be 51 operations")
+    if len(owned) != 52:
+        raise RuntimeError("CHAT03/C00 RC13 core ownership set must be 52 operations")
 
 # Backward import compatibility; canonical runtime is RC13.
 assert_rc10_contract = assert_rc11_contract

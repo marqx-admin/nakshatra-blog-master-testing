@@ -7,7 +7,7 @@ import test from 'node:test';
 
 const root = process.cwd();
 const python = process.env.BP_PYTHON || (fs.existsSync(path.join(root,'.venv/bin/python')) ? path.join(root,'.venv/bin/python') : 'python3');
-const pinnedSha = '5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef';
+const pinnedSha = '40e642fab61bae9f5fd60afac2ad76912cb6f1a5c1fe4e251dc7f0485f278461';
 const predecessorSha = 'f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd';
 const supersededRc11Sha = '4e717243a5c9c331a6b57867e67b4d325cf4d0b69959bbcf5d3c3e63453d0358';
 const source = path.join(root,'contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml');
@@ -29,10 +29,10 @@ test('pinned RC13 bytes and immutable RC12 predecessor are bound exactly', () =>
 test('RC13 registry/count/reference/scope/success verification passes', () => {
   const r = run(python,['tooling/scripts/verify-openapi-contract.py']);
   assert.equal(r.status,0,`${r.stdout}\n${r.stderr}`);
-  assert.match(r.stdout,/operations=113 paths=86 schemas\/helpers=249/);
-  assert.match(r.stdout,/resolved internal references=1362 unresolved=0/);
-  assert.match(r.stdout,/AUTH:12 PUBLIC\/PREVIEW:2 SITE:63 GLOBAL:36/);
-  assert.match(r.stdout,/200x86 201x15 202x3 204x9/);
+  assert.match(r.stdout,/operations=116 paths=89 schemas\/helpers=252/);
+  assert.match(r.stdout,/resolved internal references=1400 unresolved=0/);
+  assert.match(r.stdout,/AUTH:12 PUBLIC\/PREVIEW:3 SITE:65 GLOBAL:36/);
+  assert.match(r.stdout,/200x88 201x16 202x3 204x9/);
 });
 
 test('generated contract and both client packages are deterministic', () => {
@@ -44,10 +44,10 @@ test('generated contract and both client packages are deterministic', () => {
 
 test('generated public/Admin operation exposure obeys DOC-23 boundary', () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root,'packages/ts/api-contract/generated/contract-manifest.json'),'utf8'));
-  assert.deepEqual(manifest.public_operation_ids,['API15-PUB-001','API15-PUB-002']);
-  assert.equal(manifest.admin_operation_ids.length,111);
+  assert.deepEqual(manifest.public_operation_ids,['API15-PUB-001','API15-PUB-002','API15-PUB-003']);
+  assert.equal(manifest.admin_operation_ids.length,113);
   assert.equal(manifest.admin_operation_ids.filter((id)=>id.startsWith('API15-AUTH-')).length,12);
-  assert.equal(manifest.admin_operation_ids.filter((id)=>id.startsWith('API15-S-')).length,63);
+  assert.equal(manifest.admin_operation_ids.filter((id)=>id.startsWith('API15-S-')).length,65);
   assert.equal(manifest.admin_operation_ids.filter((id)=>id.startsWith('API15-G-')).length,36);
   assert.equal(manifest.admin_operation_ids.some((id)=>id.startsWith('API15-PUB-')),false);
 });

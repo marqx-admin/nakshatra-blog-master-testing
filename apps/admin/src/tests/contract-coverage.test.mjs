@@ -33,9 +33,9 @@ const states = [
 const palette = ["#111a36","#091127","#2c3b6b","#c3a15a","#987437","#e8d8ae","#fcf8ef","#f3e9d7","#fffefb"];
 
 test("generated RC8 Admin operation surface is completely referenced", () => {
-  assert.equal(canonicalOps.length, 111);
+  assert.equal(canonicalOps.length, 113);
   assert.equal(canonicalOps.filter((id) => id.startsWith("API15-AUTH-")).length, 12);
-  assert.equal(canonicalOps.filter((id) => id.startsWith("API15-S-")).length, 63);
+  assert.equal(canonicalOps.filter((id) => id.startsWith("API15-S-")).length, 65);
   assert.equal(canonicalOps.filter((id) => id.startsWith("API15-G-")).length, 36);
   assert.deepEqual(canonicalOps.filter((id) => !usedOps.includes(id)), launchHiddenOps);
   assert.deepEqual(usedOps.filter((id) => !canonicalOps.includes(id)), []);

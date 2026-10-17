@@ -917,7 +917,7 @@ class PostgresEditorialRepository:
             return {"kind": "AUTHOR", "target_id": str(data["target_author_profile_id"])}
         if kind == "EXTERNAL":
             return {"kind": "EXTERNAL", "url": data["external_url"]}
-        if kind in {"HOME", "SEARCH"}:
+        if kind in {"HOME", "BLOG", "SEARCH"}:
             return {"kind": kind}
         if kind == "STATIC":
             static_key = data["static_page_key"]
@@ -966,7 +966,7 @@ class PostgresEditorialRepository:
             return self._homepage_wire(connection, context)
 
     def _homepage_wire(self, connection: Any, context: SiteContext) -> dict[str, Any]:
-        setting = connection.execute(text("SELECT homepage_lead_post_id FROM site_settings WHERE site_id=:site_id"), {"site_id": context.site_id}).fetchone()
+        setting = connection.execute(text("SELECT homepage_lead_post_id,homepage_h1,homepage_intro_text FROM site_settings WHERE site_id=:site_id"), {"site_id": context.site_id}).fetchone()
         lead_post_id = str(_mapping(setting)["homepage_lead_post_id"]) if setting is not None and _mapping(setting).get("homepage_lead_post_id") else None
         rows = connection.execute(text("SELECT * FROM homepage_sections WHERE site_id=:site_id ORDER BY position_key,section_key"), {"site_id": context.site_id}).fetchall()
         sections = []
@@ -982,10 +982,15 @@ class PostgresEditorialRepository:
             if cats:
                 section["category_ids"] = [str(r[0]) for r in cats]
             sections.append(section)
-        return _clean({"lead_post_id": lead_post_id, "sections": sections})
+        fields = _mapping(setting) if setting is not None else {}
+        return _clean({"lead_post_id": lead_post_id, "sections": sections, "h1": fields.get("homepage_h1"), "intro_text": fields.get("homepage_intro_text")})
 
     async def update_homepage(self, context: SiteContext, *, actor_admin_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         async with self._site_transactions.transaction(context) as connection:
+            for field, column in (("h1", "homepage_h1"), ("intro_text", "homepage_intro_text")):
+                if field in payload:
+                    connection.execute(text(f"UPDATE site_settings SET {column}=:value,updated_at=now(),updated_by_admin_id=:actor WHERE site_id=:site_id"),
+                        {"site_id": context.site_id, "value": payload[field], "actor": actor_admin_id})
             if "lead_post_id" in payload:
                 lead = payload.get("lead_post_id")
                 connection.execute(
@@ -1180,7 +1185,7 @@ class PostgresEditorialRepository:
                     "static_pages",
                 }
                 assignments = [
-                    f"{key}=CAST(:{key} AS jsonb)" if key in json_keys else f"{key}=:{key}"
+                    "static_pages=COALESCE(static_pages,'{}'::jsonb) || CAST(:static_pages AS jsonb)" if key == "static_pages" else f"{key}=CAST(:{key} AS jsonb)" if key in json_keys else f"{key}=:{key}"
                     for key in local_fields
                 ]
                 if "presentation_config" in local_fields:

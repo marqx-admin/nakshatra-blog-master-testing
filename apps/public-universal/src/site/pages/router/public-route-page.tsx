@@ -3,6 +3,7 @@ import type { components } from "@bp/api-contract";
 import Head from "next/head";
 import { ErrorState } from "../../components/semantic-components";
 import { HomePage } from "../home/home-page";
+import { BlogPage } from "../blog/blog-page";
 import { ArticlePage } from "../article/article-page";
 import { CollectionPage } from "../collection/collection-page";
 import { AuthorPage } from "../author/author-page";
@@ -11,11 +12,16 @@ import { StaticInformationPage } from "../static/static-page";
 import { PreviewPage } from "../preview/preview-page";
 import { SystemPage } from "../system/system-page";
 
-export function PublicRoutePage({ render }: PublicRouteProps) {
+export function PublicRoutePage(props: PublicRouteProps) {
+  return <>{props.privateSitePreview ? <aside className="website-preview-notice" aria-label="Private website preview"><strong>Private website preview</strong><span>Saved content · public activation unchanged · noindex</span><a href="/_preview/site?exit=1">Exit preview</a></aside> : null}<RouteContent {...props}/></>;
+}
+
+function RouteContent({ render }: PublicRouteProps) {
   if (render.kind === "failure") return <><Head><title>{render.title}</title><meta name="robots" content="noindex,nofollow" /></Head><main id="main-content" className="neutral-system-shell"><div className="container system-page"><ErrorState title={render.title} body={render.message} /></div></main></>;
   const data = render.data;
   switch (data.context.page_id) {
     case "PUB-HOME-01": return <HomePage data={data as components["schemas"]["HomePageData"]} requestPath={render.requestPath} />;
+    case "PUB-BLOG-01": return <BlogPage data={data as components["schemas"]["BlogPageData"]} requestPath={render.requestPath} />;
     case "PUB-ARTICLE-01": return <ArticlePage data={data as components["schemas"]["ArticlePageData"]} requestPath={render.requestPath} />;
     case "PUB-CATEGORY-01":
     case "PUB-TAG-01": return <CollectionPage data={data as components["schemas"]["CategoryPageData"] | components["schemas"]["TagPageData"]} requestPath={render.requestPath} />;

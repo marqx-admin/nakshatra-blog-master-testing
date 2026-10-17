@@ -15,6 +15,8 @@ from bp_application import (
     SetWeakPasswordChecker, TrustedContextService,
 )
 from bp_application.discovery import SeoCrawlerResourceService
+from bp_application.website_preview import WebsitePreviewAuthority
+from .website_readiness import WebsiteReadinessProjection
 from bp_application.global_platform import GlobalPlatformService
 from bp_application.editorial import EditorialApplication, EditorialPreviewEligibility
 from bp_application import DerivedSiteOperationsService
@@ -344,6 +346,8 @@ def build_production_services(settings: Settings, spec: dict[str, Any]) -> Servi
         audit=audit,
         derived_operations=derived_ops,
         preview_authority=preview_authority,
+        website_preview=WebsitePreviewAuthority(security, sessions, authorization),
+        website_readiness=WebsiteReadinessProjection(public_backend, PresentationPolicy(spec), settings.temporary_domain_suffix),
         site_context_payload=PostgresAdminSiteContextPayload(site_transactions, settings.temporary_domain_suffix, settings.temporary_site_url_config),
         site_dashboard_payload=PostgresSiteDashboardPayload(site_transactions),
         transport_throttle=transport,

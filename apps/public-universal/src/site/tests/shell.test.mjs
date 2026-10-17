@@ -22,6 +22,13 @@ const shell = (key, nav, settings = { social_profiles: [] }, presentation = unde
   site: site(key), navigation: nav, settings, presentation, contactInfo, requestPath: "/about", children: React.createElement("p", null, "Page body"),
 }));
 
+test("provisioned Home/Blog/Search footer entries do not duplicate fallback shortcuts", () => {
+  const markup = shell("SITE-15", navigation([], [item("Home", "/"), item("All Articles", "/blog"), item("Search", "/search")]));
+  assert.match(markup, /aria-label="Footer navigation"/);
+  assert.doesNotMatch(markup, /aria-label="Site shortcuts"/);
+  assert.ok(markup.indexOf("All Articles") < markup.lastIndexOf("Search"));
+});
+
 test("fixed Header renders brand, ordered navigation, child expansion and Search for a minimal site", () => {
   const markup = shell("SITE-15", navigation([item("About", "/about", [item("Team", "/team")]), item("Contact", "/contact")]));
   assert.ok(markup.indexOf("About") < markup.indexOf("Contact"));
@@ -111,4 +118,21 @@ test("five ready styles and fourteen parity configs render through the same fixe
   }
   const invalid = shell("SITE-100", navigation(), { social_profiles: [] }, { source: "STORED", config: { schema_version: 1, style_id: "CUSTOM" } });
   assert.ok(invalid.includes(`--u-surface:${presetColors(SAFE_DEFAULT.palette).surface}`));
+});
+
+test("empty menus retain verified Home, Articles and Search shortcuts without an empty Menu trigger", () => {
+  const markup = shell("SITE-15", navigation());
+  assert.doesNotMatch(markup, /menu-trigger|\/about|\/contact|\/privacy-policy|All rights reserved/);
+  assert.match(markup, /href="\/blog">Articles<\/a>/);
+  assert.match(markup, /aria-label="Site shortcuts"/);
+  assert.match(markup, /href="\/">Home<\/a>/);
+  assert.match(markup, /href="\/search">Search<\/a>/);
+});
+
+test("nested footer and current branch preserve authored order, labels and exact current destination", () => {
+  const markup = shell("SITE-15", navigation([], [item("Information", "/", [item("About", "/about"), item("Policy", "/privacy-policy")])]));
+  assert.match(markup, /data-current-branch="true"/);
+  assert.match(markup, /href="\/about" aria-current="page"/);
+  assert.match(markup, /aria-controls="footer-children-0"/);
+  assert.ok(markup.indexOf(">About</a>") < markup.indexOf(">Policy</a>"));
 });

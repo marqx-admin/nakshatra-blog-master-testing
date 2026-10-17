@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager, contextmanager
+from dataclasses import replace
 from datetime import UTC, datetime
 import json
 from pathlib import Path
@@ -180,6 +181,39 @@ async def test_fixed_pages_use_only_authoritative_same_site_settings(
         SPEC["components"]["schemas"]["StaticPageData"], resolver=RefResolver.from_schema(SPEC)
     )
     assert validator.is_valid(page)
+    draft = {
+        "enabled": False,
+        "content_version": 1,
+        "title": "About [Website Name].",
+        "intro_text": "[Website Name] is a publication focused on [approved primary subject].",
+        "body_sections": [
+            {"heading": "Topics", "paragraphs": [], "list_items": []},
+            {"heading": "Publisher", "paragraphs": ["[Owner supplies approved information.]"], "list_items": []},
+        ],
+    }
+    settings_by_site["site-a"]["static_pages"]["ABOUT"] = draft
+    assert (await adapter.resolve_page(context, path="/about", q=None, page=1, page_size=10))[0] == 404
+    preview_context = replace(
+        context,
+        kind=ContextKind.PREVIEW_SITE,
+        context_source=ContextSource.PREVIEW,
+        site_status="DISABLED",
+    )
+    status, private_page, _ = await adapter.resolve_page(
+        preview_context, path="/about", q=None, page=1, page_size=10
+    )
+    assert status == 200
+    assert private_page["content"]["title"] == draft["title"]
+    assert private_page["content"]["sections"][0] == {
+        "heading": "Topics", "paragraphs": [], "list_items": []
+    }
+    assert private_page["content"]["sections"][1]["paragraphs"][0]["runs"][0]["text"] == \
+        "[Owner supplies approved information.]"
+    assert Draft202012Validator(
+        SPEC["components"]["schemas"]["StaticPageData"], resolver=RefResolver.from_schema(SPEC)
+    ).is_valid(private_page)
+    assert _renderable_static_content("ABOUT", draft) is None
+    assert _renderable_static_content("ABOUT", draft, allow_draft=True) == private_page["content"]
     del settings_by_site["site-a"]["static_pages"]["ABOUT"]
     status, page, _ = await adapter.resolve_page(
         context, path="/about", q=None, page=1, page_size=10

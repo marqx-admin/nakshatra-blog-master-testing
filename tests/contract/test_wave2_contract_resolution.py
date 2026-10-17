@@ -37,7 +37,7 @@ from bp_domain.errors import NotFound, ValidationFault, VersionConflict
 from bp_domain.security import AccountState, AdminPrincipal
 
 CANON = ROOT / "contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml"
-CANON_SHA = "5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef"
+CANON_SHA = "40e642fab61bae9f5fd60afac2ad76912cb6f1a5c1fe4e251dc7f0485f278461"
 
 
 def test_rc11_canonical_contract_is_self_consistent_and_complete():
@@ -46,25 +46,25 @@ def test_rc11_canonical_contract_is_self_consistent_and_complete():
     assert spec["info"]["version"] == "1.0-RC13"
     authority = spec["x-doc15-authority"]
     assert authority["version"] == "1.0-RC13"
-    assert authority["operation_count"] == 113
-    assert authority["unique_route_paths"] == 86
-    assert authority["schema_helper_count"] == 249
-    assert authority["resolved_internal_schema_references"] == 1362
+    assert authority["operation_count"] == 116
+    assert authority["unique_route_paths"] == 89
+    assert authority["schema_helper_count"] == 252
+    assert authority["resolved_internal_schema_references"] == 1400
     assert authority["canonical_operation_subtotals"] == {
-        "public_and_preview": 2,
+        "public_and_preview": 3,
         "auth": 12,
-        "site_admin": 63,
+        "site_admin": 65,
         "global_admin": 36,
-        "total": 113,
+        "total": 116,
     }
     operations = []
     for path, item in spec["paths"].items():
         for method, op in item.items():
             if isinstance(op, dict) and op.get("operationId"):
                 operations.append((op["operationId"], method.upper(), path))
-    assert len(operations) == 113
-    assert len({o[0] for o in operations}) == 113
-    assert len({(o[1], o[2]) for o in operations}) == 113
+    assert len(operations) == 116
+    assert len({o[0] for o in operations}) == 116
+    assert len({(o[1], o[2]) for o in operations}) == 116
     assert ("API15-AUTH-012", "GET", "/api/v1/auth/selectable-sites") in operations
     assert ("API15-S-002", "GET", "/api/v1/admin/sites/{site_key}/dashboard") in operations
 

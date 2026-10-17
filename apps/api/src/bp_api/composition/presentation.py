@@ -24,7 +24,34 @@ class PresentationPolicy:
         )
 
     def presentation_valid(self, value: Any) -> bool:
-        return bool(self.presentation.is_valid(value))
+        if not self.presentation.is_valid(value):
+            return False
+        # New recipes validate semantic colors before persistence. Keep legacy
+        # schema-1 recipe behavior unchanged; no automatic configuration migration.
+        palette = value.get("palette") or {}
+        if value.get("recipe_version") == 2 and palette.get("mode") == "CUSTOM":
+            colors = palette.get("semantic_tokens") or {}
+            surface = colors.get("surface", "#ffffff")
+            background = colors.get("background", surface)
+            primary = colors.get("primary", colors.get("accent", surface))
+            pairs = [
+                (colors["text"], surface, 4.5), (colors["text"], background, 4.5),
+                (colors["text_muted"], surface, 4.5), (colors["text_muted"], background, 4.5),
+                (colors.get("heading", colors["text"]), background, 3),
+                (colors["accent_text"], colors["accent"], 4.5),
+                (colors["focus"], surface, 3), (colors["focus"], background, 3),
+            ]
+            for bg in (surface, background, colors["surface_alt"]):
+                pairs.extend((fg, bg, threshold) for fg, threshold in (
+                    (colors["text"], 4.5), (colors["text_muted"], 4.5),
+                    (colors.get("heading", colors["text"]), 4.5),
+                    (primary, 4.5), (colors["focus"], 3),
+                ))
+            if any(_contrast(fg, bg) < threshold for fg, bg, threshold in pairs):
+                return False
+            if max(_contrast(primary, "#ffffff"), _contrast(primary, "#111111")) < 4.5:
+                return False
+        return True
 
     def require_presentation(self, value: Any) -> None:
         if not self.presentation_valid(value):
@@ -62,6 +89,18 @@ class PresentationPolicy:
     def require_static_pages(self, value: Any) -> None:
         if not self.static_pages.is_valid(value):
             raise ValidationFault("fixed information pages do not satisfy canonical RC12")
+        from bp_domain.website_content import information_page_ready
+        if any(page["enabled"] and not information_page_ready(page) for page in value.values()):
+            raise ValidationFault("enabled information pages require complete resolved content")
+
+
+def _contrast(a: str, b: str) -> float:
+    def light(color: str) -> float:
+        rgb = [int(color[i:i+2], 16) / 255 for i in (1, 3, 5)]
+        linear = [c / 12.92 if c <= .04045 else ((c + .055) / 1.055) ** 2.4 for c in rgb]
+        return sum(c * weight for c, weight in zip(linear, (.2126, .7152, .0722)))
+    high, low = sorted((light(a), light(b)), reverse=True)
+    return (high + .05) / (low + .05)
 
 
 def presentation_references(value: dict[str, Any]) -> tuple[set[str], set[str]]:

@@ -67,7 +67,12 @@ test("fixed information page and Preview require their frozen RC11 shapes", () =
     assert.ok(validatePageData(page, 200, [pageId]), key);
     assert.equal(validatePageData(page, 200, ["PUB-HOME-01"]), undefined);
   }
-  assert.equal(validatePageData({ ...about, content: { ...about.content, sections: [] } }, 200), undefined);
+  const draftAbout = { ...about, content: { ...about.content, sections: [] } };
+  assert.equal(validatePageData(draftAbout, 200), undefined);
+  assert.ok(validatePageData(draftAbout, 200, undefined, true));
+  const emptyDraftSection = { ...about, content: { ...about.content, sections: [{ paragraphs: [], list_items: [] }] } };
+  assert.equal(validatePageData(emptyDraftSection, 200), undefined);
+  assert.ok(validatePageData(emptyDraftSection, 200, undefined, true));
   const preview = { ...home("SITE-15"), seo: { ...seo, robots: { index: false, follow: false } }, context: { page_id: "PUB-SYS-PREVIEW-01", page_kind: "PREVIEW", render_mode: "PREVIEW" }, preview: { lifecycle_status: "DRAFT", source_kind: "COMMITTED", notice_text: "Private" }, article: { article_id: "post-1", title: "Draft", body: { content_schema_version: "1", blocks: [] }, tags: [], categories: [] } };
   assert.ok(validatePageData(preview, 200, ["PUB-SYS-PREVIEW-01"]));
   assert.equal(validatePageData(preview, 200, ["PUB-ARTICLE-01"]), undefined);

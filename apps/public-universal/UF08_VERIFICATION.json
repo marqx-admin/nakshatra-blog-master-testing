@@ -1,0 +1,149 @@
+{
+  "unit": "UF-08",
+  "status": "AUTOMATED_VERIFICATION_PASSED; LIVE_POSTGRESQL_AND_BROWSER_ACCEPTANCE_NOT_EXECUTED",
+  "checks": [
+    {
+      "check": "Universal Frontend suite",
+      "command": "corepack pnpm --filter @bp/public-universal test",
+      "status": "PASS",
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "check": "Universal Frontend TypeScript",
+      "command": "corepack pnpm --filter @bp/public-universal typecheck",
+      "status": "PASS"
+    },
+    {
+      "check": "Production build",
+      "command": "corepack pnpm --filter @bp/public-universal build",
+      "status": "PASS",
+      "working_directory": "/tmp/nakshatra-uf08/build",
+      "note": "APFS-cloned isolated dependencies and current source snapshot; protects the original next-env.d.ts. /blog and existing routes compiled. No server started.",
+      "runtime_input_differences": []
+    },
+    {
+      "check": "Backend/public foundation/parity/Host tests",
+      "command": "uv run --frozen --all-packages python -m pytest -q tests/application/test_uf06_blog_archive.py tests/application/test_wu02_foundation.py tests/application/test_repair4_parity.py tests/contract/test_public_host_forwarding.py tests/contract/test_admin_public_url_resolution.py",
+      "status": "PASS_AFTER_TARGETED_FIX",
+      "initial_passed": 71,
+      "initial_failed": 1,
+      "note": "Only the failed API-startup/crawler test was rerun from this group after fixing the stale schema count."
+    },
+    {
+      "check": "Affected API startup and contract integration",
+      "command": "uv run --frozen --all-packages python -m pytest -q tests/application/test_wu02_foundation.py::test_crawler_http_routes_are_host_scoped_and_unknown_host_is_neutral tests/contract/test_wave2_contract_resolution.py tests/contract/test_wave2_full_assembly.py",
+      "status": "PASS",
+      "passed": 14
+    },
+    {
+      "check": "Added /blog HTTP contract/Host integration",
+      "command": "uv run --frozen --all-packages python -m pytest -q tests/application/test_uf06_blog_archive.py::test_archive_http_transport_validates_contract_and_resolves_each_host",
+      "status": "PASS",
+      "passed": 1
+    },
+    {
+      "check": "OpenAPI source and generated drift",
+      "command": "node tooling/scripts/check-generated-drift.mjs",
+      "status": "PASS",
+      "operations": 113,
+      "paths": 86,
+      "schemas": 250,
+      "resolved_internal_references": 1373,
+      "unresolved_internal_references": 0,
+      "generated_artifacts_without_drift": 9
+    },
+    {
+      "check": "Contract pins, generator determinism and client exposure",
+      "command": "node --test tests/contract/openapi-contract.test.mjs",
+      "status": "PASS",
+      "passed": 4
+    },
+    {
+      "check": "Diff whitespace",
+      "command": "git diff --check",
+      "status": "PASS"
+    }
+  ],
+  "backend_unique_passing_cases_across_runs": 86,
+  "defects_corrected": [
+    {
+      "files": [
+        "apps/api/src/bp_api/http/contract.py"
+      ],
+      "cause": "API startup contract guard still expected 249 schemas and rejected the authorized 250-schema archive contract.",
+      "fix": "Change only the expected schema count to 250."
+    },
+    {
+      "files": [
+        "apps/public-universal/src/site/shell/navigation/mobile-navigation.tsx"
+      ],
+      "cause": "Route-dependent navigation key unmounted the focused link before the close effect could restore focus.",
+      "fix": "Remount disclosures on open/closed state only; preserve nodes until route-change closure returns focus to Menu."
+    },
+    {
+      "files": [
+        "apps/public-universal/src/site/tests/cross-cutting.test.mjs"
+      ],
+      "cause": "Validation regression fixtures omitted required PageContext kind/mode; negative cases lacked valid baselines.",
+      "fix": "Supply valid context metadata and assert valid baseline before invalidating fields."
+    },
+    {
+      "files": [
+        "apps/public-universal/src/site/tests/search-static-pages.test.mjs"
+      ],
+      "cause": "Search form assertion assumed React serialized attributes in source order.",
+      "fix": "Assert each required attribute on the form independently."
+    },
+    {
+      "files": [
+        "apps/public-universal/src/site/tests/mobile-navigation.test.mjs"
+      ],
+      "cause": "Failed DOM-object identity assertion attempted to format a huge jsdom object graph and obscured the focus failure.",
+      "fix": "Use boolean identity assertions with a precise focus message."
+    },
+    {
+      "files": [
+        "tests/application/test_uf06_blog_archive.py"
+      ],
+      "cause": "API startup failure warranted coverage of actual archive HTTP/contract validation.",
+      "fix": "Add in-process TestClient coverage across SITE-01, SITE-02, repeated Host and an unknown Host; no network server or database."
+    }
+  ],
+  "blog_isolation": {
+    "status": "PASS_WITH_SYNTHETIC_ROWS_AND_IN_PROCESS_HTTP",
+    "coverage": [
+      "registered Host resolution",
+      "transaction-bound site ID",
+      "explicit site predicate",
+      "PUBLISHED-only filtering",
+      "stable tied-date ordering",
+      "pagination boundaries",
+      "empty/exhausted archives",
+      "site noindex policy",
+      "route normalization/compatibility",
+      "unknown-host neutral 404",
+      "BlogPageData contract validation"
+    ],
+    "live_PostgreSQL_FORCE_RLS": "UNVERIFIED; no dedicated disposable test database supplied and no database accessed or reset"
+  },
+  "preservation": {
+    "next_env_sha256": "cbdef449b845ff63f4d7c6f737a799aa540abf6f005b42155084686d5430fe17",
+    "next_env_byte_preserved": true,
+    "unexpected_source_changes_this_run": [],
+    "Admin_features_and_style_management": "UNCHANGED"
+  },
+  "not_executed": [
+    "live PostgreSQL/FORCE-RLS integration",
+    "browser/keyboard/visual/responsive/contrast acceptance",
+    "all 14 real tenant hosts"
+  ],
+  "before_browser_acceptance": [
+    "Obtain user approval before any browser testing.",
+    "Use a separately authorized disposable PostgreSQL test environment for live FORCE-RLS acceptance.",
+    "After approval, verify actual registered hosts, viewport/keyboard/contrast behavior, long Hindi/English text and media-failure states."
+  ],
+  "warnings": "Existing dependency deprecation warnings (jsonschema RefResolver, TestClient/httpx/AnyIO); no remaining test failures in executed scope.",
+  "commit_push_deploy": "None"
+}

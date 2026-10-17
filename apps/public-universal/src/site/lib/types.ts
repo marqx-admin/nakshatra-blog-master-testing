@@ -23,4 +23,5 @@ export type PublicRouteRender =
 
 export interface PublicRouteProps {
   render: PublicRouteRender;
+  privateSitePreview?: boolean;
 }

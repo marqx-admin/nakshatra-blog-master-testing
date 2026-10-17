@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-EXPECTED_OPENAPI_SHA = "5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef"
+EXPECTED_OPENAPI_SHA = "40e642fab61bae9f5fd60afac2ad76912cb6f1a5c1fe4e251dc7f0485f278461"
 EXPECTED_SITES = [
     "site-01-whats-your-rashi",
     "site-02-apki-rashi",
@@ -68,7 +68,7 @@ rls_list = ROOT / "database/rls/site_owned_tables.txt"
 rls_tables = [x.strip() for x in rls_list.read_text(encoding="utf-8").splitlines() if x.strip() and not x.lstrip().startswith("#")] if rls_list.is_file() else []
 check("RLS registry covers the exact 20 SITE tables", sorted(rls_tables) == site_tables, f"found={len(rls_tables)}")
 migrations = sorted((ROOT / "database/migrations").glob("[0-9][0-9][0-9][0-9]_DB-MIG-*.sql"))
-check("exactly 21 ordered migration source files", len(migrations) == 21 and [p.name[:4] for p in migrations] == [f"{i:04d}" for i in range(1, 22)], f"found={len(migrations)}")
+check("exactly 22 ordered migration source files", len(migrations) == 22 and [p.name[:4] for p in migrations] == [f"{i:04d}" for i in range(1, 23)], f"found={len(migrations)}")
 perms = contract.get("permission_registry", [])
 check("DOC-08 contract has 69 fixed permissions", len(perms) == 69, f"found={len(perms)}")
 site_seeds = (ROOT / "database/seeds/initial-sites.sql").read_text(encoding="utf-8") if (ROOT / "database/seeds/initial-sites.sql").is_file() else ""

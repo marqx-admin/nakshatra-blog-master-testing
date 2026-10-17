@@ -41,6 +41,8 @@ EXPECTED_MIGRATIONS = [
     "0019_DB-MIG-019__launch-access-boundaries.sql",
     "0020_DB-MIG-020__universal-presentation-foundation.sql",
     "0021_DB-MIG-021__atomic-website-provisioning.sql",
+    "0022_DB-MIG-022__website-content-navigation.sql",
+    "0023_DB-MIG-023__website-home-provisioning.sql",
 ]
 SITE_TABLES = {t for t, v in CONTRACT["tables"].items() if v["scope"] == "SITE"}
 GLOBAL_TABLES = set(CONTRACT["tables"]) - SITE_TABLES
@@ -135,7 +137,7 @@ for table, spec in CONTRACT["tables"].items():
         actual == expected,
         f"missing={sorted(set(expected)-set(actual))} extra={sorted(set(actual)-set(expected))} mismatched={sorted(c for c in set(expected)&set(actual) if expected[c]!=actual[c])}",
     )
-check("column_inventory_329", expected_column_count == 329 and sum(map(len, actual_columns.values())) == 329)
+check("column_inventory_331", expected_column_count == 331 and sum(map(len, actual_columns.values())) == 331)
 
 # Every SITE table owns a NOT NULL site_id physically.
 for table in sorted(SITE_TABLES):
@@ -150,11 +152,12 @@ constraint_kinds = {
 }
 # Forward migrations keep historical definitions in source; subtract constraints explicitly dropped.
 constraint_kinds["uq"] -= len(re.findall(r"(?i)DROP\s+CONSTRAINT\s+uq_[a-z_][a-z0-9_]*", all_sql))
+constraint_kinds["ck"] -= len(re.findall(r"(?i)DROP\s+CONSTRAINT\s+ck_[a-z_][a-z0-9_]*", all_sql))
 check("primary_key_count", constraint_kinds["pk"] == 33, str(constraint_kinds))
 check("unique_constraint_count", constraint_kinds["uq"] == 39, str(constraint_kinds))
 check("foreign_key_count", constraint_kinds["fk"] == 73, str(constraint_kinds))
-check("check_constraint_count", constraint_kinds["ck"] == 81, str(constraint_kinds))
-check("named_constraint_count", sum(constraint_kinds.values()) == 226, str(constraint_kinds))
+check("check_constraint_count", constraint_kinds["ck"] == 83, str(constraint_kinds))
+check("named_constraint_count", sum(constraint_kinds.values()) == 228, str(constraint_kinds))
 
 norm = normalize_sql(all_sql)
 same_site_fragments = [
@@ -239,6 +242,13 @@ check(
     "provisioning_helper_no_dynamic_sql",
     re.search(r"\bexecute\s+(?!on function)", provisioning_sql) is None,
 )
+home_provisioning_sql = normalize_sql((MIG / EXPECTED_MIGRATIONS[22]).read_text())
+home_signature = "app.insert_website_site_baseline(uuid,uuid,jsonb,jsonb,jsonb)"
+check("w4_home_bridge_fixed_search_path", "security definer set search_path = pg_catalog, pg_temp" in home_provisioning_sql)
+check("w4_home_bridge_delegates_insert_only", "baseline := app.insert_website_site_baseline(target_site_id,actor,presentation,pages)" in home_provisioning_sql)
+check("w4_home_bridge_scoped_update", "where site_id=target_site_id" in home_provisioning_sql)
+check("w4_home_bridge_execute_only", f"revoke all on function {home_signature} from public" in home_provisioning_sql and f"grant execute on function {home_signature} to db_platform_runtime" in home_provisioning_sql)
+check("w4_home_bridge_no_dynamic_sql", re.search(r"\bexecute\s+(?!on function)", home_provisioning_sql) is None)
 baseline_tables = ("site_settings", "navigation_menus", "homepage_sections")
 check(
     "provisioning_helper_insert_only",

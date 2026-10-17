@@ -57,6 +57,8 @@ SELECT set_config('app.bootstrap_timezone_site_14', :'SITE_14_TIMEZONE', false);
 \ir ../migrations/0019_DB-MIG-019__launch-access-boundaries.sql
 \ir ../migrations/0020_DB-MIG-020__universal-presentation-foundation.sql
 \ir ../migrations/0021_DB-MIG-021__atomic-website-provisioning.sql
+\ir ../migrations/0022_DB-MIG-022__website-content-navigation.sql
+\ir ../migrations/0023_DB-MIG-023__website-home-provisioning.sql
 
 RESET ROLE;
 SELECT pg_advisory_unlock(hashtextextended('NAKSHATRA:BLOG:DB-MIG:v1', 0));

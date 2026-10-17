@@ -1,6 +1,9 @@
 import type { components } from "@bp/api-contract";
+import { informationStarter, hasDraftPlaceholders } from "./website-content";
 import {
   SAFE_DEFAULT, READY_STYLES, readyStyleConfig, resolveDesign, toPresentationConfig,
+  appearanceConfig,
+  appearancePaletteErrors,
   paletteErrors, presetColors, typographyAvailable, categorySelectable, authorSummarySelectable,
   type DesignSelection, type PaletteColors,
 } from "@bp/presentation-catalogue";
@@ -16,11 +19,12 @@ export const PAGE_NAMES: Record<keyof StaticPages, string> = {
 };
 
 export function startingPages(): StaticPages {
-  const page = (key: keyof StaticPages): InformationPage => ({ enabled: false, content_version: 1, title: PAGE_NAMES[key], intro_text: "", body_sections: [] });
+  const page = (key: keyof StaticPages): InformationPage => informationStarter(key);
   return { ABOUT: page("ABOUT"), CONTACT: page("CONTACT"), PRIVACY: page("PRIVACY"), TERMS: page("TERMS"), DISCLAIMER: page("DISCLAIMER") };
 }
 
 export function startingPresentation(style: StyleId | "CUSTOM"): PresentationConfig {
+  if (style === "STANDARD") return appearanceConfig("STANDARD");
   return style === "CUSTOM" ? toPresentationConfig(SAFE_DEFAULT) : readyStyleConfig(style);
 }
 
@@ -29,10 +33,16 @@ export function selectionFrom(config: PresentationConfig, locale: string): Desig
 }
 
 export function withSelection(config: PresentationConfig, selection: DesignSelection): PresentationConfig {
-  const next = toPresentationConfig(selection, config.style_id);
-  if (config.branding) next.branding = config.branding;
+  const next = preserveAppearanceContent(toPresentationConfig(selection, config.style_id, { ...(config.recipe_version === 2 ? { recipeVersion: 2 as const } : {}), ...(config.base_style_id ? { baseStyleId: config.base_style_id } : {}) }), config);
   if (config.palette?.mode === "CUSTOM" && config.palette.semantic_tokens) next.palette = config.palette;
   return next;
+}
+
+export function preserveAppearanceContent(next: PresentationConfig, current: PresentationConfig): PresentationConfig {
+  return { ...next, ...(current.branding ? { branding: current.branding } : {}), hero: {
+    ...next.hero, ...(current.hero?.media_id ? { media_id: current.hero.media_id } : {}),
+    ...(current.hero?.cta ? { cta: current.hero.cta } : {}),
+  } };
 }
 
 export function withCustomPalette(config: PresentationConfig, colors: PaletteColors): PresentationConfig {
@@ -47,7 +57,7 @@ export function presentationErrors(config: PresentationConfig, locale: string): 
   if (config.cards?.author_card_profile_id && !authorSummarySelectable(config.cards.author_card_profile_id)) errors.push("Author card needs unavailable public data.");
   if (config.palette?.mode === "CUSTOM") {
     const colors = config.palette.semantic_tokens;
-    errors.push(...(colors ? paletteErrors(colors) : ["Custom palette colors are required."]));
+    errors.push(...(colors ? config.recipe_version === 2 ? appearancePaletteErrors(colors) : paletteErrors(colors) : ["Custom palette colors are required."]));
   } else if (paletteErrors(presetColors(selected.palette)).length) errors.push("Palette contrast is insufficient.");
   return errors;
 }
@@ -66,9 +76,10 @@ export function pagesErrors(pages: StaticPages): string[] {
 }
 
 export function informationPageHasContent(page: InformationPage): boolean {
-  return Boolean(page.title.trim() && !/[<>]/.test(page.title + page.intro_text) && page.body_sections.length && page.body_sections.every(section =>
-    !/[<>]/.test(section.heading ?? "") && section.paragraphs.concat(section.list_items).length > 0 &&
-    section.paragraphs.concat(section.list_items).every(text => text.trim() && !/[<>]/.test(text))
+  const safe = (text: string) => !/[<>]/.test(text) && !hasDraftPlaceholders(text);
+  return Boolean(page.title.trim() && safe(page.title + page.intro_text) && page.body_sections.length && page.body_sections.every(section =>
+    safe(section.heading ?? "") && section.paragraphs.concat(section.list_items).length > 0 &&
+    section.paragraphs.concat(section.list_items).every(text => text.trim() && safe(text))
   ));
 }
 

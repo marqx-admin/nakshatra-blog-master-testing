@@ -9,7 +9,7 @@ const app = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const output = resolve(app, "node_modules/.cache/wu03-ssr-test.mjs");
 mkdirSync(dirname(output), { recursive: true });
 await build({ entryPoints: [resolve(app, "src/site/lib/ssr.ts")], outfile: output, platform: "node", format: "esm", bundle: true, logLevel: "silent" });
-const { createPublicGetServerSideProps, createPreviewGetServerSideProps } = await import(pathToFileURL(output).href);
+const { createPublicGetServerSideProps, createPreviewGetServerSideProps, createWebsitePreviewGetServerSideProps } = await import(pathToFileURL(output).href);
 
 function context(host, path, query = {}, params = {}) {
   const headers = new Map();
@@ -27,6 +27,12 @@ function home(siteKey) {
     site: { site_key: siteKey, display_name: siteKey, canonical_domain: `${siteKey.toLowerCase()}.test`, home_destination: destination, timezone_id: "UTC" },
     settings: { social_profiles: [] }, navigation, presentation: { source: "SAFE_DEFAULT", config: { schema_version: 1, style_id: "STYLE_01" } },
     intro: { h1: "Home" }, sections: [], latest_articles: [], seo };
+}
+function staticDraft(siteKey) {
+  return { context: { page_id: "PUB-STATIC-ABOUT-01", page_kind: "STATIC", render_mode: "PUBLIC" },
+    site: { ...home(siteKey).site }, settings: { social_profiles: [] }, navigation,
+    presentation: { source: "SAFE_DEFAULT", config: { schema_version: 1, style_id: "STYLE_01" } },
+    content: { static_key: "ABOUT", title: "About [Website Name].", sections: [] }, seo };
 }
 const json = (data, status = 200, headers = {}) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json", ...headers } });
 
@@ -139,4 +145,76 @@ test("Preview handoff forwards Host, receives secure cookie, then renders only b
     assert.ok(seen[0].url.includes("handoff=one-time"));
     assert.equal(seen[1].cookie, "preview=session");
   } finally { globalThis.fetch = original; }
+});
+
+
+test("W4 website handoff exchanges only on the actual tenant Host, stores a private cookie and removes the URL secret", async () => {
+  const original=globalThis.fetch;
+  globalThis.fetch=async(url,init)=>{
+    assert.equal(new Headers(init.headers).get("X-BP-Public-Host"),"site-15.test");
+    assert.equal(new Headers(init.headers).get("Cookie"),null);
+    assert.equal(new URL(url).pathname,"/api/v1/public/preview/website");
+    assert.equal(new URL(url).searchParams.get("handoff"),"one-time-secret");
+    return json(home("SITE-15"),200,{"set-cookie":"__Host-bp_website_preview=session; Path=/; Secure; HttpOnly; SameSite=Strict"});
+  };
+  try {
+    const ctx=context("site-15.test","/_preview/site?handoff=one-time-secret",{handoff:"one-time-secret"});
+    const result=await createWebsitePreviewGetServerSideProps()(ctx);
+    assert.deepEqual(result,{redirect:{destination:"/",statusCode:302}});
+    assert.match(ctx.headers.get("set-cookie"),/Secure; HttpOnly/);
+    assert.equal(ctx.headers.get("x-robots-tag"),"noindex, nofollow");
+    assert.doesNotMatch(JSON.stringify(result),/one-time-secret/);
+  } finally {globalThis.fetch=original;}
+});
+
+test("W4 whole-site navigation remains private and a denied grant never retries the ordinary public endpoint", async () => {
+  const original=globalThis.fetch;let denied=false;const paths=[];
+  globalThis.fetch=async(url,init)=>{
+    paths.push(new URL(url).pathname);
+    assert.equal(new Headers(init.headers).get("Cookie"),"__Host-bp_website_preview=session");
+    return denied?json({error:{code:"UNAUTHENTICATED"}},401):json(home("SITE-15"));
+  };
+  try {
+    const ctx=context("site-15.test","/");ctx.req.headers.cookie="__Host-bp_admin_session=never-forward; __Host-bp_website_preview=session";
+    const result=await createPublicGetServerSideProps()(ctx);
+    assert.equal(result.props.privateSitePreview,true);
+    assert.deepEqual(result.props.render.data.seo.robots,{index:false,follow:false});
+    assert.equal(ctx.headers.get("cache-control"),"no-store, private");
+    denied=true;const failure=await createPublicGetServerSideProps()(ctx);
+    assert.equal(failure.props.render.reason,"preview");
+    assert.equal(failure.props.privateSitePreview,true);
+    assert.deepEqual(paths,["/api/v1/public/preview/website","/api/v1/public/preview/website"]);
+  } finally {globalThis.fetch=original;}
+});
+
+test("whole-site preview accepts saved empty static drafts only with its private cookie", async () => {
+  const original = globalThis.fetch;
+  const paths = [];
+  globalThis.fetch = async (url, init) => {
+    paths.push(new URL(url).pathname);
+    return json(staticDraft("SITE-15"));
+  };
+  try {
+    const ctx = context("site-15.test", "/about");
+    ctx.req.headers.cookie = "__Host-bp_website_preview=session";
+    const preview = await createPublicGetServerSideProps()(ctx);
+    assert.equal(preview.props.privateSitePreview, true);
+    assert.equal(preview.props.render.data.content.title, "About [Website Name].");
+    assert.deepEqual(preview.props.render.data.content.sections, []);
+    assert.deepEqual(ctx.headers.get("x-robots-tag"), "noindex, nofollow");
+
+    const publicResult = await createPublicGetServerSideProps()(context("site-15.test", "/about"));
+    assert.equal(publicResult.props.render.kind, "failure");
+    assert.equal(publicResult.props.render.reason, "contract");
+    assert.deepEqual(paths, ["/api/v1/public/preview/website", "/api/v1/public/page"]);
+  } finally { globalThis.fetch = original; }
+});
+
+test("W4 exit clears only the website-preview cookie without a network operation", async()=>{
+  const original=globalThis.fetch;globalThis.fetch=()=>{throw Error("unexpected request");};
+  try {
+    const ctx=context("site-15.test","/_preview/site?exit=1",{exit:"1"});
+    assert.deepEqual(await createWebsitePreviewGetServerSideProps()(ctx),{redirect:{destination:"/",statusCode:302}});
+    assert.match(ctx.headers.get("set-cookie"),/__Host-bp_website_preview=; Path=\/; Max-Age=0/);
+  } finally {globalThis.fetch=original;}
 });

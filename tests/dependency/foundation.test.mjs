@@ -70,12 +70,12 @@ test('pinned RC13 source verifies and deterministic contract/client generation h
   assert.equal(drift.status,0,`${drift.stdout}\n${drift.stderr}`);
 
   const manifest = JSON.parse(fs.readFileSync(path.join(root,'packages/ts/api-contract/generated/contract-manifest.json'),'utf8'));
-  assert.equal(manifest.source_sha256,'5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef');
-  assert.equal(manifest.operations,113);
-  assert.equal(manifest.paths,86);
-  assert.equal(manifest.schemas_helpers,249);
-  assert.deepEqual(manifest.public_operation_ids,['API15-PUB-001','API15-PUB-002']);
-  assert.equal(manifest.admin_operation_ids.length,111);
+  assert.equal(manifest.source_sha256,'40e642fab61bae9f5fd60afac2ad76912cb6f1a5c1fe4e251dc7f0485f278461');
+  assert.equal(manifest.operations,116);
+  assert.equal(manifest.paths,89);
+  assert.equal(manifest.schemas_helpers,252);
+  assert.deepEqual(manifest.public_operation_ids,['API15-PUB-001','API15-PUB-002','API15-PUB-003']);
+  assert.equal(manifest.admin_operation_ids.length,113);
   assert.ok(manifest.admin_operation_ids.every((id)=>/^API15-(AUTH|S|G)-/.test(id)));
 });
 

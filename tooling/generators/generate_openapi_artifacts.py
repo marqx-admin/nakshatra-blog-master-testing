@@ -546,7 +546,8 @@ def main() -> int:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8", newline="\n")
         print(f"PASS generated {len(generated)} deterministic TypeScript contract/client artifacts from pinned RC13 YAML")
-        print(f"PASS public operations=2 admin operations={len(operations)-2} source_sha256={sha}")
+        public_count = sum(str(op["operationId"]).startswith("API15-PUB-") for op in operations)
+        print(f"PASS public operations={public_count} admin operations={len(operations)-public_count} source_sha256={sha}")
         return 0
 
     drift: list[str] = []

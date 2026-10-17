@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 import json
+import hashlib
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from typing import Any
 
 from sqlalchemy import text
@@ -84,6 +86,7 @@ class PostgresGlobalOperations:
             "lifecycle_state": "ARCHIVED" if d["status"] == "DELETION_REQUESTED" else d["status"],
             "timezone_id": d["timezone_id"], "created_at": _iso(d["created_at"]), "updated_at": _iso(d["updated_at"]),
         }
+        if d.get("site_id"): out["site_id"] = str(d["site_id"])
         if d.get("canonical_domain"): out["canonical_domain"] = d["canonical_domain"]
         if d.get("default_language_code"): out["default_language"] = d["default_language_code"]
         if d.get("locale_code"): out["locale_code"] = d["locale_code"]
@@ -240,7 +243,43 @@ class PostgresGlobalOperations:
                 page,size,off=_page(query); rows=c.execute(text("SELECT site_key FROM sites ORDER BY site_key LIMIT :l OFFSET :o"),{"l":size+1,"o":off}).fetchall(); vals=[self._site(c,_m(r)["site_key"]) for r in rows[:size]]
                 return 200,{"items":vals,"page":{"page":page,"page_size":size,"has_more":len(rows)>size}},{}
             if operation_id == "API15-G-011":
-                b=body or {}
+                b=dict(body or {})
+                from bp_application.authorization import AuthorizationService
+                from bp_domain.website_content import public_text
+                AuthorizationService.require_global(principal, set())
+                if not public_text(b.get("display_name"), required=True):
+                    raise ValidationFault("website name requires resolved plain text")
+                try:
+                    ZoneInfo(b["timezone_id"])
+                except (KeyError, ValueError, ZoneInfoNotFoundError) as exc:
+                    raise ValidationFault("timezone is invalid") from exc
+                # Serializes automatic allocation with every INSERT into sites,
+                # including older callers supplying an explicit readable key.
+                c.execute(text("LOCK TABLE sites IN SHARE ROW EXCLUSIVE MODE"))
+                request_key = headers.get("idempotency-key")
+                digest = hashlib.sha256(json.dumps(b, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+                replay_key = hashlib.sha256(request_key.encode()).hexdigest() if request_key else None
+                if replay_key:
+                    old = c.execute(text(
+                        "SELECT details FROM audit_events WHERE actor_admin_id=:actor "
+                        "AND event_code='SITE.CREATED' AND details->>'creation_key'=:key "
+                        "ORDER BY occurred_at DESC LIMIT 1"
+                    ), {"actor":principal.admin_id,"key":replay_key}).fetchone()
+                    if old:
+                        details = _m(old)["details"]
+                        if isinstance(details, str): details = json.loads(details)
+                        if details.get("creation_fingerprint") != digest:
+                            raise Conflict("creation key was used for different website values")
+                        return 201, details["creation_response"], {}
+                if not b.get("site_key"):
+                    number = c.execute(text(
+                        "SELECT COALESCE(MAX(substring(site_key from 6)::numeric),0)+1 "
+                        "FROM sites WHERE site_key ~ '^SITE-[0-9]{2,}$'"
+                    )).scalar_one()
+                    b["site_key"] = f"SITE-{int(number):02d}"
+                home = b.get("homepage") or {}
+                if any(not public_text(value) for value in home.values()):
+                    raise ValidationFault("homepage requires resolved plain text")
                 if self.presentation_policy is None:
                     raise RuntimeError("canonical presentation policy is required for provisioning")
                 self.presentation_policy.require_provisioning_presentation(b.get("presentation"))
@@ -281,13 +320,15 @@ class PostgresGlobalOperations:
                 baseline = c.execute(
                     text(
                         "SELECT app.insert_website_site_baseline("
-                        ":site_id,:actor,CAST(:presentation AS jsonb),CAST(:pages AS jsonb))"
+                        ":site_id,:actor,CAST(:presentation AS jsonb),CAST(:pages AS jsonb)"
+                        + (",CAST(:home AS jsonb))" if home else ")")
                     ),
                     {
                         "site_id": sid,
                         "actor": principal.admin_id,
                         "presentation": json.dumps(b["presentation"], sort_keys=True),
                         "pages": json.dumps(b["static_pages"], sort_keys=True),
+                        **({"home":json.dumps(home,ensure_ascii=False)} if home else {}),
                     },
                 ).scalar_one()
                 if isinstance(baseline, str):
@@ -304,9 +345,6 @@ class PostgresGlobalOperations:
                     "AND hostname_normalized=:hostname AND is_active=true AND is_canonical=true LIMIT 1"
                 ), {"site_id":sid,"hostname":hostname}).fetchone()
                 domain_ready=domain_row is not None
-                self._write_audit(c,event_code="SITE.CREATED",principal=principal,headers=headers,
-                                  target_type="SITE",target_id=sid,site_id=sid,
-                                  details={"operation_id":operation_id,"temporary_hostname":hostname})
                 readiness={**baseline,"temporary_domain_ready":domain_ready}
                 missing=[name for name,ready in (
                     ("SETTINGS",readiness["settings_ready"]),
@@ -318,16 +356,18 @@ class PostgresGlobalOperations:
                 if not readiness["overall_ready"]:
                     raise RuntimeError("mandatory website provisioning readiness failed")
                 persisted_hostname = _m(domain_row)["hostname"]
-                return (
-                    201,
-                    {
-                        "site": self._site(c, b["site_key"]),
-                        "temporary_hostname": persisted_hostname,
-                        "temporary_site_url": temporary_site_url(persisted_hostname, self.temporary_site_url_config),
-                        "readiness": readiness,
-                    },
-                    {},
-                )
+                response = {
+                    "site": self._site(c, b["site_key"]),
+                    "temporary_hostname": persisted_hostname,
+                    "temporary_site_url": temporary_site_url(persisted_hostname, self.temporary_site_url_config),
+                    "readiness": readiness,
+                }
+                self._write_audit(c,event_code="SITE.CREATED",principal=principal,headers=headers,
+                    target_type="SITE",target_id=sid,site_id=sid,details={
+                        "operation_id":operation_id,"temporary_hostname":hostname,
+                        **({"creation_key":replay_key,"creation_fingerprint":digest,"creation_response":response} if replay_key else {}),
+                    })
+                return 201, response, {}
             if operation_id in {
                 "API15-G-012",
                 "API15-G-013",

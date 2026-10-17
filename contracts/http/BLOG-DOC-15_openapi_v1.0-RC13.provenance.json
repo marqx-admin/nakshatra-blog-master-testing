@@ -1,8 +1,8 @@
 {
   "artifact": "contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml",
-  "authority": "BLOG-DOC-15 v1.0-RC13 executable server-authored temporary-site URL correction",
-  "status": "WU05_RC13_SERVER_AUTHORED_TEMPORARY_SITE_URL",
-  "sha256": "5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef",
+  "authority": "RC13 with owner-authorized UF-06 and V4 W2-W4 amendments",
+  "status": "W4_CREATION_PRIVATE_DRAFT_PREVIEW_READINESS",
+  "sha256": "40e642fab61bae9f5fd60afac2ad76912cb6f1a5c1fe4e251dc7f0485f278461",
   "supersedes": {
     "artifact": "BLOG-DOC-15_openapi_v1.0-RC12.yaml",
     "sha256": "f5bbedf280cd87705ae98d88dcca5fac1cda604797e5a274e9ca94c27ee5d0cd"
@@ -12,5 +12,53 @@
     "OPTIONAL_CREATE_WEBSITE_RESPONSE_TEMPORARY_SITE_URL",
     "LOCALHOST_ONLY_HTTP_VALIDATION"
   ],
-  "note": "RC13 adds one reusable URL schema, applies it to AdminSiteContext, and adds optional CreateWebsiteResponse.temporary_site_url. RC12 remains byte-unchanged. No operation, permission, table, or migration is added."
+  "note": "RC13 adds one reusable URL schema, applies it to AdminSiteContext, and adds optional CreateWebsiteResponse.temporary_site_url. RC12 remains byte-unchanged. No operation, permission, table, or migration is added.",
+  "uf06_amendment": {
+    "previous_sha256": "5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef",
+    "scope": [
+      "PUB-BLOG-01",
+      "BlogPageData",
+      "EXISTING_PUBLIC_PAGE_ENDPOINT_ONLY"
+    ],
+    "note": "Owner-authorized amendment. No new endpoint, permission, database table or migration. Earlier RC12 and older artifacts are unchanged."
+  },
+  "w2_amendment": {
+    "previous_sha256": "ff4993ef815be07aec759f233f672aa70f977da4c5d258c007821e752ea8c350",
+    "scope": [
+      "HomepageInput optional h1/intro_text and clearable lead",
+      "StaticPagesPatch merge-only updates",
+      "AdminNavDestination BLOG"
+    ],
+    "note": "Owner-authorized W2; no new endpoint or presentation style change. Additive DB-MIG-022 is required before runtime use."
+  },
+  "pre_w3_sha256": "09794ad4cf574f2d6ac6c14be9bde1de7b2f65321eb664c0046f76c21d78f75d",
+  "w3_amendment": {
+    "previous_sha256": "09794ad4cf574f2d6ac6c14be9bde1de7b2f65321eb664c0046f76c21d78f75d",
+    "scope": [
+      "recipe_version=2 explicit opt-in; legacy recipe behavior unchanged",
+      "STANDARD and Custom base STANDARD",
+      "persisted PresentationCards.image_profile_id"
+    ],
+    "note": "Existing schema_version=1 envelope and storage retained. No migration or tenant backfill."
+  },
+  "pre_w4_sha256": "e18e9b28994368ce925212c7ba71b1681ecf866300d8c8f3b231b65c2dcfe864",
+  "w4_amendment": {
+    "previous_sha256": "e18e9b28994368ce925212c7ba71b1681ecf866300d8c8f3b231b65c2dcfe864",
+    "scope": [
+      "automatic site key and optional approved Home text",
+      "session-bound whole-site preview",
+      "computed readiness"
+    ],
+    "verification": "Focused automated checks recorded in apps/public-universal/W4_IMPLEMENTATION.md; runtime/browser/database acceptance remains deferred",
+    "migration": "DB-MIG-023 function overload only; requires unapplied DB-MIG-022; not executed"
+  },
+  "private_draft_preview_amendment": {
+    "previous_sha256": "4e18304dac7a97a1d28bf18c71cc65df33f59f250320895f428179fc90cbd3ef",
+    "scope": [
+      "private website preview may render saved disabled/incomplete static-page drafts",
+      "public static-page eligibility remains enabled, complete and placeholder-free",
+      "static draft sections may be empty in PageData"
+    ],
+    "note": "Owner-authorized V4 implementation correction. No endpoint, operation, permission, table or migration added."
+  }
 }

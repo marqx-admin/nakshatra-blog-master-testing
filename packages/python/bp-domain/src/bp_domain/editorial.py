@@ -542,7 +542,7 @@ def validate_navigation_destination(value: Any, field: str) -> dict[str, Any]:
     if not isinstance(value, dict) or set(value) - {"kind", "target_id", "static_page_key", "url"}:
         raise validation_error(field, "Navigation destination must be a typed object.")
     kind = value.get("kind")
-    if kind not in {"HOME", "ARTICLE", "CATEGORY", "TAG", "AUTHOR", "SEARCH", "STATIC", "EXTERNAL"}:
+    if kind not in {"HOME", "BLOG", "ARTICLE", "CATEGORY", "TAG", "AUTHOR", "SEARCH", "STATIC", "EXTERNAL"}:
         raise validation_error(field, "Navigation destination kind is invalid.")
     target = value.get("target_id")
     static_key = value.get("static_page_key")

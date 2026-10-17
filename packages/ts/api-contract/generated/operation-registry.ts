@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
 // Source: contracts/http/BLOG-DOC-15_openapi_v1.0-RC13.yaml
-// Source SHA-256: 5c3d1246a313facce9b798331cbed5ec2293b3a8d8d0d1adb57373d6d7574eef
+// Source SHA-256: 40e642fab61bae9f5fd60afac2ad76912cb6f1a5c1fe4e251dc7f0485f278461
 
 export const operationRegistry = {
   "API15-AUTH-001": {
@@ -938,6 +938,29 @@ export const operationRegistry = {
     ],
     "permissions": "PREVIEW_AUTHORITY",
     "queryParameters": [],
+    "rateLimitClass": "PREVIEW_READ",
+    "requestContentType": null,
+    "siteContext": "PREVIEW",
+    "successStatus": 200
+  },
+  "API15-PUB-003": {
+    "authContext": "PREVIEW_AUTHORITY",
+    "concurrency": "NONE",
+    "headerParameters": [
+      "X-Request-ID"
+    ],
+    "idempotency": "NO",
+    "method": "GET",
+    "path": "/api/v1/public/preview/website",
+    "pathParameters": [],
+    "permissions": "PREVIEW_AUTHORITY",
+    "queryParameters": [
+      "path",
+      "q",
+      "page",
+      "page_size",
+      "handoff"
+    ],
     "rateLimitClass": "PREVIEW_READ",
     "requestContentType": null,
     "siteContext": "PREVIEW",
@@ -2248,6 +2271,44 @@ export const operationRegistry = {
     "queryParameters": [],
     "rateLimitClass": "ADMIN_WRITE",
     "requestContentType": "application/json",
+    "siteContext": "SITE",
+    "successStatus": 200
+  },
+  "API15-S-098": {
+    "authContext": "ADMIN_SESSION",
+    "concurrency": "NONE",
+    "headerParameters": [
+      "X-Request-ID"
+    ],
+    "idempotency": "NO",
+    "method": "POST",
+    "path": "/api/v1/admin/sites/{site_key}/website-preview",
+    "pathParameters": [
+      "site_key"
+    ],
+    "permissions": "site_settings.view + posts.view + navigation.view + media.view",
+    "queryParameters": [],
+    "rateLimitClass": "ADMIN_WRITE",
+    "requestContentType": null,
+    "siteContext": "SITE",
+    "successStatus": 201
+  },
+  "API15-S-099": {
+    "authContext": "ADMIN_SESSION",
+    "concurrency": "NONE",
+    "headerParameters": [
+      "X-Request-ID"
+    ],
+    "idempotency": "NO",
+    "method": "GET",
+    "path": "/api/v1/admin/sites/{site_key}/website-readiness",
+    "pathParameters": [
+      "site_key"
+    ],
+    "permissions": "site_settings.view + posts.view + navigation.view + media.view",
+    "queryParameters": [],
+    "rateLimitClass": "ADMIN_READ",
+    "requestContentType": null,
     "siteContext": "SITE",
     "successStatus": 200
   }

@@ -7,6 +7,7 @@ import { build } from "esbuild";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { readyStyleConfig, resolveDesign } from "@bp/presentation-catalogue";
+import { homepageCases } from "./fixtures/uf03-homepage.mjs";
 
 const app = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const outfile = resolve(app, "node_modules/.cache/universal-home-test.mjs");
@@ -45,4 +46,60 @@ test("all five ready styles use real selected posts, categories, lead and latest
     assert.match(html, /Real lead/);
     assert.match(html, /News/);
   }
+});
+
+// UF-03 cases authored in coding-only mode. Execution remains deferred.
+test("zero/single/3/12 homepage states retain one H1, latest label and exact supplied list order", () => {
+  for (const name of ["zero", "single", "three", "twelve"]) {
+    const value = homepageCases[name];
+    const html = render(value);
+    assert.equal((html.match(/<h1[ >]/g) ?? []).length, 1);
+    assert.match(html, /Latest articles/);
+    assert.equal((html.match(/class="article-card"/g) ?? []).length, value.latest_articles.length);
+    assert.doesNotMatch(html, /data-slot="LEAD"|data-slot="SELECTIONS"/);
+    let previous = -1;
+    for (const article of value.latest_articles) {
+      const position = html.indexOf(`href="${article.destination.url}"`);
+      assert.ok(position > previous);
+      previous = position;
+    }
+  }
+  assert.match(render(homepageCases.zero), /data-content-state="empty"/);
+  assert.match(render(homepageCases.single), /data-content-state="single"/);
+});
+
+test("interleaved selected sections retain authored order under each ready style", () => {
+  for (const style of ["STYLE_01", "STYLE_02", "STYLE_03", "STYLE_04", "STYLE_05"]) {
+    const html = render(homepageCases.interleavedSelections, style);
+    const labels = ["First authored posts", "Authored categories", "Last authored posts"];
+    assert.ok(html.indexOf(labels[0]) < html.indexOf(labels[1]));
+    assert.ok(html.indexOf(labels[1]) < html.indexOf(labels[2]));
+    assert.match(html, /data-slot="SELECTIONS"/);
+    assert.match(html, /data-item-count="1"/);
+  }
+});
+
+test("latest articles are not automatically promoted to extra featured cards", () => {
+  const html = render(homepageCases.leadAndLatest);
+  assert.match(html, /data-slot="LEAD"/);
+  assert.equal((html.match(/class="featured-article"/g) ?? []).length, 1);
+  assert.equal((html.match(/class="article-card"/g) ?? []).length, 3);
+  assert.doesNotMatch(html, /lead-supports|More featured articles/);
+});
+
+test("empty latest does not claim no published articles when an authored selection exists", () => {
+  const html = render(homepageCases.selectedWithoutLatest);
+  assert.match(html, /No latest articles/);
+  assert.doesNotMatch(html, /No articles have been published/);
+  assert.match(render(homepageCases.categoriesOnly), /Fixture category/);
+});
+
+test("Hindi introduction and long missing-media lead retain supplied text and language", () => {
+  const value = homepageCases.hindiWithoutMedia;
+  const html = render(value);
+  assert.match(html, /lang="hi-IN"/);
+  assert.ok(html.includes(value.intro.h1));
+  assert.ok(html.includes(value.lead_article.title));
+  assert.match(html, /data-has-media="false"/);
+  assert.doesNotMatch(html, /undefined|Invalid Date/);
 });

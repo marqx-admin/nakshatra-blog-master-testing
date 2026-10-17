@@ -45,7 +45,7 @@ def test_chat03_route_method_operation_and_success_status_parity():
                 expected[oid] = (method.upper(), path, int(op["x-success-status"]))
 
     assert actual == expected
-    assert len(api_routes) == 51
+    assert len(api_routes) == 52
     assert (
         len(
             {
@@ -54,11 +54,11 @@ def test_chat03_route_method_operation_and_success_status_parity():
                 if getattr(route, "operation_id", None) in expected
             }
         )
-        == 51
+        == 52
     )
     assert {oid for oid, _, _ in api_routes} == set(expected)
     assert len([key for key in actual if key.startswith("API15-AUTH-")]) == 12
-    assert len([key for key in actual if key.startswith("API15-PUB-")]) == 2
+    assert len([key for key in actual if key.startswith("API15-PUB-")]) == 3
     assert len([key for key in actual if key.startswith("API15-G-")]) == 36
     assert all(
         not any(param.name == "_c" for param in route.dependant.query_params)
@@ -78,11 +78,11 @@ def test_chat03_route_method_operation_and_success_status_parity():
 def test_chat03_contract_metadata_is_loaded_directly_from_the_canonical_rc8_yaml():
     spec = load_openapi(CANON)
     owned = list(owned_operations(spec))
-    assert len(list(iter_operations(spec))) == 113
-    assert len(spec["paths"]) == 86
-    assert len(spec["components"]["schemas"]) == 249
-    assert len(owned) == 51
+    assert len(list(iter_operations(spec))) == 116
+    assert len(spec["paths"]) == 89
+    assert len(spec["components"]["schemas"]) == 252
+    assert len(owned) == 52
     assert all(operation.site_context in {"PUBLIC", "PREVIEW", "AUTH", "SITE", "GLOBAL"} for operation in owned)
     assert all(operation.rate_class for operation in owned)
     assert all(operation.responses and str(operation.success_status) in operation.responses for operation in owned)
-    assert len({(operation.method, operation.path) for operation in owned}) == 51
+    assert len({(operation.method, operation.path) for operation in owned}) == 52
