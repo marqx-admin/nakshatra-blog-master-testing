@@ -28,7 +28,7 @@ const render = (Component, data) => renderToStaticMarkup(React.createElement(Com
 test("article renders long-form editorial anatomy and all controlled block families without unsafe embeds", () => {
   const html = render(ArticlePage, articlePageFixture());
   assert.equal((html.match(/<h1[ >]/g) ?? []).length, 1);
-  for (const text of ["Supplied category", "Published", "Updated", "Supplied quotation", "Supplied credit", "Column 0", "Value 7", "Supplied callout", "Supplied disclaimer", "Supplied reference", "Supplied tag", "Related reading", "About the author"]) assert.ok(html.includes(text), text);
+  for (const text of ["Supplied category", "प्रकाशित", "अपडेट किया गया", "Supplied quotation", "Supplied credit", "Column 0", "Value 7", "Supplied callout", "Supplied disclaimer", "Supplied reference", "Supplied tag", "संबंधित लेख", "लेखक के बारे में"]) assert.ok(html.includes(text), text);
   assert.match(html, /<thead><tr><th scope="col">/);
   assert.match(html, /<tbody><tr><td>/);
   assert.match(html, /lang="hi-IN"/);
@@ -41,7 +41,7 @@ test("minimal article omits missing featured media and empty optional regions", 
   const data = articlePageFixture({ featured_media: undefined, author: undefined, categories: [], tags: [], body: { blocks: [] } });
   delete data.related_content;
   const html = render(ArticlePage, data);
-  assert.doesNotMatch(html, /class="article-featured-media"|class="article-after"|class="article-categories"|About the author|Related reading/);
+  assert.doesNotMatch(html, /class="article-featured-media"|class="article-after"|class="article-categories"|लेखक के बारे में|संबंधित लेख/);
   assert.equal((html.match(/<h1[ >]/g) ?? []).length, 1);
 });
 
@@ -51,7 +51,7 @@ test("missing body media preserves the supplied caption and table without header
     { block_id: "table", type: "TABLE", payload: { header_row: false, rows: [[{ runs: [{ text: "First data row", marks: [] }] }]] } },
   ] } });
   const html = render(ArticlePage, data);
-  assert.match(html, /Article media unavailable/);
+  assert.match(html, /लेख का मीडिया उपलब्ध नहीं है/);
   assert.match(html, /Supplied missing-media caption/);
   assert.match(html, /First data row/);
   assert.doesNotMatch(html, /<thead>/);
@@ -59,7 +59,7 @@ test("missing body media preserves the supplied caption and table without header
 
 test("Category and Tag archives retain supplied article order, empty states and pagination URLs", () => {
   for (const kind of ["category", "tag"]) {
-    assert.match(render(CollectionPage, archiveFixture(kind)), /No articles in Supplied archive/);
+    assert.match(render(CollectionPage, archiveFixture(kind)), /Supplied archive में कोई लेख नहीं है/);
     const html = render(CollectionPage, archiveFixture(kind, [fixtureArticle(3), fixtureArticle(1)]));
     assert.ok(html.indexOf('href="/article/fixture-3"') < html.indexOf('href="/article/fixture-1"'));
     assert.match(html, new RegExp(`href="/${kind}/fixture\\?page=3"`));
@@ -72,9 +72,9 @@ test("Author page uses public biography, initials fallback and genuine article c
   assert.match(empty, /Supplied biography/);
   assert.match(empty, /avatar-fallback large/);
   assert.match(empty, /FW/);
-  assert.match(empty, /No public articles/);
+  assert.match(empty, /कोई सार्वजनिक लेख नहीं/);
   const html = render(AuthorPage, authorPageFixture([fixtureArticle(1)]));
-  assert.match(html, /Articles by Fixture Writer/);
+  assert.match(html, /Fixture Writer के लेख/);
   assert.match(html, /href="\/article\/fixture-1"/);
-  assert.doesNotMatch(html, /No public articles|undefined/);
+  assert.doesNotMatch(html, /कोई सार्वजनिक लेख नहीं|undefined/);
 });

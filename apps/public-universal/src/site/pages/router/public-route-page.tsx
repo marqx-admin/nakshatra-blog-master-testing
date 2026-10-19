@@ -11,9 +11,13 @@ import { SearchPage } from "../search/search-page";
 import { StaticInformationPage } from "../static/static-page";
 import { PreviewPage } from "../preview/preview-page";
 import { SystemPage } from "../system/system-page";
+import { messagesForLocale } from "../../lib/site-locale";
 
 export function PublicRoutePage(props: PublicRouteProps) {
-  return <>{props.privateSitePreview ? <aside className="website-preview-notice" aria-label="Private website preview"><strong>Private website preview</strong><span>Saved content · public activation unchanged · noindex</span><a href="/_preview/site?exit=1">Exit preview</a></aside> : null}<RouteContent {...props}/></>;
+  const render = props.render;
+  const locale = render.kind === "page" ? render.data.site?.locale_code ?? render.data.site?.default_language ?? "en" : "en";
+  const messages = messagesForLocale(locale);
+  return <>{props.privateSitePreview ? <aside className="website-preview-notice" aria-label={messages.privateWebsitePreview}><strong>{messages.privateWebsitePreview}</strong><span>{messages.previewSavedContent}</span><a href="/_preview/site?exit=1">{messages.exitPreview}</a></aside> : null}<RouteContent {...props}/></>;
 }
 
 function RouteContent({ render }: PublicRouteProps) {

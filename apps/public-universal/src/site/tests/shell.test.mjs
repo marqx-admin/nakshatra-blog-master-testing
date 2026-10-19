@@ -123,7 +123,7 @@ test("five ready styles and fourteen parity configs render through the same fixe
 test("empty menus retain verified Home, Articles and Search shortcuts without an empty Menu trigger", () => {
   const markup = shell("SITE-15", navigation());
   assert.doesNotMatch(markup, /menu-trigger|\/about|\/contact|\/privacy-policy|All rights reserved/);
-  assert.match(markup, /href="\/blog">Articles<\/a>/);
+  assert.match(markup, /href="\/blog">All Articles<\/a>/);
   assert.match(markup, /aria-label="Site shortcuts"/);
   assert.match(markup, /href="\/">Home<\/a>/);
   assert.match(markup, /href="\/search">Search<\/a>/);

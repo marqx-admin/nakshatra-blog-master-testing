@@ -54,7 +54,7 @@ test("zero/single/3/12 homepage states retain one H1, latest label and exact sup
     const value = homepageCases[name];
     const html = render(value);
     assert.equal((html.match(/<h1[ >]/g) ?? []).length, 1);
-    assert.match(html, /Latest articles/);
+    assert.match(html, /Latest Articles/);
     assert.equal((html.match(/class="article-card"/g) ?? []).length, value.latest_articles.length);
     assert.doesNotMatch(html, /data-slot="LEAD"|data-slot="SELECTIONS"/);
     let previous = -1;

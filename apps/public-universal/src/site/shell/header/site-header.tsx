@@ -6,16 +6,20 @@ import { ResponsiveMedia } from "../../components/responsive-media";
 import { MobileNavigation } from "../navigation/mobile-navigation";
 import { NavigationTree } from "../navigation/navigation-tree";
 import { isCurrentDestination } from "../../lib/destination";
+import { useSiteMessages } from "../../lib/site-locale";
+import { routeAwareHref } from "../../dev-preview/route-path";
 
 export function SiteHeader({ site, navigation, requestPath }: { site: SiteIdentity; navigation: NavigationBundle; requestPath: string }) {
+  const messages = useSiteMessages();
+  const searchHref = routeAwareHref(requestPath, "search", "/search");
   const reference = useContext(StandardRecipeContext);
   const enhanced = useContext(ResolvedAppearanceContext);
   const standard = reference || enhanced;
   // Only the always-supported routes fill an empty reference menu. Authored
   // navigation and information-page eligibility stay entirely server-owned.
   const items = standard && !navigation.header.items.length ? [
-    { label: "Home", destination: site.home_destination, children: [] },
-    { label: "Articles", destination: { kind: "STATIC" as const, page_id: "PUB-BLOG-01" as const, url: "/blog", is_external: false }, children: [] },
+    { label: messages.home, destination: site.home_destination, children: [] },
+    { label: messages.allArticles, destination: { kind: "STATIC" as const, page_id: "PUB-BLOG-01" as const, url: "/blog", is_external: false }, children: [] },
   ] : navigation.header.items;
   const row = useRef<HTMLDivElement>(null);
   const [compact, setCompact] = useState(false);
@@ -46,10 +50,10 @@ export function SiteHeader({ site, navigation, requestPath }: { site: SiteIdenti
       <DestinationLink destination={site.home_destination} className="brand-link" ariaCurrent={isCurrentDestination(site.home_destination, requestPath) ? "page" : undefined}>
         {site.logo_media ? <ResponsiveMedia media={site.logo_media} altOverride={site.display_name} className="brand-logo" /> : <strong className="brand-name">{site.display_name}</strong>}
       </DestinationLink>
-      <nav className="desktop-nav" aria-label="Primary navigation" inert={compact}>
+      <nav className="desktop-nav" aria-label={messages.primaryNavigation} inert={compact}>
         <NavigationTree items={items} requestPath={requestPath} idPrefix="desktop-children" />
       </nav>
-      <a className="header-search" href="/search" aria-current={requestPath === "/search" ? "page" : undefined}>Search</a>
+      <a className="header-search" href={searchHref} aria-current={requestPath === searchHref ? "page" : undefined}>{messages.search}</a>
       {/* RC11 navigation items have no stable item ID. The optional CTA remains off until a validated same-site destination is projected. */}
       <MobileNavigation items={items} requestPath={requestPath} />
     </div>

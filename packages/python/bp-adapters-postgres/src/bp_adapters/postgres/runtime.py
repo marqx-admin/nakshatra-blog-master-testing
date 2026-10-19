@@ -1388,7 +1388,7 @@ class PostgresPublicPageAdapter:
             return False
         row = connection.execute(
             text(
-                "SELECT 1 FROM post_url_history h WHERE h.site_id=:site_id AND h.old_slug=:slug "
+                "SELECT 1 FROM post_url_history h WHERE h.site_id=:site_id AND h.slug=:slug "
                 "AND NOT EXISTS (SELECT 1 FROM posts p WHERE p.site_id=h.site_id AND p.post_id=h.post_id) LIMIT 1"
             ),
             {"site_id": context.site_id, "slug": match.group(1)},

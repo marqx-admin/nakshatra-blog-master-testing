@@ -5,6 +5,11 @@ button, input { font: inherit; }
 .website-preview-notice { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding: .75rem 1rem; background: #17202a; color: #fff; font: 1rem/1.5 system-ui, sans-serif; }
 .website-preview-notice a { display: inline-flex; align-items: center; min-height: 44px; padding-inline: .5rem; margin-inline-start: auto; }
 .website-preview-notice a:focus-visible { outline-color: #fff; }
+.universal-dev-preview-notice { align-items: flex-start; flex-direction: column; }
+.universal-dev-preview-notice p { margin: .25rem 0 0; }
+.universal-dev-preview-templates { display: flex; flex-wrap: wrap; gap: .25rem .75rem; }
+.universal-dev-preview-notice .universal-dev-preview-templates a { margin-inline-start: 0; }
+.universal-dev-preview-templates a[aria-current="page"] { font-weight: 700; text-decoration: underline; text-underline-offset: .2em; }
 img, picture { max-width: 100%; }
 img { height: auto; }
 a { color: inherit; }

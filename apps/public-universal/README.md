@@ -4,6 +4,8 @@ One Next.js Pages Router application serves any registered website through the p
 
 The app renders the RC13 PageData response with one fixed Header/Footer shell. Presentation tokens are projected into a new style object for each response. Unknown hosts and untrusted API failures render a neutral state. Preview uses the existing backend handoff and session authority.
 
+Public interface labels use controlled English/Hindi resources selected from the API-owned site locale. Authored titles, prose, navigation labels, SEO and destinations remain API-owned and are not translated by the frontend. Published timestamps use that same site locale and its API-owned timezone.
+
 WU-04 visual option IDs and safe defaults come from `@bp/presentation-catalogue`. The shared page engines consume per-request resolved configuration; Header/Footer structure, Host authority and Preview authority remain fixed.
 
 Robots and sitemap requests pass through to the WU-02 API crawler routes with the same incoming Host. The backend remains responsible for crawler policy and tenant resolution.
@@ -21,3 +23,5 @@ WU-06 registers this existing package as one generic image/service beside the le
 The committed WU-04 catalogue supplies visual profiles and legacy parity configurations. WU-06 adds repository deployment definitions without changing traffic routing.
 
 Existing sites need active `preview.localhost` domain rows; see the [local startup and alias-repair guide](../../infrastructure/local/README.md). SITE-01 through SITE-14 all use this same application on 3015. Future sites receive their temporary Host atomically during provisioning. Do not use legacy port maps to select tenancy. DISABLED sites support only authorized private preview; normal public access remains closed until activation.
+
+For a tenant-neutral view of the shared templates, run `corepack pnpm dev:public-universal` from the repository root and open `http://127.0.0.1:3015/dev-preview`. This synthetic preview is served only when Next.js is in development mode and both the request Host and connection are loopback. Its page selector demonstrates the shared home, blog, article, category, tag, author, search, information, and system-page layouts. It does not call the Public API or resolve a tenant; production and non-local requests receive a 404.

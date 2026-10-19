@@ -3,11 +3,13 @@ import { useContext } from "react";
 import { HOME_SLOTS } from "@bp/presentation-catalogue";
 import { EmptyState, HomeFeaturedCategoriesSection, HomeFeaturedPostsSection, HomeLeadRegion, HomePrimaryArticleCollection, HomeSectionContainer, PageIntro } from "../../components/semantic-components";
 import { ResolvedAppearanceContext, useDesign } from "../../lib/design-context";
+import { useSiteMessages } from "../../lib/site-locale";
 
 type HomeData = components["schemas"]["HomePageData"];
 
 export function HomeComposition({ data }: { data: HomeData }) {
   const design = useDesign();
+  const messages = useSiteMessages();
   const modern = useContext(ResolvedAppearanceContext);
   const sections = data.sections.filter((section) =>
     section.section_kind === "POST_SELECTION" && !!section.posts?.length
@@ -28,16 +30,16 @@ export function HomeComposition({ data }: { data: HomeData }) {
     SELECTIONS: sections.length ? <div className="home-selection-stack">{sections.map((section) => {
       const isPosts = section.section_kind === "POST_SELECTION";
       return <div className="home-selection" data-slot={isPosts ? "POSTS" : "CATEGORIES"} data-item-count={isPosts ? section.posts?.length : section.categories?.length} key={section.section_key}>
-        <HomeSectionContainer label={section.label?.trim() ? section.label : isPosts ? "Featured articles" : "Explore categories"}>{isPosts
+        <HomeSectionContainer label={section.label?.trim() ? section.label : isPosts ? messages.featuredArticles : messages.exploreCategories}>{isPosts
           ? <HomeFeaturedPostsSection articles={section.posts ?? []} />
           : <HomeFeaturedCategoriesSection categories={section.categories ?? []} />}</HomeSectionContainer>
       </div>;
     })}</div> : null,
-    LATEST: <HomeSectionContainer label="Latest articles"><div className="home-latest" data-item-count={data.latest_articles.length}>{data.latest_articles.length
+    LATEST: <HomeSectionContainer label={messages.latestArticles}><div className="home-latest" data-item-count={data.latest_articles.length}>{data.latest_articles.length
       ? <HomePrimaryArticleCollection articles={data.latest_articles} />
-      : <EmptyState title={contentState === "empty" ? "No articles yet" : "No latest articles"} body={contentState === "empty"
-        ? "No articles have been published on this website yet. Please check back soon."
-        : "There are no articles in the latest list right now."} />}</div></HomeSectionContainer>,
+      : <EmptyState title={contentState === "empty" ? messages.noArticlesYet : messages.noLatestArticles} body={contentState === "empty"
+        ? messages.noArticlesPublished
+        : messages.noLatestArticles} />}</div></HomeSectionContainer>,
   };
   const visualOrder = HOME_SLOTS[design.homepage];
   // Keep authored selections together at the preset's first populated selection slot.

@@ -2,6 +2,7 @@ import type { ArticleBlock as ArticleBlockType, RichTextData } from "../lib/type
 import { DestinationLink } from "./destination-link";
 import { ResponsiveMedia } from "./responsive-media";
 import { MissingMediaFallback, RichText } from "./semantic-components";
+import { useSiteMessages } from "../lib/site-locale";
 
 export function ArticleBodyRenderer({ blocks }: { blocks: ArticleBlockType[] }) {
   return <div className="article-body">{blocks.map((block) => <ArticleBlock key={block.block_id} block={block} />)}</div>;
@@ -30,21 +31,23 @@ function ListBlock({ ordered, items }: { ordered: boolean; items: RichTextData[]
 function QuoteBlock({ quote, attribution, source }: { quote: RichTextData; attribution?: string | undefined; source?: string | undefined }) { return <blockquote><p><RichText value={quote} /></p>{attribution || source ? <footer>{attribution ? <cite>{attribution}</cite> : null}{source ? <span>{source}</span> : null}</footer> : null}</blockquote>; }
 function SeparatorBlock() { return <hr />; }
 function MediaBlock({ payload }: { payload: Extract<ArticleBlockType,{type:"MEDIA"}>["payload"] }) {
+  const messages = useSiteMessages();
   const media = payload.resolution_state === "MISSING" ? undefined : payload.media;
   const caption = payload.caption ?? media?.caption;
-  return <figure className="article-body-media">{media ? <ResponsiveMedia media={media} altOverride={payload.alt_override} /> : <MissingMediaFallback label="Article media unavailable" />}
+  return <figure className="article-body-media">{media ? <ResponsiveMedia media={media} altOverride={payload.alt_override} /> : <MissingMediaFallback label={messages.articleMediaUnavailable} />}
     {caption || media?.credit_text ? <figcaption>{caption ? <span>{caption}</span> : null}{media?.credit_text ? <small className="media-credit">{media.credit_text}</small> : null}</figcaption> : null}
   </figure>;
 }
 function TableBlock({ headerRow, rows }: { headerRow: boolean; rows: RichTextData[][] }) {
-  return <div className="table-region" role="region" aria-label="Article data table" tabIndex={0}><table>
+  const messages = useSiteMessages();
+  return <div className="table-region" role="region" aria-label={messages.articleDataTable} tabIndex={0}><table>
     {headerRow && rows.length ? <thead>{rows.slice(0, 1).map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <th key={cellIndex} scope="col"><RichText value={cell} /></th>)}</tr>)}</thead> : null}
     <tbody>{rows.slice(headerRow ? 1 : 0).map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex}><RichText value={cell} /></td>)}</tr>)}</tbody>
   </table></div>;
 }
 function safeEmbedUrl(value: string): string | undefined { try { const url = new URL(value); return url.protocol === "https:" && !url.username && !url.password ? url.toString() : undefined; } catch { return undefined; } }
-function EmbedBlock({ provider, source, caption }: { provider: string; source: string; caption?: string | undefined }) { const href = safeEmbedUrl(source); return <aside className="embed-fallback"><strong>{provider}</strong><p>{caption ?? "Embedded media is unavailable in this rendering context."}</p>{href ? <a href={href} target="_blank" rel="noopener noreferrer">Open approved source</a> : null}</aside>; }
+function EmbedBlock({ provider, source, caption }: { provider: string; source: string; caption?: string | undefined }) { const messages = useSiteMessages(); const href = safeEmbedUrl(source); return <aside className="embed-fallback"><strong>{provider}</strong><p>{caption ?? messages.embeddedMediaUnavailable}</p>{href ? <a href={href} target="_blank" rel="noopener noreferrer">{messages.openApprovedSource}</a> : null}</aside>; }
 function CalloutBlock({ label, body }: { label?: string | undefined; body: RichTextData }) { return <aside className="callout">{label ? <strong>{label}</strong> : null}<p><RichText value={body} /></p></aside>; }
 function CtaBlock({ label, supportingText, destination }: { label: string; supportingText?: string | undefined; destination: Extract<ArticleBlockType,{type:"CTA"}>["payload"]["destination"] }) { return <aside className="article-cta">{supportingText ? <p>{supportingText}</p> : null}<DestinationLink destination={destination} className="button-primary">{label}</DestinationLink></aside>; }
-function DisclaimerBlock({ label, body }: { label?: string | undefined; body: RichTextData }) { return <aside className="disclaimer"><strong>{label ?? "Disclaimer"}</strong><p><RichText value={body} /></p></aside>; }
-function SourcesBlock({ entries }: { entries: Extract<ArticleBlockType,{type:"SOURCES_REFERENCES"}>["payload"]["entries"] }) { return <section className="sources"><h2>Sources and references</h2><ol>{entries.map((entry, index) => { const href = entry.url ? safeEmbedUrl(entry.url) : undefined; return <li key={`${entry.title}-${index}`}><strong>{href ? <a href={href} target="_blank" rel="noopener noreferrer">{entry.title}</a> : entry.title}</strong>{entry.publisher ? <span>{entry.publisher}</span> : null}{entry.note ? <p>{entry.note}</p> : null}</li>; })}</ol></section>; }
+function DisclaimerBlock({ label, body }: { label?: string | undefined; body: RichTextData }) { const messages = useSiteMessages(); return <aside className="disclaimer"><strong>{label ?? messages.disclaimer}</strong><p><RichText value={body} /></p></aside>; }
+function SourcesBlock({ entries }: { entries: Extract<ArticleBlockType,{type:"SOURCES_REFERENCES"}>["payload"]["entries"] }) { const messages = useSiteMessages(); return <section className="sources"><h2>{messages.sourcesAndReferences}</h2><ol>{entries.map((entry, index) => { const href = entry.url ? safeEmbedUrl(entry.url) : undefined; return <li key={`${entry.title}-${index}`}><strong>{href ? <a href={href} target="_blank" rel="noopener noreferrer">{entry.title}</a> : entry.title}</strong>{entry.publisher ? <span>{entry.publisher}</span> : null}{entry.note ? <p>{entry.note}</p> : null}</li>; })}</ol></section>; }

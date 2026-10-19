@@ -31,7 +31,7 @@ test("archive route accepts BlogPageData, reuses shell/cards, and retains suppli
   const html = render(data);
   assert.equal((html.match(/<h1[ >]/g) ?? []).length, 1);
   assert.equal((html.match(/class="article-card"/g) ?? []).length, 3);
-  assert.match(html, /aria-label="Breadcrumb"/);
+  assert.match(html, /aria-label="ब्रेडक्रंब"/);
   assert.match(html, /class="pagination"/);
   assert.match(html, /href="https:\/\/site-15.example.test\/blog"/);
   let previous = -1;
@@ -45,11 +45,11 @@ test("archive route accepts BlogPageData, reuses shell/cards, and retains suppli
 
 test("empty first and exhausted later archive pages use honest distinct states", () => {
   const empty = render(blogFixture({ count: 0 }));
-  assert.match(empty, /No articles yet/);
+  assert.match(empty, /अभी कोई लेख प्रकाशित नहीं हुआ है/);
   assert.doesNotMatch(empty, /class="article-card"|class="pagination"/);
   const later = render(blogFixture({ count: 0, page: 4 }));
-  assert.match(later, /No articles on this page/);
-  assert.match(later, /Previous/);
+  assert.match(later, /इस पृष्ठ पर कोई लेख नहीं है/);
+  assert.match(later, /पिछला/);
   assert.match(later, /name="robots" content="noindex,follow"/);
   assert.doesNotMatch(later, /No articles have been published/);
 });

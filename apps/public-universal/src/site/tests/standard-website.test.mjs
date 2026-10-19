@@ -15,14 +15,14 @@ import { blogFixture } from "./fixtures/uf06-blog.mjs";
 const app = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const output = resolve(app, "node_modules/.cache/w1-standard-reference.mjs");
 mkdirSync(dirname(output), { recursive: true });
-await build({ stdin: { contents: 'export { StandardWebsiteReference } from "./src/site/reference/standard-website-reference.tsx"; export { PublicRoutePage } from "./src/site/pages/router/public-route-page.tsx"; export { MobileNavigation } from "./src/site/shell/navigation/mobile-navigation.tsx"; export { StandardRecipeContext } from "./src/site/lib/design-context.tsx";', resolveDir: app },
+await build({ stdin: { contents: 'export { StandardWebsiteReference } from "./src/site/reference/standard-website-reference.tsx"; export { PublicRoutePage } from "./src/site/pages/router/public-route-page.tsx"; export { MobileNavigation } from "./src/site/shell/navigation/mobile-navigation.tsx"; export { StandardRecipeContext } from "./src/site/lib/design-context.tsx"; export { formatDate } from "./src/site/components/semantic-components.tsx";', resolveDir: app },
   outfile: output, platform: "node", format: "esm", bundle: true, jsx: "automatic", external: ["react", "react/jsx-runtime", "react-dom"], logLevel: "silent",
   plugins: [{ name: "fixture-head", setup(b) {
     b.onResolve({ filter: /^next\/head$/ }, () => ({ path: "head", namespace: "fixture" }));
     b.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({ contents: "export default function Head({children}) { return children; }", resolveDir: app }));
   } }],
 });
-const { StandardWebsiteReference, PublicRoutePage, MobileNavigation, StandardRecipeContext } = await import(pathToFileURL(output).href);
+const { StandardWebsiteReference, PublicRoutePage, MobileNavigation, StandardRecipeContext, formatDate } = await import(pathToFileURL(output).href);
 const markup = (render, Component = StandardWebsiteReference) => renderToStaticMarkup(React.createElement(Component, { render }));
 const page = (data, requestPath = "/") => ({ kind: "page", data, requestPath });
 const documentFor = html => new JSDOM(html).window.document;
@@ -76,6 +76,39 @@ test("Hindi uses the approved fonts without changing supplied prose, titles, lin
   assert.match(html, /Mukta/);
   assert.match(html, /lang="hi-IN"/);
   assert.equal(documentFor(html).querySelector("h1").textContent, data.intro.h1);
+});
+
+test("Hindi locale localizes controlled public UI while preserving authored query and introduction text", () => {
+  const data = searchFixture("EMPTY", "हिंदी & English");
+  data.site.locale_code = "hi-IN";
+  data.site.timezone_id = "Asia/Kolkata";
+  const html = markup(page(data, "/search?q=हिंदी"));
+  const doc = documentFor(html);
+  assert.equal(doc.querySelector("h1").textContent, "लेख खोजें");
+  assert.equal(doc.querySelector("label[for=site-search-query]").textContent, "इस वेबसाइट पर खोजें");
+  assert.equal(doc.querySelector("#site-search-query").getAttribute("placeholder"), "लेख खोजें");
+  assert.equal(doc.querySelector(".search-hint").textContent, "प्रकाशित लेख खोजने के लिए कोई विषय दर्ज करें।");
+  assert.equal(doc.querySelector(".state-card p").textContent, "आपकी खोज से कोई लेख नहीं मिला। दूसरा शब्द आज़माएँ।");
+  assert.equal(doc.querySelector(".page-intro p").textContent, data.intro.intro_text);
+  assert.match(html, /aria-label="मुख्य नेविगेशन"/);
+  assert.doesNotMatch(doc.querySelector("main").textContent, /Search this site|Search articles|No results/);
+});
+
+test("Published dates use the public site locale and configured timezone", () => {
+  const value = "2026-01-01T23:30:00Z";
+  const utcDate = formatDate(value, "en-IN", "UTC");
+  const indiaDate = formatDate(value, "en-IN", "Asia/Kolkata");
+  const hindiDate = formatDate(value, "hi-IN", "Asia/Kolkata");
+  assert.notEqual(indiaDate, utcDate);
+  assert.match(indiaDate, /2 Jan 2026/);
+  assert.equal(hindiDate, new Intl.DateTimeFormat("hi-IN", { dateStyle: "medium", timeZone: "Asia/Kolkata" }).format(new Date(value)));
+
+  const data = searchFixture("RESULTS", "topic");
+  data.site.locale_code = "en-IN";
+  data.site.timezone_id = "Asia/Kolkata";
+  data.articles[0].published_at = value;
+  const doc = documentFor(markup(page(data, "/search")));
+  assert.equal(doc.querySelector(".article-card time").textContent, indiaDate);
 });
 
 test("Standard remains reference-only: existing styles and a later ordinary request keep their own presentation", () => {

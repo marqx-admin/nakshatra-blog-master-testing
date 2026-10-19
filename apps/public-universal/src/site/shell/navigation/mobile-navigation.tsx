@@ -2,8 +2,12 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { ResolvedAppearanceContext, StandardRecipeContext } from "../../lib/design-context";
 import type { NavigationItem } from "./navigation-types";
 import { NavigationTree } from "./navigation-tree";
+import { useSiteMessages } from "../../lib/site-locale";
+import { routeAwareHref } from "../../dev-preview/route-path";
 
 export function MobileNavigation({ items, requestPath }: { items: NavigationItem[]; requestPath: string }) {
+  const messages = useSiteMessages();
+  const searchHref = routeAwareHref(requestPath, "search", "/search");
   const reference = useContext(StandardRecipeContext);
   const enhanced = useContext(ResolvedAppearanceContext);
   const standard = reference || enhanced;
@@ -61,14 +65,14 @@ export function MobileNavigation({ items, requestPath }: { items: NavigationItem
     <button ref={button} type="button" className="menu-trigger" aria-expanded={open} aria-controls={panelId} onClick={() => {
       if (open) button.current?.focus();
       setOpen(!open);
-    }}>Menu</button>
-    <div id={panelId} ref={panel} className="mobile-nav-panel" role={standard ? "region" : undefined} aria-label={standard ? "Site navigation" : undefined} hidden={!open} onClick={(event) => {
+    }}>{messages.menu}</button>
+    <div id={panelId} ref={panel} className="mobile-nav-panel" role={standard ? "region" : undefined} aria-label={standard ? messages.siteNavigation : undefined} hidden={!open} onClick={(event) => {
       if ((event.target as Element).closest("a")) { button.current?.focus(); setOpen(false); }
     }}>
-      {standard ? <button type="button" className="menu-close" onClick={() => { button.current?.focus(); setOpen(false); }}>Close navigation</button> : null}
-      <nav aria-label="Mobile primary navigation">
+      {standard ? <button type="button" className="menu-close" onClick={() => { button.current?.focus(); setOpen(false); }}>{messages.closeNavigation}</button> : null}
+      <nav aria-label={messages.mobilePrimaryNavigation}>
       <NavigationTree key={String(open)} items={items} requestPath={requestPath} idPrefix="mobile-children" />
-      <a className="mobile-search-link" href="/search" aria-current={requestPath === "/search" ? "page" : undefined}>Search this site</a>
+      <a className="mobile-search-link" href={searchHref} aria-current={requestPath === searchHref ? "page" : undefined}>{messages.searchThisWebsite}</a>
     </nav></div>
   </div>;
 }

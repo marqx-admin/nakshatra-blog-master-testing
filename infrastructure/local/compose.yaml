@@ -41,7 +41,7 @@ services:
       OPENSEARCH_JAVA_OPTS: -Xms320m -Xmx320m
     ports: ["9200:9200"]
   minio:
-    image: minio/minio:latest
+    image: alpine/minio:RELEASE.2025-10-15T17-29-55Z
     profiles: [media]
     mem_limit: 320m
     command: [server, /data, --console-address, ":9001"]

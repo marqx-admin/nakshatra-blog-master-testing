@@ -87,6 +87,7 @@ class FixtureConnection:
         if "FROM homepage_sections" in sql:
             return Result([{"section_id": "posts", "section_key": "selected", "section_kind": "POST_SELECTION", "display_label": f"{key} selected stories"}, {"section_id": "topics", "section_key": "topics", "section_kind": "CATEGORY_SELECTION"}])
         if "FROM post_url_history" in sql:
+            assert "h.slug" in sql and "h.old_slug" not in sql
             return Result([1] if params["slug"] == "gone" else [])
         if "FROM redirects" in sql:
             return Result([])

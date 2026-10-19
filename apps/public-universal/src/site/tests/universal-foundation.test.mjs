@@ -92,7 +92,7 @@ test("one route tree and fixed shell; no compiled tenant identity", () => {
   assert.match(shell, /SiteFooter/);
   assert.match(shell, /presentationStyle\(presentation, locale\)/);
   const header = source("src/site/shell/header/site-header.tsx");
-  assert.match(header, /href="\/search"/);
+  assert.match(header, /routeAwareHref\(requestPath, "search", "\/search"\)/);
   assert.match(header, /site\.logo_media/);
   assert.doesNotMatch(header, /profile_id/);
   const mobile = source("src/site/shell/navigation/mobile-navigation.tsx");
